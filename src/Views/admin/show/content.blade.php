@@ -11,20 +11,19 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
     $singulares = $modelo;
 }
 ?>
-@section('menuobj')
-<li><a href="{{ URL::to($base_url . "/" . $plural .'/create') }}">{{ trans('crudgenerator::admin.layout.crear') }} {{ $singulares }}</a></li>
-@stop
+@push('menuobj')
+<li><a class="nav-link" href="{{ URL::to($base_url . "/" . $plural .'/create') }}">{{ trans('crudgenerator::admin.layout.crear') }} {{ $singulares }}</a></li>
+@endpush
 
 @section('contenido')
-<ol class="breadcrumb">
-    <li><a href="{{ url($base_url . "/" . $plural) }}">{{ ucfirst($plurales) }}</a></li>
-    <li class="active">{{ trans('crudgenerator::admin.layout.ver') }} {{ ucfirst($singulares) }}</li>
-</ol>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url($base_url . "/" . $plural) }}">{{ ucfirst($plurales) }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ trans('crudgenerator::admin.layout.ver') }} {{ ucfirst($singulares) }}</li>
+    </ol>
+</nav>
 <!--h1>{{ trans('crudgenerator::admin.layout.ver') }} {{ ucfirst($singulares) }}</h1-->
 
-@if (Session::has('message'))
-<div class="alert alert-info">{{ Session::pull('message') }}</div>
-@endif
 <?php
 //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modelo));
 $config['botones'] = trans("crudgenerator::article.labels.create");

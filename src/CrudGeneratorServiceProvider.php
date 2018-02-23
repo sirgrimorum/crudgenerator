@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\AliasLoader;
 use Sirgrimorum\CrudGenerator\ExtendedValidator;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
+use Illuminate\Support\Facades\Artisan;
+use Pusher\Pusher;
 
 class CrudGeneratorServiceProvider extends ServiceProvider {
 
@@ -24,8 +26,12 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
         $this->loadRoutesFrom(__DIR__ . '/Routes/web.php');
         $this->loadViewsFrom(__DIR__ . '/Views', 'sirgrimorum');
         $this->publishes([
-            __DIR__ . '/Views' => resource_path('views/vendor/sirgrimorum'),
+            __DIR__ . '/Views/admin' => resource_path('views/vendor/sirgrimorum/admin'),
+            __DIR__ . '/Views/crudgen' => resource_path('views/vendor/sirgrimorum/crudgen'),
                 ], 'views');
+        $this->publishes([
+            __DIR__ . '/Views/templates' => resource_path('views/vendor/sirgrimorum/templates'),
+                ], 'templates');
 
         $this->loadTranslationsFrom(__DIR__ . 'Lang', 'crudgenerator');
         $this->publishes([
@@ -53,16 +59,259 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
         $this->publishes([
             __DIR__ . '/Assets/datetimepicker' => public_path('vendor/sirgrimorum/datetimepicker'),
                 ], 'assets');
+        $this->publishes([
+            __DIR__ . '/Assets/select2' => public_path('vendor/sirgrimorum/select2'),
+                ], 'assets');
+        $this->publishes([
+            __DIR__ . '/Assets/typeahead' => public_path('vendor/sirgrimorum/typeahead'),
+                ], 'assets');
 
         /**
          * Extended validator
          */
         Validator::resolver(
                 function($translator, $data, $rules, $messages, $customAttributes ) {
-            $messages["unique_composite"] = trans("sirgrimorum_cms::admin.error_messages.unique_composite");
+            $messages["unique_composite"] = trans("crudgenerator::admin.error_messages.unique_composite");
             return new ExtendedValidator($translator, $data, $rules, $messages, $customAttributes);
         }
         );
+        /**
+         * Console commands
+         */
+        Artisan::command('crudgen:sendmessage ', function () {
+            $message = $this->ask("Message?");
+            $options = array(
+                'cluster' => 'us2',
+                'encrypted' => true
+            );
+            $pusher = new Pusher(
+                    'adf503a8756876656ec6', 'b21a0ee639fbb893e41d', '481076', $options
+            );
+            $data=[];
+            $data['message'] = $message;
+            $result= $pusher->trigger('my-channel', 'my-event', $data,null,true);
+            $this->line(print_r($result,true));
+            if($result){
+                $this->info("Listo!");
+            }else{
+                $this->error("Paila!");
+            }
+        })->describe('Broadcast a message');
+
+        Artisan::command('crudgen:createmodel {table : The Table name} {--path= : Provide a custom paht for saving the model file relative to base_path()}', function ($table) {
+            $this->line("Preparing model attributes");
+            $bar = $this->output->createProgressBar(4);
+            $options = $this->options('path');
+            $modelName = $singular = substr($table, 0, strlen($table) - 1);
+            if ($options['path'] != "") {
+                $path = $options['path'];
+            } else {
+                $path = "app/" . ucfirst($modelName);
+            }
+            $path = str_replace("//", "/", str_replace(["\\", " "], ["/", ""], $path));
+            $AuxclassName = explode("/", str_replace(".php", "", $path));
+            $className = "";
+            $justPath = "";
+            $prefijoPath = "/";
+            $prefijo = "";
+            $fileName = "";
+            $nameSpace = "";
+            foreach ($AuxclassName as $indice => $pedazo) {
+                if ($indice == count($AuxclassName) - 1) {
+                    $nameSpace = $className;
+                    $fileName = str_finish(ucfirst($pedazo), ".php");
+                    $modelName = strtolower($pedazo);
+                } else {
+                    $justPath .=$prefijoPath . $pedazo;
+                    $prefijoPath = "/";
+                }
+                $className .= $prefijo . ucfirst($pedazo);
+                $prefijo = "\\";
+            }
+            $path = str_finish($path, ".php");
+            $bar->advance();
+            $this->line("Loading details from {$table} table");
+            $config = CrudGenerator::getModelDetailsFromDb($table);
+            $config["modelo"] = $config["model"] = $modelName;
+            $config["nameSpace"] = $nameSpace;
+            $bar->advance();
+            $this->info("Details loaded!");
+            //$this->line(print_r($config, true));
+            $bar->advance();
+            $confirm = $this->choice("Do you wisth to continue and save the model to '{$path}' with the className '{$className}'?", ['yes', 'no'], 0);
+            if ($confirm == 'yes') {
+                $this->line("Saving Model for {$modelName} in {$path} with className '{$className}'");
+                if (CrudGenerator::saveResource("sirgrimorum::templates.model", false, base_path($justPath), $fileName, $config)) {
+                    $this->info("Model file saved!");
+                    $bar->finish();
+                } else {
+                    $this->error("Something went wrong and the model file could not be saved");
+                    $bar->finish();
+                }
+            } else {
+                $bar->finish();
+            }
+        })->describe('Create a Model file based on a database table');
+
+        Artisan::command('crudgen:createlang {model : The The NAME of the model} {--path= : Provide a custom paht for saving the model langs relatice to resource_path(), default is in vendor/crudgenerator (trans(crudgenerator::model))}', function ($model) {
+            $this->line("Preparing model attributes");
+            $bar = $this->output->createProgressBar(4);
+            $options = $this->options('path');
+            if ($options['path'] != "") {
+                $path = $options['path'];
+            } else {
+                $path = "lang/vendor/crudgenerator/" . config("app.locale");
+            }
+            $path = str_replace("//", "/", str_replace(["\\", " "], ["/", ""], $path));
+            $filename = str_finish(strtolower($model), ".php");
+            $bar->advance();
+            $this->line("Loading config array for {$model}");
+            $config = CrudGenerator::getConfig($model, false);
+            $bar->advance();
+            $this->info("Config loaded!");
+            //$this->line(print_r($config, true));
+            $bar->advance();
+            $this->line("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
+            if (CrudGenerator::saveResource("sirgrimorum::templates.lang", false, resource_path($path), $filename, $config)) {
+                $this->info("Model Lang file saved!");
+                $bar->finish();
+            } else {
+                $this->error("Something went wrong and the model lang file could not be saved");
+                $bar->finish();
+            }
+        })->describe('Create a Model Lang file from config array');
+
+        Artisan::command('crudgen:createconfig {model : The NAME of the model} {--path= : Provide a custom paht for saving the config file}', function ($model) {
+            $this->line("Generating Config for {$model}");
+            $bar = $this->output->createProgressBar(4);
+            $config = CrudGenerator::getConfig($model, true, '', '', false);
+            $bar->advance();
+            $options = $this->options('path');
+            if ($options['path'] != "") {
+                $path = $options['path'];
+            } else {
+                $path = "sirgrimorum.models." . strtolower($model);
+            }
+            $this->info("Config generated!");
+            //$this->line(print_r($config, true));
+            $bar->advance();
+            $confirm = $this->choice("Do you wisth to continue and save config to '{$path}'?", ['yes', 'no'], 0);
+            if ($confirm == 'yes') {
+                $this->line("Saving Config for {$model} in {$path}");
+                if (CrudGenerator::saveConfig($config, $path)) {
+                    $this->info("Config file saved!");
+                    $bar->advance();
+                    $confirm = $this->choice("Do you wisth to register the new config to the crudgenerator configuration file?", ['yes', 'no'], 0);
+                    if ($confirm == 'yes') {
+                        $this->line("Registering Config for {$model} in crudgenerator configuration file");
+                        if (CrudGenerator::registerConfig($config, $path)) {
+                            $this->info("Config registered!");
+                            $bar->finish();
+                        } else {
+                            $this->error("Something went wrong and config could not be registered");
+                            $bar->finish();
+                        }
+                    } else {
+                        $bar->finish();
+                    }
+                } else {
+                    $this->error("Something went wrong and the config file could not be saved");
+                    $bar->finish();
+                }
+            } else {
+                $bar->finish();
+            }
+        })->describe('Create a config file for a model');
+
+        Artisan::command('crudgen:resources {model : The NAME of the model}', function ($model) {
+            $bar = $this->output->createProgressBar(11);
+            $confirm = $this->choice("Do you wisth to generate the files with Localized Routes?", ['yes', 'no'], 0);
+            if ($confirm == "yes") {
+                $localized = true;
+            } else {
+                $localized = false;
+            }
+            $config = CrudGenerator::getConfig($model, false);
+            $confirm = $this->choice("Do you wisth to generate Controller, Request, Policy and Repository files?", ['yes', 'no'], 0);
+            if ($confirm == 'yes') {
+                $results = CrudGenerator::generateResources($config, $localized, $bar, "controller");
+                if ($results[0]) {
+                    $this->info("Controller file created");
+                } else {
+                    $this->error("Something went wrong saving Controller file");
+                }
+                if ($results[1]) {
+                    $this->info("Request file created");
+                } else {
+                    $this->error("Something went wrong saving Request file");
+                }
+                if ($results[2]) {
+                    $this->info("Policy file created");
+                } else {
+                    $this->error("Something went wrong saving Policy file");
+                }
+                if ($results[3]) {
+                    $this->info("Repository file created");
+                } else {
+                    $this->error("Something went wrong saving Repository file");
+                }
+            }
+            $confirm = $this->choice("Do you wisth to generate Create, Edit, Index and Show views?", ['yes', 'no'], 0);
+            if ($confirm == 'yes') {
+                $results = CrudGenerator::generateResources($config, $localized, $bar, "views");
+                if ($results[0]) {
+                    $this->info("Create view file created");
+                } else {
+                    $this->error("Something went wrong saving Create view file");
+                }
+                if ($results[1]) {
+                    $this->info("Edit view file created");
+                } else {
+                    $this->error("Something went wrong saving Edit view file");
+                }
+                if ($results[2]) {
+                    $this->info("Index view file created");
+                } else {
+                    $this->error("Something went wrong saving Index view file");
+                }
+                if ($results[3]) {
+                    $this->info("Show view file created");
+                } else {
+                    $this->error("Something went wrong saving Show view file");
+                }
+            }
+            $confirm = $this->choice("Do you wisth to append new routes for the model (web routes)?", ['yes', 'no'], 0);
+            if ($confirm == 'yes') {
+                if (CrudGenerator::generateResources($config, $localized, $bar, "routes")) {
+                    $this->info("Routes registered");
+                } else {
+                    $this->error("Something went wrong registering routes");
+                }
+            }
+            $confirm = $this->choice("Do you wisth to register the model policy?", ['yes', 'no'], 0);
+            if ($confirm == 'yes') {
+                if (CrudGenerator::registerPolicy($config)) {
+                    $this->info("Policy registered");
+                } else {
+                    $this->error("Something went wrong registering the policy");
+                }
+            }
+            $bar->advance();
+            $confirm = $this->choice("Do you wisth to create a Lang File for the model?", ['yes', 'no'], 0);
+            if ($confirm == 'yes') {
+                $path = "lang/vendor/crudgenerator/" . config("app.locale");
+                $filename = str_finish(strtolower($model), ".php");
+                $this->line("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
+                if (CrudGenerator::saveResource("sirgrimorum::templates.lang", $localized, resource_path($path), $filename, $config)) {
+                    $this->info("Model Lang file saved!");
+                    $bar->finish();
+                } else {
+                    $this->error("Something went wrong and the model lang file could not be saved");
+                    $bar->finish();
+                }
+            }
+            $bar->finish();
+        })->describe('Create a config file for a model');
     }
 
     /**

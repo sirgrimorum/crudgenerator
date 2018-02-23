@@ -2,13 +2,13 @@
 
 return [
     'create' => [
-        'titulo' => 'Create'
+        'titulo' => 'Crear'
     ],
     'edit' => [
-        'titulo' => 'Edit'
+        'titulo' => 'Editar'
     ],
     'index' => [
-        'titulo' => 'Index',
+        'titulo' => 'Lista',
         'eliminar' => 'Eliminar',
         'ver' => 'Ver',
         'editar' => 'Editar'
@@ -16,7 +16,7 @@ return [
     'layout' => [
         'title' => 'Administrador',
         'toggle_navigation' => 'Alternar navegación',
-        'admin' => 'Manager',
+        'admin' => 'Administrador',
         'crear' => 'Crear',
         'ver' => 'Detalles',
         'editar' => 'Editar',
@@ -41,8 +41,8 @@ return [
         ],
     ],
     'privado' => [
-        'titulo' => 'Manager',
-        'ingresarfb' => 'Log in with Facebook'
+        'titulo' => 'Administrador',
+        'ingresarfb' => 'Iniciar sessión con Facebook'
     ],
     'show' => [
     ],
@@ -50,15 +50,26 @@ return [
         'propietarios' => 'propietary',
         'nopropietarios' => 'no propietary',
     ],
-    'formats'=>[
-        'date'=>'YYYY-MM-DD',
-        'datetime'=>'YYYY-MM-DD HH:mm:ss',
-        'time'=>'HH:mm:ss',
-        'timestamp'=>'YYYY-MM-DD HH:mm:ss',
+    'formats' => [ // los formatos de carbon y moment deben dar el mismo resultado
+        'carbon' => [
+            'date' => 'd-m-Y',
+            'datetime' => 'd-m-Y H:i:s',
+            'time' => 'H:i:s',
+            'timestamp' => 'd-m-Y H:i:s',
+        ],
+        'moment' => [
+            'date' => 'DD-MM-YYYY',
+            'datetime' => 'DD-MM-YYYY HH:mm:ss',
+            'time' => 'HH:mm:ss',
+            'timestamp' => 'DD-MM-YYYY HH:mm:ss',
+        ]
     ],
     'messages' => [
         'permission' => 'No tiene permiso para ejecutar esta acción',
-        'confirm_destroy' => '¿Está seguro que desea eliminar?',
+        'confirm_destroy' => '¿Está seguro que desea eliminar el registro ":modelName"?',
+        'destroy_success' => '<strong>Listo!</strong> El registro ":modelName" ha sido eliminado',
+        'update_success' => '<strong>Listo!</strong> El se han guardado los cambios en el registro ":modelName"',
+        'store_success' => '<strong>Listo!</strong> El registro ":modelName" ha sido creado',
         '200' => 'Listo',
         '422' => 'Error de validación',
         '404' => 'Página no encontrada',

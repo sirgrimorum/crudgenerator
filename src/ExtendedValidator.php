@@ -9,25 +9,22 @@ use Illuminate\Support\Arr;
 /**
  * Thanks to https://github.com/felixkiss
  */
-
 class ExtendedValidator extends Validator {
 
-     /**
+    /**
      * Creates a new instance of ExtendedValidator
      */
-    public function __construct($translator, $data, $rules, $messages)
-    {
-        parent::__construct($translator, $data, $rules, $messages);
+    public function __construct($translator, $data, $rules, $messages, $customAttributes) {
+        parent::__construct($translator, $data, $rules, $messages, $customAttributes);
 
         // Set custom validation error messages
-        if(!isset($this->messages['unique_with']))
-        {
+        if (!isset($this->messages['unique_with'])) {
             $this->messages['unique_with'] = $this->translator->get(
-                'uniquewith-validator::validation.unique_with'
+                    'uniquewith-validator::validation.unique_with'
             );
         }
     }
-    
+
     // Laravel uses this convention to look for validation rules, this function will be triggered 
     // for composite_unique
     public function validateUniqueComposite($attribute, $value, $parameters) {
@@ -36,43 +33,67 @@ class ExtendedValidator extends Validator {
         $data = $this->getData();
         // remove first parameter and assume it is the table name
         $table = array_shift($parameters);
+        
+        $ignore_id = null;
+        $ignore_column = null;
+        if (array_has($data, "_registro")) {
+            $modeloM = ucfirst(substr($table, 0, strlen($table) - 1));
+            $config = CrudGenerator::getConfig($modeloM);
+            $ignore_column = $config['id'];
+            $ignore_id = array_get($data, "_registro");
+        } else {
+            $lastParam = end($parameters);
+            if (preg_match('/^[1-9][0-9]*$/', $lastParam)) {
+                $modeloM = ucfirst(substr($table, 0, strlen($table) - 1));
+                $config = CrudGenerator::getConfig($modeloM);
+                $ignore_column = $config['id'];
+                $ignore_id = $lastParam;
+                array_pop($parameters);
+            }
+        }
 
         // start building the conditions
-        $fields = [ $attribute => $value]; // current field, the first in wich the rule is aplied
+        $fields = [ $attribute => $value]; // current field, the first in wich the rule is aplied not valid with getCount
         // iterates over the other parameters and build the conditions for all the required fields
         while ($field = array_shift($parameters)) {
             $fields[$field] = Arr::get($data, $field);
         }
 
+        $verifier = $this->getPresenceVerifier();
+        return $verifier->getCount(
+                        $table, $attribute, $value, $ignore_id, $ignore_column, $fields
+                ) == 0;
+         /* 
+         */
+        echo "<p>ignore_id=" . $ignore_id . ", ignore_column=" . $ignore_column . "</p>";
         // query the table with all the conditions
-        $result = \DB::table($table)->select(\DB::raw(1))->where($fields)->first();
+        $result = \DB::table($table)->select(\DB::raw(1))->where($fields)->where($ignore_column,"<>",$ignore_id)->first();
 
         return empty($result); // true if empty
     }
 
-    public function replaceUniqueComposite($message, $attribute, $rule, $parameters){
+    public function replaceUniqueComposite($message, $attribute, $rule, $parameters) {
         // remove first parameter and assume it is the table name
-            $table = array_shift($parameters);
-            $modeloM = ucfirst(substr($table, 0, strlen($table) - 1));
+        $table = array_shift($parameters);
+        $modeloM = ucfirst(substr($table, 0, strlen($table) - 1));
 
-            $config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
-            $config = CrudGenerator::translateConfig($config);
-            if (array_has($config, "campos." . $attribute . ".label")) {
-                $campos = '"' . array_get($config, "campos." . $attribute . ".label") . '"';
+        $config = CrudGenerator::getConfig($modeloM);
+        if (array_has($config, "campos." . $attribute . ".label")) {
+            $campos = '"' . array_get($config, "campos." . $attribute . ".label") . '"';
+        } else {
+            $campos = '"' . $attribute . '"';
+        }
+        $prefix = ", ";
+        foreach ($parameters as $parameter) {
+            if (array_has($config, "campos." . $parameter . ".label")) {
+                $campos.= $prefix . '"' . array_get($config, "campos." . $parameter . ".label") . '"';
             } else {
-                $campos = '"' . $attribute . '"';
+                $campos.= $prefix . '"' . $parameter . '"';
             }
-            $prefix = ", ";
-            foreach ($parameters as $parameter) {
-                if (array_has($config, "campos." . $parameter . ".label")) {
-                    $campos.= $prefix . '"' . array_get($config, "campos." . $parameter . ".label") . '"';
-                } else {
-                    $campos.= $prefix . '"' . $parameter . '"';
-                }
-            }
-            return str_replace(":fields", $campos, $message);
+        }
+        return str_replace(":fields", $campos, $message);
     }
-    
+
     /**
      * Usage: unique_with: table, column1, column2, ...
      *
@@ -81,8 +102,7 @@ class ExtendedValidator extends Validator {
      * @param  array $parameters
      * @return boolean
      */
-    public function validateUniqueWith($attribute, $value, $parameters)
-    {
+    public function validateUniqueWith($attribute, $value, $parameters) {
         // cleaning: trim whitespace
         $parameters = array_map('trim', $parameters);
 
@@ -112,28 +132,21 @@ class ExtendedValidator extends Validator {
         // case 2:
         //     $parameter = 'last_name=sur_name'
         //     => field_name = 'last_name', column_name = 'sur_name'
-        foreach ($parameters as $parameter)
-        {
+        foreach ($parameters as $parameter) {
             $parameter = array_map('trim', explode('=', $parameter, 2));
             $field_name = $parameter[0];
 
-            if (count($parameter) > 1)
-            {
+            if (count($parameter) > 1) {
                 $column_name = $parameter[1];
-            }
-            else
-            {
+            } else {
                 $column_name = $field_name;
             }
 
             // Figure out whether main field_name has an explicitly specified
             // column_name
-            if ($field_name == $column)
-            {
+            if ($field_name == $column) {
                 $column = $column_name;
-            }
-            else
-            {
+            } else {
                 $extra[$column_name] = array_get($this->data, $field_name);
             }
         }
@@ -145,17 +158,11 @@ class ExtendedValidator extends Validator {
         $verifier = $this->getPresenceVerifier();
 
         return $verifier->getCount(
-            $table,
-            $column,
-            $value,
-            $ignore_id,
-            $ignore_column,
-            $extra
-        ) == 0;
+                        $table, $column, $value, $ignore_id, $ignore_column, $extra
+                ) == 0;
     }
 
-    public function replaceUniqueWith($message, $attribute, $rule, $parameters)
-    {
+    public function replaceUniqueWith($message, $attribute, $rule, $parameters) {
         // merge primary field with conditional fields
         $fields = array($attribute) + $parameters;
 
@@ -176,15 +183,13 @@ class ExtendedValidator extends Validator {
      * @param  array $parameters
      * @return array [$ignoreId, $ignoreColumn]
      */
-    private function getIgnore(&$parameters)
-    {
+    private function getIgnore(&$parameters) {
         $lastParam = end($parameters);
         $lastParam = array_map('trim', explode('=', $lastParam));
 
         // An ignore_id is only specified if the last param starts with a
         // number greater than 1 (a valid id in the database)
-        if (!preg_match('/^[1-9][0-9]*$/', $lastParam[0]))
-        {
+        if (!preg_match('/^[1-9][0-9]*$/', $lastParam[0])) {
             return array(null, null);
         }
 
@@ -196,5 +201,5 @@ class ExtendedValidator extends Validator {
 
         return array($ignoreId, $ignoreColumn);
     }
-    
+
 }

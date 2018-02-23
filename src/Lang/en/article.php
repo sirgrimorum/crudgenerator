@@ -24,7 +24,7 @@ return [
     ],
     "descriptions" => [
         "lang" => "Idioma de esta versión del artículo",
-        "scope" => "Nombre de la sección a la que pertenece el artículo, use . para anidar, no use espacios",
+        "scope" => "Nombre de la sección a la que pertenece el artículo",
         "nickname" => "Nombre del artículo dentro de la sección, use . para anidar, no use espacios",
         "activated" => "Si el artículo se muestra o no en la página",
         "content" => "El artículo",

@@ -17,21 +17,23 @@ $claseError = '';
 if ($errores == true) {
     if ($errors->has($columna)) {
         $error_campo = true;
-        $claseError = 'has-error';
-    } 
+        $claseError = 'is-invalid';
+    }else{
+        $claseError = 'is-valid';
+    }
 }
 ?>
-<div class="form-group {{ $claseError }}">
+<div class="form-group row">
     {{ Form::label($columna, ucfirst($datos['label']), array('class'=>$config['class_label'])) }}
     <div class="{{ $config['class_divinput'] }}">
-        {{ Form::file($columna, array('class' => 'form-control ' . $config['class_input'], 'id' => $tabla . '_' . $columna)) }}
-        <span class="help-block" id="{{ $tabla . '_' . $columna }}_help">
+        {{ Form::file($columna, array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $columna)) }}
+        <small class="form-text text-muted" id="{{ $tabla . '_' . $columna }}_help">
             @if (isset($datos['description']))
             {{ $datos['description'] }}
             @endif
-        </span>
+        </small>
         @if ($error_campo)
-        <div class="alert alert-danger">
+        <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}
         </div>
         @endif

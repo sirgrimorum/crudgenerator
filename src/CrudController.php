@@ -9,6 +9,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App;
+use Illuminate\Support\Facades\Lang;
 
 class CrudController extends BaseController {
 
@@ -20,6 +21,7 @@ class CrudController extends BaseController {
         App::setLocale($localecode);
         $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfig($modelo);
+        //return "<pre>" . print_r($config, true) . "</pre>";
         //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
         return $this->devolver($request, $config, $this->checkPermission($request, $config));
     }
@@ -48,7 +50,7 @@ class CrudController extends BaseController {
             }
         }
         $objeto = $this->saveObjeto($config, $request);
-        return $this->devolver($request, $config, $permiso);
+        return $this->devolver($request, $config, $permiso, $objeto);
     }
 
     public function show($localecode, $modelo, $registro, Request $request) {
@@ -92,7 +94,7 @@ class CrudController extends BaseController {
     public function destroy($localecode, $modelo, $registro, Request $request) {
         App::setLocale($localecode);
 
-        $modeloM = ucfirst($this->modelo);
+        $modeloM = ucfirst($modelo);
         //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
         //$config = CrudGenerator::translateConfig($config);
         $config = CrudGenerator::getConfig($modelo);
@@ -100,8 +102,12 @@ class CrudController extends BaseController {
             return $this->devolver($request, $config, $permiso, $registro);
         }
         $muerto = $config['modelo']::find($registro);
+        $datos = [
+            'id' => $muerto->{$config['id']},
+            'nombre' => $muerto->{$config['nombre']}
+        ];
         $muerto->delete();
-        return $this->devolver($request, $config, $permiso);
+        return $this->devolver($request, $config, $permiso, 0, $datos);
     }
 
     private function devolverValidation($validator, $modelo, Request $request, $registro = 0) {
@@ -110,11 +116,11 @@ class CrudController extends BaseController {
 
         $tipoReturn = "content";
         if ($request->has('_return')) {
-            if ($request->_return == 'pureJson') {
+            if (strtolower($request->_return) == 'purejson') {
                 $tipoReturn = "json";
-            } elseif ($request->_return == 'modal') {
+            } elseif (strtolower($request->_return) == 'modal') {
                 $tipoReturn = "modal";
-            } elseif ($request->_return == 'simple') {
+            } elseif (strtolower($request->_return) == 'simple') {
                 $tipoReturn = "simple";
             }
         }
@@ -130,32 +136,36 @@ class CrudController extends BaseController {
                 return response()->json($result, 422);
             }
         } else {
-            $extra = ['modelo' => $modelo, 'localecode' => $localecode];
-            if ($action == 'update') {
-                $extra['registro'] = $registro;
-                $newaction = 'sirgrimorum_modelo::edit';
-            } else {
-                $newaction = 'sirgrimorum_modelos::create';
-            }
-            if ($tipoReturn == "content") {
-                $getReturn = "";
-            } else {
-                $getReturn = "?_return=" . $tipoReturn;
-            }
-            //return route('sirgrimorum_modelo::' . $newaction, $extra) . $getReturn;
-            return redirect(route($newaction, $extra) . $getReturn)
-                            ->withInput()
-                            ->withErrors($validator);
+            /*
+              $extra = ['modelo' => $modelo, 'localecode' => $localecode];
+              if ($action == 'update') {
+              $extra['registro'] = $registro;
+              $newaction = 'sirgrimorum_modelo::edit';
+              } else {
+              $newaction = 'sirgrimorum_modelos::create';
+              }
+              if ($tipoReturn == "content") {
+              $getReturn = "";
+              } else {
+              $getReturn = "?_return=" . $tipoReturn;
+              }
+              //return route('sirgrimorum_modelo::' . $newaction, $extra) . $getReturn;
+              return redirect(route($newaction, $extra) . $getReturn)
+              ->withInput()
+              ->withErrors($validator);
+             * 
+             */
+            return back()->withInput()->withErrors($validator);
         }
     }
 
-    private function devolver(Request $request, $config, $permiso, $objeto = 0) {
+    private function devolver(Request $request, $config, $permiso, $objeto = 0, $extraDatos = "") {
         $action = substr($request->route()->getName(), stripos($request->route()->getName(), "::") + 2);
         $localecode = App::getLocale();
         $modelo = strtolower(class_basename($config["modelo"]));
         $plural = $modelo . 's';
         $modeloM = ucfirst($modelo);
-        $mensajes=[];
+        $mensajes = [];
         if (is_array(trans("crudgenerator::admin.messages"))) {
             $mensajes = array_merge($mensajes, trans("crudgenerator::admin.messages"));
         }
@@ -172,13 +182,46 @@ class CrudController extends BaseController {
         }
         $tipoReturn = "content";
         if ($request->has('_return')) {
-            if ($request->_return == 'pureJson') {
+            if (strtolower($request->_return) == 'purejson') {
                 $tipoReturn = "json";
-            } elseif ($request->_return == 'modal') {
+            } elseif (strtolower($request->_return) == 'modal') {
                 $tipoReturn = "modal";
-            } elseif ($request->_return == 'simple') {
+            } elseif (strtolower($request->_return) == 'simple') {
                 $tipoReturn = "simple";
             }
+        }
+        $titulo = "";
+        switch ($action) {
+            case "destroy":
+                $titulo = trans('crudgenerator::admin.layout.borrar');
+            case "show":
+                if ($titulo == "") {
+                    $titulo = trans('crudgenerator::admin.layout.ver');
+                }
+            case "edit":
+            case "update":
+                if ($titulo == "") {
+                    $titulo = trans('crudgenerator::admin.layout.editar');
+                }
+            case "create":
+            case "store":
+                if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
+                    $singulares = trans("crudgenerator::" . strtolower($modelo) . ".labels.singular");
+                } else {
+                    $singulares = $modelo;
+                }
+                if ($titulo == "") {
+                    $titulo = trans('crudgenerator::admin.layout.crear');
+                }
+                $titulo .= " " . ucfirst($singulares);
+                break;
+            case "index":
+                if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.plural")) {
+                    $titulo = trans("crudgenerator::" . strtolower($modelo) . ".labels.plural");
+                } else {
+                    $titulo = $plural;
+                }
+                break;
         }
         if ($permiso) {
             $result = "";
@@ -202,13 +245,17 @@ class CrudController extends BaseController {
                     case "store":
                     case "update":
                     case "destroy":
-                        if ($registro == 0) {
-                            $nombre = "";
+                        if ($registro > 0) {
+                            $mensajeStr = str_replace([":modelName", ":modelId"], [$objeto->{$config['nombre']}, $objeto->{$config['id']}], $mensajes[$action . "_success"]);
                         } else {
-                            $nombre = $objeto->{$config['nombre']};
+                            if (!is_array($extraDatos)) {
+                                $mensajeStr = str_replace(":modelName", $extraDatos, $mensajes[$action . "_success"]);
+                            } else {
+                                $mensajeStr = str_replace([":modelName", ":modelId"], [$extraDatos['nombre'], $extraDatos['id']], $mensajes[$action . "_success"]);
+                            }
                         }
                         $result = [
-                            config("sirgrimorum.crudgenerator.status_messages_key") => str_replace(":modelName", $nombre, $mensajes[$action . "_success"])
+                            config("sirgrimorum.crudgenerator.status_messages_key") => $mensajeStr
                         ];
                         break;
                 }
@@ -222,7 +269,7 @@ class CrudController extends BaseController {
                             "base_url" => route('sirgrimorum_home', $localecode),
                             "plural" => $plural,
                             "config" => $config,
-                        ]);
+                                ])->render();
                         break;
                     case "show":
                     case "edit":
@@ -232,26 +279,34 @@ class CrudController extends BaseController {
                             "plural" => $plural,
                             "registro" => $registro,
                             "config" => $config,
-                        ]);
+                                ])->render();
                         break;
                     case "store":
                     case "update":
                     case "destroy":
-                        if ($registro == 0) {
-                            $nombre = "";
+                        if ($registro > 0) {
+                            $mensajeStr = str_replace([":modelName", ":modelId"], [$objeto->{$config['nombre']}, $objeto->{$config['id']}], $mensajes[$action . "_success"]);
                         } else {
-                            $nombre = $objeto->{$config['nombre']};
+                            if (!is_array($extraDatos)) {
+                                $mensajeStr = str_replace(":modelName", $extraDatos, $mensajes[$action . "_success"]);
+                            } else {
+                                $mensajeStr = str_replace([":modelName", ":modelId"], [$extraDatos['nombre'], $extraDatos['id']], $mensajes[$action . "_success"]);
+                            }
                         }
                         if ($tipoReturn == "content") {
                             $getReturn = "";
                         } else {
                             $getReturn = "?_return=" . $tipoReturn;
                         }
-                        $result = redirect(route('sirgrimorum_modelos::index', [
-                                    'modelo' => $modelo,
-                                    'localecode' => $localecode,
-                                ]) . $getReturn)->with(config("sirgrimorum.crudgenerator.status_messages_key"), str_replace(":modelName", $nombre, $mensajes[$action . "_success"]))
-                        ;
+                        if ($tipoReturn == "content") {
+                            $result = redirect(route('sirgrimorum_modelos::index', [
+                                        'modelo' => $modelo,
+                                        'localecode' => $localecode,
+                                    ]) . $getReturn)->with(config("sirgrimorum.crudgenerator.status_messages_key"), $mensajeStr)
+                            ;
+                        } else {
+                            $result = back()->with(config("sirgrimorum.crudgenerator.status_messages_key"), $mensajeStr);
+                        }
                         break;
                 }
             }
@@ -259,6 +314,7 @@ class CrudController extends BaseController {
                 $result = [
                     'status' => 200,
                     'statusText' => trans("crudgenerator::admin.messages.200"),
+                    'title' => $titulo,
                     'result' => $result,
                 ];
                 if ($request->has('callback')) {
@@ -303,6 +359,7 @@ class CrudController extends BaseController {
                 $result = [
                     'status' => 403,
                     'statusText' => $mensajes['permission'],
+                    'title' => $titulo,
                     'result' => $result,
                 ];
                 if ($request->has('callback')) {
@@ -318,7 +375,7 @@ class CrudController extends BaseController {
 
     private function checkPermission(Request $request, $config, $registro = 0) {
         $action = substr($request->route()->getName(), stripos($request->route()->getName(), "::") + 2);
-        $resultado = true;
+$resultado = true;
         $general = false;
         if (isset($config['permissions'])) {
             if (isset($config['permissions'][$action])) {
@@ -397,7 +454,7 @@ class CrudController extends BaseController {
         return false;
     }
 
-    private function saveObjeto($config, Request $input, $obj = null) {
+    public function saveObjeto($config, Request $input, $obj = null) {
         if (!$obj) {
             $objModelo = new $config['modelo'];
         } else {
@@ -431,14 +488,15 @@ class CrudController extends BaseController {
                             break;
                         case 'relationship':
                             if ($input->has($campo)) {
-                                if (CrudController::hasRelation($objModelo, $campo)) {
-                                    $objModelo->{$campo}()->attach($input->input($campo));
+                                if (CrudGenerator::hasRelation($objModelo, $campo)) {
+                                    echo "<p>aqui</p>";
+                                    $objModelo->{$campo}()->associate($input->input($campo));
                                 } else {
                                     $objModelo->{$campo} = $input->input($campo);
                                 }
                             } elseif (isset($detalles['valor'])) {
-                                if (CrudController::hasRelation($objModelo, $campo)) {
-                                    $objModelo->{$campo}()->attach($detalles['valor']);
+                                if (CrudGenerator::hasRelation($objModelo, $campo)) {
+                                    $objModelo->{$campo}()->associate($detalles['valor']);
                                 } else {
                                     $objModelo->{$campo} = $detalles['valor'];
                                 }
@@ -446,9 +504,9 @@ class CrudController extends BaseController {
                             break;
                         case 'relationships':
                             if ($input->has($campo)) {
-                                $objModelo->{$campo}()->attach($input->input($campo));
+                                $objModelo->{$campo}()->sync($input->input($campo));
                             } elseif (isset($detalles['valor'])) {
-                                $objModelo->{$campo}()->attach($detalles['valor']);
+                                $objModelo->{$campo}()->sync($detalles['valor']);
                             }
                             break;
                         case 'relationshipssel':
@@ -457,7 +515,7 @@ class CrudController extends BaseController {
                                 foreach ($input->input($campo) as $id => $pivot) {
                                     $datos[$id] = [];
                                     foreach ($detalles['columnas'] as $subdetalles) {
-                                        if ($subdetalles['type'] == "text" || $subdetalles['type'] == "number" || $subdetalles['type'] == "hidden") {
+                                        if ($subdetalles['type'] == "text" || $subdetalles['type'] == "textarea" || $subdetalles['type'] == "number" || $subdetalles['type'] == "hidden") {
                                             if ($input->has($campo . "_" . $subdetalles['campo'] . "_" . $id)) {
                                                 $datos[$id][$subdetalles['campo']] = $input->input($campo . "_" . $subdetalles['campo'] . "_" . $id);
                                             } else {
@@ -466,9 +524,9 @@ class CrudController extends BaseController {
                                         }
                                     }
                                 }
-                                $objModelo->{$campo}()->attach($datos);
+                                $objModelo->{$campo}()->sync($datos);
                             } elseif (isset($detalles['valor'])) {
-                                $objModelo->{$campo}()->attach($detalles['valor']);
+                                $objModelo->{$campo}()->sync($detalles['valor']);
                             }
                             break;
                         case 'select':
@@ -486,6 +544,7 @@ class CrudController extends BaseController {
                             break;
                         case 'date':
                         case 'datetime':
+                        case 'time':
                             if ($input->has($campo)) {
                                 if (isset($detalles["timezone"])) {
                                     $timezone = $detalles["timezone"];
@@ -586,14 +645,6 @@ class CrudController extends BaseController {
             }
             $objModelo->save();
             return $objModelo;
-        } else {
-            return false;
-        }
-    }
-
-    public static function hasRelation($model, $key) {
-        if (method_exists($model, $key)) {
-            return is_a($model->$key(), "Illuminate\Database\Eloquent\Relations\Relation");
         } else {
             return false;
         }

@@ -17,11 +17,13 @@ $claseError = '';
 if ($errores == true) {
     if ($errors->has($columna)) {
         $error_campo = true;
-        $claseError = 'has-error';
-    } 
+        $claseError = 'is-invalid';
+    }else{
+        $claseError = 'is-valid';
+    }
 }
 ?>
-<div class="form-group {{ $claseError }}">
+<div class="form-group row">
     <div class="{{ $config['class_offset'] }} {{ $config['class_divinput'] }}">
         @if (is_array($datos['valor']))
         @foreach($datos['valor'] as $valor=>$datos2)
@@ -32,16 +34,16 @@ if ($errores == true) {
             $checked = true;
         }
         ?>
-        <div class="radio">
-            <label>
-                {{ Form::radio($columna, $valor, array('class' => '', 'id' => $tabla . '_' . $columna . '_' . $valor),$checked) }}
+        <div class="form-check">
+            {{ Form::radio($columna, $valor, array('class' => 'form-check-input ' .$claseError, 'id' => $tabla . '_' . $columna . '_' . $valor),$checked) }}
+            <label class='form-check-label' for='{{$tabla . '_' . $columna . '_' . $valor}}'>
                 {{ $datos2['label'] }}
             </label>
-            <span class="help-block" id="{{ $tabla . '_' . $columna . '_' . $valor }}_help">
+            <small class="text-muted" id="{{ $tabla . '_' . $columna . '_' . $valor }}_help">
                 @if (isset($datos2['description']))
                 {{ $datos2['description'] }}
                 @endif
-            </span>
+            </small>
         </div>
         @endforeach
         @else
@@ -53,15 +55,20 @@ if ($errores == true) {
         }
         ?>
         <div class="radio">
-            <label>
-                {{ Form::radio($columna, $datos['valor'], array('class' => '', 'id' => $tabla . '_' . $columna),$checked) }}
+            {{ Form::radio($columna, $datos['valor'], array('class' => 'form-check-input '  . $claseError, 'id' => $tabla . '_' . $columna),$checked) }}
+            <label class='form-check-label' for='{{$tabla . '_' . $columna }}'>
                 {{ $datos['label'] }}
             </label>
-            <span class="help-block" id="{{ $tabla . '_' . $columna }}_help">
+            <small class="text-muted" id="{{ $tabla . '_' . $columna }}_help">
                 @if (isset($datos['description']))
                 {{ $datos['description'] }}
                 @endif
-            </span>
+            </small>
+        </div>
+        @endif
+        @if ($error_campo)
+        <div class="invalid-feedback">
+            {{ $errors->get($columna)[0] }}
         </div>
         @endif
     </div>

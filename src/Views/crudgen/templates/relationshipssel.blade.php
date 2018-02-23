@@ -5,7 +5,7 @@ if ($dato == "") {
         $dato = [];
         if ($registro) {
             foreach ($registro->{$columna}()->get() as $elemento) {
-                $dato[$elemento->id] = $elemento->pivot;
+                $dato[$elemento->getKey()] = $elemento->pivot;
             }
         }
         //$dato = $registro->{$columna};
@@ -23,7 +23,9 @@ $claseError = '';
 if ($errores == true) {
     if ($errors->has($columna)) {
         $error_campo = true;
-        $claseError = 'has-error';
+        $claseError = 'is-invalid';
+    }else{
+        $claseError = 'is-valid';
     }
 }
 if (isset($datos["readonly"])) {
@@ -32,6 +34,7 @@ if (isset($datos["readonly"])) {
     $readonly = "";
 }
 ?>
+@if (true)
 <div class="form-group {{ $claseError }}">
     {{ Form::label($columna, ucfirst($datos['label']), array('class'=>$config['class_label'])) }}
     <div class="{{ $config['class_divinput'] }}">
@@ -45,9 +48,9 @@ if (isset($datos["readonly"])) {
                 </tr>
             </thead>
             <tbody>
-                @foreach($datos["todos"] as $tablaInter)
+                @foreach($datos["todos"] as $tablaInterId => $tablaInterCampo)
                 <?php
-                $pivote = array_get($dato, $tablaInter->id, false);
+                $pivote = array_get($dato, $tablaInterId, false);
                 if (is_object($pivote)) {
                     $checked = true;
                     if ($readonly == "") {
@@ -60,17 +63,17 @@ if (isset($datos["readonly"])) {
                 ?>
                 <tr>
                     <td>
-                        {{ Form::checkbox($columna. "[" . $tablaInter->id ."]", $tablaInter->id, $checked, array('class' => 'chbx_'.$columna, 'id' => $columna . '_' . $tablaInter->id)) }}
+                        {{ Form::checkbox($columna. "[" . $tablaInterId ."]", $tablaInterId, $checked, array('class' => 'chbx_'.$columna . ' ' . $claseError, 'id' => $columna . '_' . $tablaInterId)) }}
                     </td>
                     @foreach ($datos['columnas'] as $columnaT)
                     <?php
                     if ($columnaT['type'] == 'label') {
-                        $valorM = $tablaInter->{$columnaT['campo']};
+                        $valorM = $tablaInterCampo;
                     } elseif (is_object($pivote)) {
                         if ($columnaT['type'] == 'labelpivot') {
                             $valorM = $pivote->{$columnaT['campo']};
                         } else {
-                            $valorM = old($columna . "_" . $columnaT['campo'] . "_" . $tablaInter->id);
+                            $valorM = old($columna . "_" . $columnaT['campo'] . "_" . $tablaInterId);
                             if ($valorM == "") {
                                 try {
                                     $valorM = $pivote->{$columnaT['campo']};
@@ -87,6 +90,11 @@ if (isset($datos["readonly"])) {
                     } else {
                         $valorM = $columnaT["valor"];
                     }
+                    if (isset($columnaT["placeholder"])){
+                        $placeholder = $columnaT['placeholder'];
+                    }else{
+                        $placeholder="";
+                    }
                     ?>
                     @if ($columnaT['type']=='label')
                     <td>
@@ -98,21 +106,25 @@ if (isset($datos["readonly"])) {
                     </td>
                     @elseif ($columnaT['type']=='text')
                     <td>
-                        {{ Form::text($columna . "_" . $columnaT['campo'] . "_" . $tablaInter->id, $valorM, array('class' => 'form-control ' . $columna . '_' . $columnaT['campo'], 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaInter->id,$readonly)) }}
+                        {{ Form::text($columna . "_" . $columnaT['campo'] . "_" . $tablaInterId, $valorM, array('class' => 'form-control ' . $columna . '_' . $columnaT['campo'] . ' ' . $claseError, 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaInterId, 'placeholder'=>$placeholder,$readonly)) }}
+                    </td>
+                    @elseif ($columnaT['type']=='textarea')
+                    <td>
+                        {{ Form::textarea($columna. "_" . $columnaT['campo'] . "_" . $tablaInterId, $valorM, array('class' => 'form-control ' . $columna . '_' . $columnaT['campo'] . ' ' . $claseError, 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaInterId,$readonly)) }}
                     </td>
                     @elseif ($columnaT['type']=='number')
                     <td>
-                        {{ Form::number($columna . "_" . $columnaT['campo'] . "_" . $tablaInter->id, $valorM, array('class' => 'form-control ' . $columna . '_' . $columnaT['campo'], 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaInter->id,$readonly)) }}
+                        {{ Form::number($columna . "_" . $columnaT['campo'] . "_" . $tablaInterId, $valorM, array('class' => 'form-control ' . $columna . '_' . $columnaT['campo'] . ' ' . $claseError, 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaInterId, 'placeholder'=>$placeholder ,$readonly)) }}
                     </td>
                     @elseif ($columnaT['type']=='select')
                     <td>
-                        {{ Form::select($columna . "_" . $columnaT['campo'] . "_" . $tablaInter->id, $columnaT['opciones'], $valorM, array('class' => 'form-control ' . $columna . '_' . $columnaT['campo'], 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaInter->id,$readonly)) }}
+                        {{ Form::select($columna . "_" . $columnaT['campo'] . "_" . $tablaInterId, $columnaT['opciones'], $valorM, array('class' => 'form-control ' . $columna . '_' . $columnaT['campo'] . ' ' . $claseError, 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaInterId,$readonly)) }}
                     </td>
                     @elseif ($columnaT['type']=='hidden')
-                    {{ Form::number($columna . "_" . $columnaT['campo'] . "_" . $tablaInter->id, $valorM, array('class' => 'form-control ' . $columna . '_' . $columnaT['campo'], 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaInter->id)) }}
+                        {{ Form::hidden($columna . "_" . $columnaT['campo'] . "_" . $tablaInterId, $valorM, array('class' => 'form-control', 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaInterId)) }}
                     @else
                     <td>
-                        {{ Form::text($columna . "_" . $columnaT['campo'] . "_" . $tablaInter->id, $valorM, array('class' => 'form-control ' . $columna . '_' . $columnaT['campo'], 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaInter->id,$readonly)) }}
+                        aqui{{ Form::text($columna . "_" . $columnaT['campo'] . "_" . $tablaInterId, $valorM, array('class' => 'form-control ' . $columna . '_' . $columnaT['campo'] . ' ' . $claseError, 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaInterId, 'placeholder'=>$placeholder, $readonly)) }}
                     </td>
                     @endif
                     @endforeach
@@ -120,21 +132,26 @@ if (isset($datos["readonly"])) {
                 @endforeach
             </tbody>
         </table>
-        <span class="help-block" id="{{ $tabla . '_' . $columna }}_help">
+        <small class="form-text text-muted" id="{{ $tabla . '_' . $columna }}_help">
             @if (isset($datos['description']))
             {{ $datos['description'] }}
             @endif
-        </span>
+        </small>
         @if ($error_campo)
-        <div class="alert alert-danger">
+        <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}
         </div>
         @endif
     </div>
 </div>
 
-@section('selfjs')
-@parent
+<?php
+if ($js_section != "") {
+    ?>
+    @push($js_section)
+    <?php
+}
+?>
 <script>
     $(document).ready(function() {
     $(".chbx_{{$columna}}").change(function() {
@@ -151,4 +168,13 @@ if (isset($datos["readonly"])) {
     });
     });
 </script>
-@stop
+<?php
+if ($js_section != "") {
+    ?>
+    @endpush
+    <?php
+}
+?>
+@else
+<pre>{!! print_r($datos['todos'],true)!!}</pre>
+@endif

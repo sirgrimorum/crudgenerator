@@ -5,11 +5,8 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
     $singulares = $modelo;
 }
 ?>
-<h1>{{ ucfirst(trans('crudgenerator::' . strtolower($modelo) . '.labels.plural')) }} <a href='{{ url($base_url . "/" . $plural .'/create') }}' class='pull-right btn btn-info' ><span class='glyphicon glyphicon-plus' aria-hidden='true'></span> {{ trans('crudgenerator::admin.layout.crear') }} {{ $singulares }}</a></h1>
+<!--h1>{{ ucfirst(trans('crudgenerator::' . strtolower($modelo) . '.labels.plural')) }} <a href='{{ url($base_url . "/" . $plural .'/create') }}' class='pull-right btn btn-info' ><span class='glyphicon glyphicon-plus' aria-hidden='true'></span> {{ trans('crudgenerator::admin.layout.crear') }} {{ $singulares }}</a></h1-->
 
-@if (Session::has('message'))
-<div class="alert alert-info">{{ Session::pull('message') }}</div>
-@endif
 <?php
 //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modelo));
 if (($textConfirm = trans('crudgenerator::' . strtolower($modelo) . '.mensajes.confirm_destroy')) == 'crudgenerator::' . strtolower($modelo) . '.mensajes.confirm_destroy') {
@@ -21,4 +18,4 @@ $config['botones'] = [
     "<a class='btn btn-danger' href='" . url($base_url . "/" . strtolower($modelo) . "/:modelId/destroy") . "' data-confirm='" . $textConfirm . "' data-yes='" . $textConfirm = trans('crudgenerator::admin.layout.labels.yes') . "' data-yes='" . $textConfirm = trans('crudgenerator::admin.layout.labels.no') . "' data-confirmtheme='" . config('sirgrimorum.crudgenerator..confirm_theme') . "' data-confirmicon='" . config('sirgrimorum.crudgenerator..confirm_icon') . "' data-method='delete' rel='nofollow' title='" . trans('crudgenerator::admin.layout.borrar') . "'><span class='glyphicon glyphicon-trash' aria-hidden='true'></span></a>",
 ];
 ?>
-{!! CrudLoader::lists($config) !!}
+{!! CrudLoader::lists($config,false,true) !!}

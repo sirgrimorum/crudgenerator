@@ -36,7 +36,7 @@ return [
             "label" => "__trans__crudgenerator::article.labels.content",
             "description" => "__trans__crudgenerator::article.descriptions.content",
         ],
-        "user_id" => [
+        "user" => [
             "label" => "__trans__crudgenerator::article.labels.user_id",
             "tipo" => "relationship",
             "modelo" => "App\User",
@@ -47,11 +47,11 @@ return [
         ],
     ],
     "rules" => [ //the validation rules. If not here, it whill search for them in the model, public property with the same name
-        'nickname' => 'bail|required|max:255|unique_composite:articles,scope,lang',
-        'scope' => 'bail|required|max:255',
-        'lang' => 'bail|required|max:255',
+        'nickname' => 'bail|required|max:50|unique_composite:articles,scope,lang',
+        'scope' => 'bail|required|max:50',
+        'lang' => 'bail|required|max:10',
         'content' => 'required',
-        'user_id' => 'bail|required|integer|min:0|exists:users,id',
+        'user' => 'bail|required|integer|min:0|exists:users,id',
     ],
     "error_messages" => [ //the validation error messages. If not here, it whill search for them in the model, public property with the same name
         /**

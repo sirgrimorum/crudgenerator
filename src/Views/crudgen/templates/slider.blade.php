@@ -17,7 +17,9 @@ $claseError = '';
 if ($errores == true) {
     if ($errors->has($columna)) {
         $error_campo = true;
-        $claseError = 'has-error';
+        $claseError = 'is-invalid';
+    }else{
+        $claseError = 'is-valid';
     }
 }
 if (isset($datos["readonly"])){
@@ -51,23 +53,29 @@ if (isset($datos["pre"])){
     $pre = "";
 }
 ?>
-<div class="form-group {{ $claseError }}">
+<div class="form-group row">
     {{ Form::label($columna, ucfirst($datos['label']), array('class'=>$config['class_label'])) }}
     <div class="{{ $config['class_divinput'] }}">
-        {{ Form::text($columna, $dato, array('class' => 'form-control ' . $config['class_input'], 'id' => $tabla . '_' . $columna, 'data-slider-id'=>$tabla . '_' . $columna . 'Slider', 'data-slider-min'=>$min, 'data-slider-max'=>$max, 'data-slider-step'=>$step, 'data-slider-value'=>$dato ,$readonly)) }}
-        <span class="help-block" id="{{ $tabla . '_' . $columna }}_help">
+        {{ Form::text($columna, $dato, array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $columna, 'data-slider-id'=>$tabla . '_' . $columna . 'Slider', 'data-slider-min'=>$min, 'data-slider-max'=>$max, 'data-slider-step'=>$step, 'data-slider-value'=>$dato ,$readonly)) }}
+        <small class="form-text text-muted" id="{{ $tabla . '_' . $columna }}_help">
             @if (isset($datos['description']))
             {{ $datos['description'] }}
             @endif
-        </span>
+        </small>
         @if ($error_campo)
-        <div class="alert alert-danger">
+        <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}
         </div>
         @endif    </div>
 </div>
 
-
+<?php
+if ($js_section != "") {
+    ?>
+    @push($js_section)
+    <?php
+}
+?>
 <script>
     $(document).ready(function() {
         $('#{{ $tabla . "_" . $columna }}').sliderb({
@@ -77,4 +85,10 @@ if (isset($datos["pre"])){
         });
     });
 </script>
-
+<?php
+if ($js_section != "") {
+    ?>
+    @endpush
+    <?php
+}
+?>

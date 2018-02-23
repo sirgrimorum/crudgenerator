@@ -11,13 +11,11 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
+                <h5 class="modal-title" id="{{$modelo}}_index_modalLabel">{{ ucfirst(trans('crudgenerator::' . strtolower($modelo) . '.labels.plural')) }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="{{trans('crudgenerator::admin.layout.labels.close')}}"><span aria-hidden="true">&times;</span></button>
-                <h3 class="modal-title" id="{{$modelo}}_index_modalLabel">{{ ucfirst(trans('crudgenerator::' . strtolower($modelo) . '.labels.plural')) }}</h3>
             </div>
             <div class="modal-body">
-                @if (Session::has('message'))
-                <div class="alert alert-info">{{ Session::pull('message') }}</div>
-                @endif
+                
                 <?php
                 //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modelo));
                 if (($textConfirm = trans('crudgenerator::' . strtolower($modelo) . '.mensajes.confirm_destroy')) == 'crudgenerator::' . strtolower($modelo) . '.mensajes.confirm_destroy') {
@@ -29,7 +27,7 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
                     "<a class='btn btn-danger' href='" . url($base_url . "/" . strtolower($modelo) . "/:modelId/destroy") . "' data-confirm='" . $textConfirm . "' data-yes='" . $textConfirm = trans('crudgenerator::admin.layout.labels.yes') . "' data-yes='" . $textConfirm = trans('crudgenerator::admin.layout.labels.no') . "' data-confirmtheme='" . config('sirgrimorum.crudgenerator..confirm_theme') . "' data-confirmicon='" . config('sirgrimorum.crudgenerator..confirm_icon') . "' data-method='delete' rel='nofollow' title='" . trans('crudgenerator::admin.layout.borrar') . "'><span class='glyphicon glyphicon-trash' aria-hidden='true'></span></a>",
                 ];
                 ?>
-                    {!! CrudLoader::lists($config) !!}
+                    {!! CrudLoader::lists($config,false,true) !!}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">{{trans('crudgenerator::admin.layout.labels.close')}}</button>

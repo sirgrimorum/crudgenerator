@@ -9,18 +9,16 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
+                <h5 class="modal-title" id="{{$modelo}}_show_modalLabel">{{ trans('crudgenerator::admin.layout.ver') }} {{ ucfirst($singulares) }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="{{trans('crudgenerator::admin.layout.labels.close')}}"><span aria-hidden="true">&times;</span></button>
-                <h3 class="modal-title" id="{{$modelo}}_show_modalLabel">{{ trans('crudgenerator::admin.layout.ver') }} {{ ucfirst($singulares) }}</h3>
             </div>
             <div class="modal-body">
-                @if (Session::has('message'))
-                <div class="alert alert-info">{{ Session::pull('message') }}</div>
-                @endif
+                
                 <?php
                 //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modelo));
                 $config['botones'] = trans("crudgenerator::article.labels.create");
                 ?>
-                {!! CrudLoader::show($config,$registro) !!}
+                {!! CrudLoader::show($config,$registro,true) !!}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">{{trans('crudgenerator::admin.layout.labels.close')}}</button>

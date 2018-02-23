@@ -17,11 +17,13 @@ $claseError = '';
 if ($errores == true) {
     if ($errors->has($columna)) {
         $error_campo = true;
-        $claseError = 'has-error';
-    } 
+        $claseError = 'is-invalid';
+    }else{
+        $claseError = 'is-valid';
+    }
 }
 ?>
-<div class="form-group {{ $claseError }}">
+<div class="form-group row">
     <div class="{{ $config['class_offset'] }} {{ $config['class_divinput'] }}">
         @if (is_array($datos['value']))
         @foreach($datos['value'] as $valor=>$datos2)
@@ -32,16 +34,16 @@ if ($errores == true) {
             $checked = false;
         }
         ?>
-        <div class="checkbox">
-            <label>
-                {{ Form::checkbox($columna, $valor, $checked, array('class' => '', 'id' => $tabla . '_' . $columna . '_' . $valor)) }}
+        <div class="form-check">
+            {{ Form::checkbox($columna, $valor, $checked, array('class' => 'form-check-input ' . $claseError , 'id' => $tabla . '_' . $columna . '_' . $valor)) }}
+            <label class='form-check-label' for='{{$tabla . '_' . $columna . '_' . $valor}}'>
                 {{ $datos2['label'] }}
             </label>
-            <span class="help-block" id="{{ $tabla . '_' . $columna . '_' . $valor }}_help">
+            <small class="text-muted" id="{{ $tabla . '_' . $columna . '_' . $valor }}_help">
                 @if (isset($datos2['description']))
                 {{ $datos2['description'] }}
                 @endif
-            </span>
+            </small>
         </div>
         @endforeach
         @else
@@ -52,17 +54,22 @@ if ($errores == true) {
             $checked = false;
         }
         ?>
-        <div class="checkbox">
-            <label>
-                {{ Form::checkbox($columna, $datos['value'], $checked, array('class' => '', 'id' => $tabla . '_' . $columna)) }}
+        <div class="form-check">
+            {{ Form::checkbox($columna, $datos['value'], $checked, array('class' => 'form-check-input '. $claseError, 'id' => $tabla . '_' . $columna)) }}
+            <label class='form-check-label' for='{{$tabla . '_' . $columna }}'>
                 {{ $datos['label'] }}
             </label>
-            <span class="help-block" id="{{ $tabla . '_' . $columna }}_help">
+            <small class="text-muted" id="{{ $tabla . '_' . $columna }}_help">
                 @if (isset($datos['description']))
                 {{ $datos['description'] }}
                 @endif
-            </span>
+            </small>
             
+        </div>
+        @endif
+        @if ($error_campo)
+        <div class="invalid-feedback">
+            {{ $errors->get($columna)[0] }}
         </div>
         @endif
     </div>

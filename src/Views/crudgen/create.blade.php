@@ -1,10 +1,14 @@
-@if (Session::has('message'))
-<div class="alert alert-info">{{ Session::pull('message') }}</div>
+@if (Session::has(config("sirgrimorum.crudgenerator.status_messages_key")))
+<div class="alert alert-info alert-dismissible fade show">
+    <button type="button" class="close" data-dismiss="alert" aria-label="{{trans('crudgenerator::admin.layout.labels.close')}}"><span aria-hidden="true">&times;</span></button>
+    {!! Session::pull(config("sirgrimorum.crudgenerator.status_messages_key")) !!}
+</div>
 @endif
 <?php $errores = false ?>
 @if (count($errors->all())>0)
 <?php $errores = true ?>
-<div class="alert alert-danger">
+<div class="alert alert-danger alert-dismissible fade show">
+    <button type="button" class="close" data-dismiss="alert" aria-label="{{trans('crudgenerator::admin.layout.labels.close')}}"><span aria-hidden="true">&times;</span></button>
     <ul>
         @foreach ($errors->all() as $error)
         <li>{{ $error }}</li>
@@ -30,7 +34,7 @@ if (!isset($config['class_form'])) {
     $config['class_form'] = 'form-horizontal';
 }
 if (!isset($config['class_label'])) {
-    $config['class_label'] = 'col-xs-12 col-sm-4 col-md-2';
+    $config['class_label'] = 'col-xs-12 col-sm-4 col-md-2 col-form-label';
 }
 if (!isset($config['class_divinput'])) {
     $config['class_divinput'] = 'col-xs-12 col-sm-8 col-md-10';
@@ -39,30 +43,25 @@ if (!isset($config['class_input'])) {
     $config['class_input'] = '';
 }
 if (!isset($config['class_offset'])) {
-    $config['class_offset'] = 'col-xs-offset-0 col-sm-offset-4 col-md-offset-2';
+    $config['class_offset'] = 'offset-xs-0 offset-sm-4 offset-md-2';
 }
 if (!isset($config['class_button'])) {
     $config['class_button'] = 'btn btn-primary';
 }
 
 
-if (isset($config['render'])) {
-    $selects = array('column_name as field', 'column_type as type', 'is_nullable as null', 'column_key as key', 'column_default as default', 'extra as extra');
-    $table_describes = DB::table('information_schema.columns')
-            ->where('table_name', '=', $tabla)
-            ->get($selects);
-    foreach ($table_describes as $k => $v) {
-        if (($kt = array_search($v, $table_describes)) !== false and $k != $kt) {
-            unset($table_describes[$kt]);
-        }
-    }
-}
-if ($tieneSlider || $tieneDate ) {
-    if (config("sirgrimorum.crudgenerator.css_section") != "") {
+if ($tieneSlider || $tieneDate || $tieneSelect) {
+    if ($css_section != "") {
         ?>
-        @section(config("sirgrimorum.crudgenerator.css_section"))
-        @parent
+        @push($css_section)
         <?php
+    }
+    if ($tieneSelect) {
+        if (str_contains(config("sirgrimorum.crudgenerator.select2_path"), ['http', '://'])) {
+            echo '<link href="' . config("sirgrimorum.crudgenerator.select2_path") . '/css/select2.min.css" rel="stylesheet" type="text/css">';
+        } else {
+            echo '<link href="' . asset(config("sirgrimorum.crudgenerator.select2_path") . '/css/select2.min.css') . '" rel="stylesheet">';
+        }
     }
     if ($tieneSlider) {
         if (str_contains(config("sirgrimorum.crudgenerator.slider_path"), ['http', '://'])) {
@@ -78,18 +77,24 @@ if ($tieneSlider || $tieneDate ) {
             echo '<link href="' . asset(config("sirgrimorum.crudgenerator.datetimepicker_path") . '/css/bootstrap-datetimepicker.min.css') . '" rel="stylesheet">';
         }
     }
-    if (config("sirgrimorum.crudgenerator.css_section") != "") {
+    if ($css_section != "") {
         ?>
-        @stop
+        @endpush
         <?php
     }
 }
-if ($tieneHtml || $tieneSlider || $tieneDate) {
-    if (config("sirgrimorum.crudgenerator.js_section") != "") {
+if ($tieneHtml || $tieneSlider || $tieneDate || $tieneSelect) {
+    if ($js_section != "") {
         ?>
-        @section(config("sirgrimorum.crudgenerator.js_section"))
-        @parent
+        @push($js_section)
         <?php
+    }
+    if ($tieneSelect) {
+        if (str_contains(config("sirgrimorum.crudgenerator.select2_path"), ['http', '://'])) {
+            echo '<script src="' . config("sirgrimorum.crudgenerator.select2_path") . '/js/select2.min.js"></script>';
+        } else {
+            echo '<script src="' . asset(config("sirgrimorum.crudgenerator.select2_path") . '/js/select2.min.js') . '"></script>';
+        }
     }
     if ($tieneSlider) {
         if (str_contains(config("sirgrimorum.crudgenerator.slider_path"), ['http', '://'])) {
@@ -124,36 +129,38 @@ if ($tieneHtml || $tieneSlider || $tieneDate) {
             echo '<script src="' . asset(config("sirgrimorum.crudgenerator.ckeditor_path")) . '"></script>';
         }
     }
-    if (config("sirgrimorum.crudgenerator.js_section") != "") {
+    if ($js_section != "") {
         ?>
-        @stop
+        @endpush
         <?php
     }
 }
 
 echo Form::open(array('url' => $url, 'class' => $config['class_form'], 'files' => $files));
-if ( Request::has('_return')) {
-    echo Form::hidden("_return",  Request::get('_return'), array('id' => $tabla . '__return'));
+if (Request::has('_return')) {
+    echo Form::hidden("_return", Request::get('_return'), array('id' => $tabla . '__return'));
 }
+echo Form::hidden("_action", "create", array('id' => $tabla . '__action'));
 
+//echo "<pre>" . print_r($campos, true) . "</pre>";
 
-    //echo "<pre>" . print_r($campos, true) . "</pre>";
-
-    foreach ($campos as $columna => $datos) {
+foreach ($campos as $columna => $datos) {
+    if (!isset($datos['nodb']) && !isset($datos['readonly']) && CrudLoader::inside_array($datos,"hide","create")===false) {
         if (View::exists("sirgrimorum::crudgen.templates." . $datos['tipo'])) {
             ?>
-            @include("sirgrimorum::crudgen.templates." . $datos['tipo'], ['datos'=>$datos])
+            @include("sirgrimorum::crudgen.templates." . $datos['tipo'], ['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section])
             <?php
         } else {
             ?>
-            @include("sirgrimorum::crudgen.templates.text", ['datos'=>$datos])
+            @include("sirgrimorum::crudgen.templates.text", ['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section])
             <?php
         }
-    }/**/
+    }
+}/**/
 
 if (count($botones) > 0) {
     if (is_array($botones)) {
-        echo '<div class="form-group">';
+        echo '<div class="form-group row">';
         foreach ($botones as $boton) {
             echo '<div class="' . $config['class_offset'] . ' ' . $config['class_divinput'] . '">';
             if (strpos($boton, "<") === false) {
@@ -165,7 +172,7 @@ if (count($botones) > 0) {
         }
         echo '</div>';
     } else {
-        echo '<div class="form-group">';
+        echo '<div class="form-group row">';
         echo '<div class="' . $config['class_offset'] . ' ' . $config['class_divinput'] . '">';
         if (strpos($botones, "<") === false) {
             echo Form::submit($botones, array('class' => $config['class_button']));
@@ -176,7 +183,7 @@ if (count($botones) > 0) {
         echo '</div>';
     }
 } else {
-    echo '<div class="form-group">';
+    echo '<div class="form-group row">';
     echo '<div class="' . $config['class_offset'] . ' ' . $config['class_divinput'] . '">';
     echo Form::submit(trans('crudgenerator::crud.create.titulo'), array('class' => $config['class_button']));
     echo '</div>';

@@ -1,8 +1,12 @@
-@if (Session::has('message'))
-<div class="alert alert-info">{{ Session::pull('message') }}</div>
+@if (Session::has(config("sirgrimorum.crudgenerator.status_messages_key")))
+<div class="alert alert-info alert-dismissible fade show">
+    <button type="button" class="close" data-dismiss="alert" aria-label="{{trans('crudgenerator::admin.layout.labels.close')}}"><span aria-hidden="true">&times;</span></button>
+    {!! Session::pull(config("sirgrimorum.crudgenerator.status_messages_key")) !!}
+</div>
 @endif
 @if (count($errors->all())>0)
-<div class="alert alert-danger">
+<div class="alert alert-danger alert-dismissible fade show">
+    <button type="button" class="close" data-dismiss="alert" aria-label="{{trans('crudgenerator::admin.layout.labels.close')}}"><span aria-hidden="true">&times;</span></button>
     <ul>
         @foreach ($errors->all() as $error)
         <li>{{ $error }}</li>
@@ -19,30 +23,19 @@ if (isset($config['relaciones'])) {
     $relaciones = $config['relaciones'];
 }
 $identificador = $config['id'];
-
-if (isset($config['render'])) {
-    $selects = array('column_name as field', 'column_type as type', 'is_nullable as null', 'column_key as key', 'column_default as default', 'extra as extra');
-    $table_describes = DB::table('information_schema.columns')
-            ->where('table_name', '=', $tabla)
-            ->get($selects);
-    foreach ($table_describes as $k => $v) {
-        if (($kt = array_search($v, $table_describes)) !== false and $k != $kt) {
-            unset($table_describes[$kt]);
-        }
-    }
-}
 ?>
 <div class="panel panel-default">
     <div class="panel-heading text-center"><h2>{{ $registro->{$nombre} }}</h2></div>
     <div class="panel-body">
-        
+
         @foreach($campos as $columna => $datos)
+        @if (CrudLoader::inside_array($datos,"hide","show")===false)
         <strong>{{ ucfirst($datos['label']) }}: </strong>
         @if (isset($datos["pre"]))
         {{ $datos["pre"] }}
         @endif
         @if ($datos['tipo']=="relationship")
-        @if (count($registro->{$datos['modelo']}))
+        @if (is_object($registro->{$datos['modelo']}))
         @if(array_key_exists('enlace',$datos))
         <a href="{{ str_replace([":modelId",":modelName"],[$registro->{$datos['modelo']}->{$datos['id']},$registro->{$datos['modelo']}->{$datos['nombre']}],str_replace([urlencode (":modelId"),urlencode(":modelName")],[$registro->{$datos['modelo']}->{$datos['id']},$registro->{$datos['modelo']}->{$datos['nombre']}],$datos['enlace'])) }}">
             @endif
@@ -60,7 +53,7 @@ if (isset($config['render'])) {
             @if(array_key_exists('enlace',$datos))
         </a>
         @endif
-        @elseif (count($registro->{$columna}))
+        @elseif (is_object($registro->{$columna}))
         @if(array_key_exists('enlace',$datos))
         <a href="{{ str_replace([":modelId",":modelName"],[$registro->{$columna}->{$datos['id']},$registro->{$columna}->{$datos['nombre']}],str_replace([urlencode (":modelId"),urlencode(":modelName")],[$registro->{$columna}->{$datos['id']},$registro->{$columna}->{$datos['nombre']}],$datos['enlace'])) }}">
             @endif
@@ -78,6 +71,8 @@ if (isset($config['render'])) {
             @if(array_key_exists('enlace',$datos))
         </a>
         @endif
+        @else
+        {!! print_r($registro->{$columna},true) !!}
         @endif
         @elseif ($datos['tipo']=="relationships")
         @if (count($registro->{$columna}()->get())>0)
@@ -107,6 +102,54 @@ if (isset($config['render'])) {
         @if (array_key_exists($registro->{$columna},$datos['opciones']))
         {{ $datos['opciones'][$registro->{$columna}] }}
         @endif
+        @elseif ($datos['tipo']=="checkbox")
+        @if (is_array($datos['value']))
+        @if (array_key_exists($registro->{$columna},$datos['value']))
+        {!! $datos['value'][$registro->{$columna}] !!}
+        @else
+        @if($registro->{$columna}===true)
+        {{trans('crudgenerator::admin.layout.labels.yes')}}
+        @else
+        {{trans('crudgenerator::admin.layout.labels.no')}}
+        @endif
+        @endif
+        @else
+        @if ($datos['value']==$registro->{$columna} && $registro->{$columna} ==true)
+        {{trans('crudgenerator::admin.layout.labels.yes')}}
+        @elseif($registro->{$columna}==$datos['value'])
+        {!! $datos['value'] !!}
+        @elseif ($registro->{$columna}==true)
+        {!! $datos['value'] !!}
+        @else
+        {{trans('crudgenerator::admin.layout.labels.no')}}
+        @endif
+        @endif
+        @elseif($datos['tipo']=="date" || $datos['tipo']=="datetime" || $datos['tipo']=="time")
+                <?php
+                $format = "Y-m-d H:i:s";
+                if($datos['tipo']=="date"){
+                    $format = "Y-m-d";
+                }elseif($datos['tipo']=="time"){
+                    $format = "H:i:s";
+                }
+                if (isset($datos["format"]["carbon"])) {
+                    $format = $datos["format"]["carbon"];
+                } elseif (isset(trans("crudgenerator::admin.formats.carbon")[$datos['tipo']])) {
+                    $format = trans("crudgenerator::admin.formats.carbon.".$datos['tipo']);
+                }
+                $dato = $registro->{$columna};
+                
+                if ($dato != "") {
+                    if (isset($datos["timezone"])) {
+                        $timezone = $datos["timezone"];
+                    } else {
+                        $timezone = config("app.timezone");
+                    }
+                    $date = new \Carbon\Carbon($dato, $timezone);
+                    $dato = $date->format($format);
+                }
+                echo $dato;
+                ?>
         @elseif ($datos['tipo']=="function")
         @if (isset($datos['format']))
         @if (is_array($datos['format']))
@@ -129,12 +172,12 @@ if (isset($config['render'])) {
                 @endif
                 @if (preg_match('/(\.jpg|\.png|\.bmp)$/', $registro->{$columna}))
                 <?php
-                    if ($datos['saveCompletePath']){
-                        $image_name = basename($registro->{$columna});
-                    }else{
-                        $image_name = $registro->{$columna};
-                    }
-                    ?>
+                if ($datos['saveCompletePath']) {
+                    $image_name = basename($registro->{$columna});
+                } else {
+                    $image_name = $registro->{$columna};
+                }
+                ?>
                 <image class="img-thumbnail" src="{{ asset('/images/' . str_finish($datos['pathImage'],'/') . $image_name ) }}" alt="{{ $columna }}"/>
                 @else
                 <image class="img-thumbnail" src="{{ asset('/images/img/file.png' ) }}" alt="{{ $columna }}"/>
@@ -169,7 +212,8 @@ if (isset($config['render'])) {
         {!! " " . $datos["post"] !!}
         @endif
         <br/>
+        @endif
         @endforeach
-        
+
     </div>
 </div>

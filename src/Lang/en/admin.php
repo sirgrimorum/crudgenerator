@@ -9,19 +9,21 @@ return [
     ],
     'index' => [
         'titulo' => 'Index',
-        'eliminar' => 'Eliminar',
-        'ver' => 'Ver',
-        'editar' => 'Editar'
+        'eliminar' => 'Delete',
+        'ver' => 'Show',
+        'editar' => 'Edit'
     ],
     'layout' => [
         'title' => 'Manager',
-        'toggle_navigation' => 'Alternar navegación',
+        'toggle_navigation' => 'Toogle navigation',
         'admin' => 'Manager',
-        'crear' => 'Crear',
-        'ver' => 'Ver',
-        'administrador' => 'Administrador',
-        'idioma' => 'Idioma',
-        'hola' => 'Bienvenido',
+        'crear' => 'Create',
+        'ver' => 'Show',
+        'editar' => 'Editar',
+        'borrar' => 'Borrar',
+        'administrador' => 'Administrator',
+        'idioma' => 'Language',
+        'hola' => 'Welcome',
         'metadata' => [
             'author' => "Sir Grimorum",
             'title' => "SirGrimorum/CMS Manager",
@@ -48,25 +50,33 @@ return [
         'propietarios' => 'propietary',
         'nopropietarios' => 'no propietary',
     ],
-    'formats'=>[
-        'date'=>'YYYY-MM-DD',
-        'datetime'=>'YYYY-MM-DD HH:mm:ss',
-        'time'=>'HH:mm:ss',
-        'timestamp'=>'YYYY-MM-DD HH:mm:ss',
+    'formats'=>[ //carbon and moment formats results must coincide
+        'carbon' => [
+            'date' => 'Y-m-d',
+            'datetime' => 'Y-m-d H:i:s',
+            'time' => 'H:i:s',
+            'timestamp' => 'Y-m-d H:i:s',
+        ],
+        'moment' => [
+            'date' => 'YYYY-MM-DD',
+            'datetime' => 'YYYY-MM-DD HH:mm:ss',
+            'time' => 'HH:mm:ss',
+            'timestamp' => 'YYYY-MM-DD HH:mm:ss',
+        ]
     ],
     'messages'=>[
-        'permission' => 'No tiene permiso para ejecutar esta acción',
-        'confirm_destroy' => '¿Está seguro que desea eliminar el registro ":modelName"?',
-        'destroy_success' => '<strong>Listo!</strong> El registro ":modelName" ha sido eliminado',
-        'update_success' => '<strong>Listo!</strong> El se han guardado los cambios en el registro ":modelName"',
-        'store_success' => '<strong>Listo!</strong> El registro ":modelName" ha sido creado',
+        'permission' => "You don't have permission to execute this action",
+        'confirm_destroy' => 'Are you sure to delete ":modelName"?',
+        'destroy_success' => '<strong>Great!</strong> ":modelName" has been deleted',
+        'update_success' => '<strong>Great!</strong> All changes in ":modelName" has been saved',
+        'store_success' => '<strong>Great!</strong> ":modelName" has been created',
         '200' => 'OK',
         '422' => 'Validation error',
         '404' => 'Page not found',
         'na' => 'This request doesn\'t make sens',
     ],
     'error_messages' => [
-        'unique_composite' => 'Already exists a row with the same combination of :composite',
+        'unique_composite' => 'Already exists a row with the same combination of :fields',
     ],
         ]
 ?>

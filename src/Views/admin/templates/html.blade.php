@@ -160,9 +160,11 @@
         </style>
         <!-- Campo definido para incluir estilos especificos en las vistas que lo requieran -->
         <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-        @yield("selfcss")
-        <script src="{{ asset('js/app.js') }}"></script>
-        @yield("selfjs")
+        @if (config("sirgrimorum.crudgenerator.css_section") != "")
+            @stack(config("sirgrimorum.crudgenerator.css_section"))
+        @endif
+        
+        
     </head>
 
     <body>
@@ -179,7 +181,7 @@
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <!-- Left Side Of Navbar -->
                         <ul class="navbar-nav mr-auto">
-                            <li><a class="nav-link" href="{{ url('/') }}">{{ trans("crudgenerator::admin.layout.labels.home") }}</a></li>
+                            <li><a class="nav-link" href="{{ url(config("sirgrimorum.crudgenerator.home_path")) }}">{{ trans("crudgenerator::admin.layout.labels.home") }}</a></li>
                             @foreach(config("sirgrimorum.crudgenerator.admin_routes") as $modelo => $config)
                             <?php
                             if (Lang::has("sirgrimorum_cms::" . strtolower($modelo) . ".labels.plural")) {
@@ -190,7 +192,7 @@
                             ?>
                             <li><a class="nav-link" href="{{ route('sirgrimorum_modelos::index',['localecode'=> App::getLocale(),'modelo'=>strtolower($modelo)]) }}">{{ $plurales }}</a></li>
                             @endforeach
-                            @yield("menuobj")
+                            @stack("menuobj")
                         </ul>
 
                         <!-- Right Side Of Navbar -->
@@ -237,22 +239,21 @@
             <main class="py-4">
                 <div class="container">
                     @if (session(config("sirgrimorum.crudgenerator.status_messages_key")))
-                    <div class="container">
-                        <div class="alert alert-success alert-dismissible" role="alert">
-                            <button type="button" class="close" data-dismiss="alert" aria-label="{{trans('crudgenerator::admin.layout.labels.close')}}"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                    <!--div class="container">
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="{{trans('crudgenerator::admin.layout.labels.close')}}"><span aria-hidden="true">&times;</span></button>
                             {!! session(config("sirgrimorum.crudgenerator.status_messages_key")) !!}
                         </div>
-                    </div>
+                    </div-->
                     @endif
                     @if (session(config("sirgrimorum.crudgenerator.error_messages_key")))
                     <div class="container">
-                        <div class="alert alert-danger alert-dismissible" role="alert">
-                            <button type="button" class="close" data-dismiss="alert" aria-label="{{trans('crudgenerator::admin.layout.labels.close')}}"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="{{trans('crudgenerator::admin.layout.labels.close')}}"><span aria-hidden="true">&times;</span></button>
                             {!! session(config("sirgrimorum.crudgenerator.error_messages_key")) !!}
                         </div>
                     </div>
                     @endif
-                    {!! TransArticles::get('home.prueba2') !!}
                     @yield("contenido")
                 </div>
 
@@ -267,6 +268,12 @@
                 </div>
             </footer>
         </div>
-        @yield("modales")
+        @if (config("sirgrimorum.crudgenerator.modal_section") != "")
+            @stack(config("sirgrimorum.crudgenerator.modal_section"))
+        @endif
+        <script src="{{ asset('js/app.js') }}"></script>
+        @if (config("sirgrimorum.crudgenerator.js_section") != "")
+            @stack(config("sirgrimorum.crudgenerator.js_section"))
+        @endif
     </body>
 </html>

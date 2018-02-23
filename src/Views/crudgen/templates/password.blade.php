@@ -17,21 +17,33 @@ $claseError = '';
 if ($errores == true) {
     if ($errors->has($columna)) {
         $error_campo = true;
-        $claseError = 'has-error';
-    } 
+        $claseError = 'is-invalid';
+    }else{
+        $claseError = 'is-valid';
+    }
+}
+if (isset($datos["readonly"])){
+    $readonly = $datos["readonly"];
+}else{
+    $readonly = "";
+}
+if (isset($datos['placeholder'])){
+    $placeholder = $datos['placeholder'];
+}else{
+    $placeholder="";
 }
 ?>
-<div class="form-group {{ $claseError }}">
+<div class="form-group row">
     {{ Form::label($columna, ucfirst($datos['label']), array('class'=>$config['class_label'])) }}
     <div class="{{ $config['class_divinput'] }}">
-        {{ Form::password($columna,  array('class' => 'form-control ' . $config['class_input'], 'id' => $tabla . '_' . $columna, 'placeholder'=>$datos['placeholder'])) }}
-        <span class="help-block" id="{{ $tabla . '_' . $columna }}_help">
+        {{ Form::password($columna,  array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $columna, 'placeholder'=>$placeholder,$readonly)) }}
+        <small class="form-text text-muted" id="{{ $tabla . '_' . $columna }}_help">
             @if (isset($datos['description']))
             {{ $datos['description'] }}
             @endif
-        </span>
+        </small>
         @if ($error_campo)
-        <div class="alert alert-danger">
+        <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}
         </div>
         @endif
