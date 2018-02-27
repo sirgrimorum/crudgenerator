@@ -7,7 +7,6 @@ use App\Http\Requests\{Model}Request;
 use App\User;
 use {{$config['modelo']}};
 use App\Repositories\{Model}Repository;
-use Sirgrimorum\CrudGenerator\CrudController;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
 
 class {Model}Controller extends Controller {
@@ -27,13 +26,6 @@ class {Model}Controller extends Controller {
     protected $modelName = '{model}';
     
     /**
-     * The {model} name.
-     *
-     * @var {Model}Repository
-     */
-    protected $crudControler;
-    
-    /**
      * The {model} config array.
      *
      * @var {Model}Repository
@@ -48,7 +40,6 @@ class {Model}Controller extends Controller {
     public function __construct({Model}Repository ${model}s) {
         $this->middleware('auth');
         $this->{model}s = ${model}s;
-        $this->crudController = new CrudController();
         $this->config = CrudGenerator::getConfig($this->modelName);
     }
 
@@ -105,7 +96,7 @@ class {Model}Controller extends Controller {
     public function store({Model}Request $request) {
     @endif
         $this->authorize('store', {Model}::class);
-        $objeto = $this->crudController->saveObjeto($this->config, $request);
+        $objeto = CrudGenerator::saveObjeto($this->config, $request);
         $mensajes = [];
         if (is_array(trans("crudgenerator::admin.messages"))) {
             $mensajes = array_merge($mensajes, trans("crudgenerator::admin.messages"));
@@ -179,7 +170,7 @@ class {Model}Controller extends Controller {
     public function update({Model} ${model}, {Model}Request $request) {
     @endif
         $this->authorize('update', ${model});
-        $objeto = $this->crudController->saveObjeto($this->config, $request, ${model});
+        $objeto = CrudGenerator::saveObjeto($this->config, $request, ${model});
         $mensajes = [];
         if (is_array(trans("crudgenerator::admin.messages"))) {
             $mensajes = array_merge($mensajes, trans("crudgenerator::admin.messages"));

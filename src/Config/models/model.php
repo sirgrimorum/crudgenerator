@@ -30,7 +30,7 @@
             "class_button" => "[name of the class]", // optional class for all the buttons default 'btn btn-primary'
             "campos" => [ // list of fields structure. For smart merge, set the value to "notThisTime" to CrudLoader to remove this attribute or field
                 "[field/attribute name]" => [ //as apears in the model if used for db save with url "Sirgrimorum_CrudAdministrator"
-                    "tipo" => "[type of the field]", // required for all types, options are: "function", "checkbox", "date", "datetime", "time", "email", "url", "file", "hidden", "html", "number", "password", "radio", "relationship" (belongsTo one to many), "relationships" (many to many), "relationshipssel" (many to many with pivot table), "select", "slider", "text", "textarea"
+                    "tipo" => "[type of the field]", // required for all types, options are: "function", "checkbox", "date", "datetime", "time", "email", "url", "file", "files" (multiple files in a single field with Json notation, recomended, text type), "hidden", "html", "number", "password", "radio", "relationship" (belongsTo one to many), "relationships" (many to many), "relationshipssel" (many to many with pivot table), "select", "slider", "text", "textarea"
                     "label" => "[text of the label]", // required for all types, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.labels.name__",
                     "placeholder" => "[placeholder text]", // required for text, textarea, email, password and number types, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.placeholders.name__",
                     "description" => "[description text]", // use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.descriptions.name__",
@@ -45,17 +45,17 @@
                     "campo" => "[attribute taken as name for the model]", // required for the relationship, relationships and the relationshipssel types, may use an array of field names
                     "groupby" => "[attribute taken as group for options in select]", // optional for the relationship, relationships and the relationshipssel types, may use an array of field names
                     "todos" => "", // required for the relationship, relationships and the relationshipssel types, array of option models, leave blank if you want all of them
-                    "pathImage" => "[name of the path in assets]/", // required for the file type, used to retreave the image in show and lists views
-                    "path" => "[name of the path in assets]/", // required for the file type, used to save the file, when url is "Sirgrimorum_CrudAdministrator"
-                    "saveCompletePath" => true, // for the file type, if true, save the new filename including "path", when url is "Sirgrimorum_CrudAdministrator"
-                    "length" => [number of characters in the random file name], // for file types, default 20 when url is "Sirgrimorum_CrudAdministrator"
-                    "resize" => [ // for file types when file is an image, save additional copies resized when url is "Sirgrimorum_CrudAdministrator", requieres Intervention/Image plugin (composer require intervention/image , $providers Intervention\Image\ImageServiceProvider::class , $aliases 'Image' => Intervention\Image\Facades\Image::class
+                    "pathImage" => "[name of the path in assets]/", // required for the file and files type, used to retreave the image in show and lists views
+                    "path" => "[name of the path in assets]/", // required for the file and files type, used to save the file, when url is "Sirgrimorum_CrudAdministrator"
+                    "saveCompletePath" => true, // for the file and files type, if true, save the new filename including "path", when url is "Sirgrimorum_CrudAdministrator"
+                    "length" => [number of characters in the random file name], // for file and files types, default 20 when url is "Sirgrimorum_CrudAdministrator"
+                    "resize" => [ // for file and files types when file is an image, save additional copies resized when url is "Sirgrimorum_CrudAdministrator", requieres Intervention/Image plugin (composer require intervention/image , $providers Intervention\Image\ImageServiceProvider::class , $aliases 'Image' => Intervention\Image\Facades\Image::class
                         "width" => [width of the new image in pixels], // if 0 or not present, it will take the height and preserve aspect ratio, if height and width equals to 0 or not present, it will just save a copy of the image
                         "height" => [height of the new image in pixels], // if 0 or not present, it will take the width and preserve aspect ratio, if height and width equals to 0 or not present, it will just save a copy of the image
                         "path" => "[name of the path in assets]", // required, path of the new file, it use the same filename of the original file
                         "quality" => [quality of the new image], // default 100
                     ], 
-                    "pre" => "[prefix text for file name]", // for file types, use '_originalName_' to use the original name as prefix, use the 'trans_prefix' value if you want localization
+                    "pre" => "[prefix text for file name]", // for file and files types, use '_originalName_' to use the original name as prefix, use the 'trans_prefix' value if you want localization
                     "pre" => "[prefix text for input]", // mainly for number, slider and function types, use the 'trans_prefix' value if you want localization
                     "post" => "[postfix text for the input ]", // mainly for number, slider and function types, use the 'trans_prefix' value if you want localization
                     "format" => [(number of decimals), "[decimal separator]", "[mil separator]"], // for number and function types, aplies format to the number []
@@ -67,12 +67,14 @@
                     "min" => 0, // required for slider type, min value for slider and number types
                     "max" => 100, // required for slider type, max value for slider and number types
                     "step" => 5, // required for slider type, step value for slider and number types
+                    "card_class" => [name of the class] // for the relationshipssel type, set additional classes for the cards
                     "columnas" => [[ // required for the relationshipssel type, list of columns to show in the table
                         "label" => "[Header for the column]", // required, use the 'trans_prefix' value if you want localization
                         "placeholder" => "[Placeholder for the column]", // required for 'text' and 'number' types, use the 'trans_prefix' value if you want localization
                         "type" => "[type of the filed]", // required, options are: "label" (value of a field in table), "labelpivot" (value of a field in the pivot table), "text", "textarea", "number", "hidden", "select"
                         "campo" => "[name of the field]", // required
                         "opciones" => [] // required for select type, array of options, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.selects.options__"
+ *                      "format" => [(number of decimals), "[decimal separator]", "[mil separator]"], // for number types, aplies format to the number []
                         "valor" => "[default value of the field]", // use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
                    ],],
                    "readonly" => "readonly", // for all types, if set adds the value to the attribute "readonly" in the input and hide the field in create

@@ -95,10 +95,10 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
                 /* $result = $pusher->trigger('my-channel', 'my-event', $data, null, true);
                   $this->line(print_r($result, true)); */
                 $tiempo = $this->ask("Send in? (Just a number,next you will select seconds, minutes, etc.)");
-                if (!is_int((int)$tiempo)) {
+                if (!is_int((int) $tiempo)) {
                     $tiempo = $this->ask("Send in? HAS TO BE AN INTEGER NUMBER");
                 }
-                if (is_int((int)$tiempo)) {
+                if (is_int((int) $tiempo)) {
                     $unidad = $this->choice('...', ['seconds', 'minutes', 'hours', 'days'], 0);
                     switch ($unidad) {
                         case 'seconds':
@@ -124,7 +124,7 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
                 } else {
                     $this->error("Paila!");
                 }
-            }else{
+            } else {
                 $this->error("User not found");
             }
         })->describe('Broadcast an alert to a user');
@@ -212,10 +212,18 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
             }
         })->describe('Create a Model Lang file from config array');
 
-        Artisan::command('crudgen:createconfig {model : The NAME of the model} {--path= : Provide a custom paht for saving the config file}', function ($model) {
+        Artisan::command('crudgen:createconfig {model : The NAME of the model}{--merge : Try to merge with existing config file if it exist}{--path= : Provide a custom paht for saving the config file}', function ($model) {
             $this->line("Generating Config for {$model}");
             $bar = $this->output->createProgressBar(4);
-            $config = CrudGenerator::getConfig($model, true, '', '', false);
+            $options = $this->options('merge');
+            if ($options['merge']) {
+                $this->line("mergin");
+                $config = CrudGenerator::getConfig($model, true, '', '', false);
+            } else {
+                $this->line("not mergin");
+                $config = CrudGenerator::getConfig($model, false, '', '', false, true,true);
+            }
+
             $bar->advance();
             $options = $this->options('path');
             if ($options['path'] != "") {

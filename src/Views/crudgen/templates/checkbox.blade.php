@@ -18,7 +18,7 @@ if ($errores == true) {
     if ($errors->has($columna)) {
         $error_campo = true;
         $claseError = 'is-invalid';
-    }else{
+    } else {
         $claseError = 'is-valid';
     }
 }
@@ -34,17 +34,26 @@ if ($errores == true) {
             $checked = false;
         }
         ?>
-        <div class="form-check">
-            {{ Form::checkbox($columna, $valor, $checked, array('class' => 'form-check-input ' . $claseError , 'id' => $tabla . '_' . $columna . '_' . $valor)) }}
-            <label class='form-check-label' for='{{$tabla . '_' . $columna . '_' . $valor}}'>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    {{ Form::checkbox($columna, $valor, $checked, array('class' => 'form-check-input ' . $claseError , 'id' => $tabla . '_' . $columna . '_' . $valor)) }}
+                </div>
+            </div>
+            <label class='form-control' for='{{$tabla . '_' . $columna . '_' . $valor}}'>
                 {{ $datos2['label'] }}
             </label>
-            <small class="text-muted" id="{{ $tabla . '_' . $columna . '_' . $valor }}_help">
-                @if (isset($datos2['description']))
-                {{ $datos2['description'] }}
-                @endif
-            </small>
+            @if (isset($datos2['description']))
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <small class="text-muted" id="{{ $tabla . '_' . $columna . '_' . $valor }}_help">
+                        {{ $datos2['description'] }}
+                    </small>
+                </div>
+            </div>
+            @endif
         </div>
+
         @endforeach
         @else
         <?php
@@ -54,17 +63,24 @@ if ($errores == true) {
             $checked = false;
         }
         ?>
-        <div class="form-check">
-            {{ Form::checkbox($columna, $datos['value'], $checked, array('class' => 'form-check-input '. $claseError, 'id' => $tabla . '_' . $columna)) }}
-            <label class='form-check-label' for='{{$tabla . '_' . $columna }}'>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    {{ Form::checkbox($columna, $datos['value'], $checked, array('class' => ' '. $claseError, 'id' => $tabla . '_' . $columna)) }}
+                </div>
+            </div>
+            <label class='form-control' for='{{$tabla . '_' . $columna }}'>
                 {{ $datos['label'] }}
             </label>
-            <small class="text-muted" id="{{ $tabla . '_' . $columna }}_help">
-                @if (isset($datos['description']))
-                {{ $datos['description'] }}
-                @endif
-            </small>
-            
+            @if (isset($datos['description']))
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <small class="text-muted" id="{{ $tabla . '_' . $columna }}_help">
+                        {{ $datos['description'] }}
+                    </small>
+                </div>
+            </div>
+            @endif
         </div>
         @endif
         @if ($error_campo)

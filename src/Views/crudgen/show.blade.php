@@ -35,39 +35,11 @@ $identificador = $config['id'];
         {{ $datos["pre"] }}
         @endif
         @if ($datos['tipo']=="relationship")
-        @if (is_object($registro->{$datos['modelo']}))
-        @if(array_key_exists('enlace',$datos))
-        <a href="{{ str_replace([":modelId",":modelName"],[$registro->{$datos['modelo']}->{$datos['id']},$registro->{$datos['modelo']}->{$datos['nombre']}],str_replace([urlencode (":modelId"),urlencode(":modelName")],[$registro->{$datos['modelo']}->{$datos['id']},$registro->{$datos['modelo']}->{$datos['nombre']}],$datos['enlace'])) }}">
-            @endif
-            @if(is_array($datos['campo']))
-            <?php
-            $prefijoCampo = "";
-            foreach ($datos['campo'] as $campo) {
-                echo $prefijoCampo . $registro->{$datos['modelo']}->{$campo};
-                $prefijoCampo = ", ";
-            }
-            ?>
-            @else
-            {!! $registro->{$datos['modelo']}->{$datos['campo']} !!}
-            @endif
-            @if(array_key_exists('enlace',$datos))
-        </a>
-        @endif
-        @elseif (is_object($registro->{$columna}))
+        @if (CrudLoader::hasRelation($registro, $columna))
         @if(array_key_exists('enlace',$datos))
         <a href="{{ str_replace([":modelId",":modelName"],[$registro->{$columna}->{$datos['id']},$registro->{$columna}->{$datos['nombre']}],str_replace([urlencode (":modelId"),urlencode(":modelName")],[$registro->{$columna}->{$datos['id']},$registro->{$columna}->{$datos['nombre']}],$datos['enlace'])) }}">
             @endif
-            @if(is_array($datos['campo']))
-            <?php
-            $prefijoCampo = "";
-            foreach ($datos['campo'] as $campo) {
-                echo $prefijoCampo . $registro->{$columna}->{$campo};
-                $prefijoCampo = ", ";
-            }
-            ?>
-            @else
-            {!! $registro->{$columna}->{$datos['campo']} !!}
-            @endif
+            {!! CrudLoader::getNombreDeLista($registro->{$columna}, $datos['campo']) !!}
             @if(array_key_exists('enlace',$datos))
         </a>
         @endif
@@ -75,22 +47,45 @@ $identificador = $config['id'];
         {!! print_r($registro->{$columna},true) !!}
         @endif
         @elseif ($datos['tipo']=="relationships")
-        @if (count($registro->{$columna}()->get())>0)
+        @if (CrudLoader::hasRelation($registro, $columna))
         @foreach($registro->{$columna}()->get() as $sub)
         @if(array_key_exists('enlace',$datos))
         <a href="{{ str_replace([":modelId",":modelName"],[$sub->{$datos['id']},$sub->{$datos['nombre']}],str_replace([urlencode (":modelId"),urlencode(":modelName")],[$sub->{$datos['id']},$sub->{$datos['nombre']}],$datos['enlace'])) }}">
             @endif
-            @if(is_array($datos['campo']))
-            <?php
-            $prefijoCampo = "";
-            foreach ($datos['campo'] as $campo) {
-                echo $prefijoCampo . $sub->{$campo};
-                $prefijoCampo = ", ";
-            }
-            ?>
-            @else
-            {!! $sub->{$datos['campo']} !!}
+            {!! CrudLoader::getNombreDeLista($sub, $datos['campo']) !!}
+            @if(array_key_exists('enlace',$datos))
+        </a>
+        @endif
+        ,
+        @endforeach
+        @else
+        @endif
+        @elseif ($datos['tipo']=="relationshipssel")
+        @if (CrudLoader::hasRelation($registro, $columna))
+        @foreach($registro->{$columna}()->get() as $sub)
+        @if(array_key_exists('enlace',$datos))
+        <a href="{{ str_replace([":modelId",":modelName"],[$sub->{$datos['id']},$sub->{$datos['nombre']}],str_replace([urlencode (":modelId"),urlencode(":modelName")],[$sub->{$datos['id']},$sub->{$datos['nombre']}],$datos['enlace'])) }}">
             @endif
+            {!! CrudLoader::getNombreDeLista($sub, $datos['campo']) !!}
+                        @if(array_key_exists('columnas',$datos))
+                            @if(is_array($datos['columnas']))
+                                @if (is_object($sub->pivot))
+                                (
+                                @foreach($datos['columnas'] as $infoPivote)
+                                    @if($infoPivote['type'] != "hidden" && $infoPivote['type'] != "label")
+                                        @if ($infoPivote['type'] == "number" && isset($infoPivote['format']))
+                                        {!! number_format($sub->pivot->{$infoPivote['campo']},$infoPivote['format'][0],$infoPivote['format'][1],$infoPivote['format'][2]) !!}
+                                        @elseif ($infoPivote['type'] == "select" && isset($infoPivote['opciones']))
+                                        {!! $infoPivote['opciones'][$sub->pivot->{$infoPivote['campo']}] !!}
+                                        @else
+                                        {!! $sub->pivot->{$infoPivote['campo']} !!},
+                                        @endif
+                                    @endif
+                                @endforeach
+                                )
+                                @endif
+                            @endif
+                        @endif
             @if(array_key_exists('enlace',$datos))
         </a>
         @endif
@@ -148,7 +143,7 @@ $identificador = $config['id'];
                     $date = new \Carbon\Carbon($dato, $timezone);
                     $dato = $date->format($format);
                 }
-                echo $dato;
+                //echo $dato;
                 ?>
         @elseif ($datos['tipo']=="function")
         @if (isset($datos['format']))

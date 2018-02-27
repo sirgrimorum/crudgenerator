@@ -37,7 +37,6 @@ if (isset($datos["placeholder"])){
     $placeholder="";
 }
 $atributos = [
-    'multiple' => 'multiple',
     'class' => 'form-control ' . $config['class_input'] . ' ' . $claseError,
     'id' => $tabla . '_' . $columna,
     //'placeholder' => $placeholder,
@@ -71,6 +70,7 @@ if ($js_section != "") {
     $(document).ready(function() {
         $('#{{ $tabla . "_" . $columna }}').select2({
             minimumResultsForSearch: 8,
+            width: '100%',
             language: "{{ App::getLocale()}}"
         });
     });

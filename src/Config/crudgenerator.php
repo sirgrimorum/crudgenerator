@@ -156,7 +156,7 @@ return Auth::check();
      * Path to the typeahead folder, if is in asset, just include the string for the asset
      * use 'vendor/sirgrimorum/typeahead' publishing with tag=typeahead
      */
-    'typehead_path' => 'vendor/sirgrimorum/typeahead', // 
+    'typeahead_path' => 'vendor/sirgrimorum/typeahead', // 
     /**
      * Routes list for the administrator
      * "[Name of the model with first uppercase]"=>"[config path of the configuration array for the model]",

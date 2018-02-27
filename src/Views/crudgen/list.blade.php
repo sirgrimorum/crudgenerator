@@ -83,44 +83,12 @@ if (isset($config['render'])) {
                 {!! $datos["pre"] !!}
                 @endif
                 @if ($datos['tipo']=="relationship")
-                @if (CrudLoader::hasRelation($value,$datos['modelo']))
-                @if(array_key_exists('enlace',$datos))
-                <a href="{{ str_replace([":modelId",":modelName"],[$value->{$datos['modelo']}->{$datos['id']},$value->{$datos['modelo']}->{$datos['nombre']}],str_replace([urlencode(":modelId"),urlencode(":modelName")],[$value->{$datos['modelo']}->{$datos['id']},$value->{$datos['modelo']}->{$datos['nombre']}],$datos['enlace'])) }}">
-                    @endif
-                    @if($value->{$datos['modelo']})
-                    @if(is_array($datos['campo']))
-                    <?php
-                    $prefijoCampo = "";
-                    foreach ($datos['campo'] as $campo) {
-                        echo $prefijoCampo . $value->{$datos['modelo']}->{$campo};
-                        $prefijoCampo = ", ";
-                    }
-                    ?>
-                    @else
-                    {!! $value->{$datos['modelo']}->{$datos['campo']} !!}
-                    @endif
-                    @else
-                    -
-                    @endif
-                    @if(array_key_exists('enlace',$datos))
-                </a>
-                @endif
-                @elseif (CrudLoader::hasRelation($value,$columna))
+                @if (CrudLoader::hasRelation($value,$columna))
                 @if(array_key_exists('enlace',$datos))
                 <a href="{{ str_replace([":modelId", ":modelName"],[$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}],str_replace([urlencode(":modelId"), urlencode(":modelName")],[$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}],$datos['enlace'])) }}">
                     @endif
                     @if($value->{$columna})
-                    @if(is_array($datos['campo']))
-                    <?php
-                    $prefijoCampo = "";
-                    foreach ($datos['campo'] as $campo) {
-                        echo $prefijoCampo . $value->{$columna}->{$campo};
-                        $prefijoCampo = ", ";
-                    }
-                    ?>
-                    @else
-                    {!! $value->{$columna}->{$datos['campo']} !!}
-                    @endif
+                    {!! CrudLoader::getNombreDeLista($value->{$columna}, $datos['campo']) !!}
                     @else
                     -
                     @endif
@@ -131,22 +99,47 @@ if (isset($config['render'])) {
                 -
                 @endif
                 @elseif ($datos['tipo']=="relationships")
-                @if (count($value->{$columna}()->get())>0)
+                @if (CrudLoader::hasRelation($value, $columna))
                 @foreach($value->{$columna}()->get() as $sub)
                 <p>
                     @if(array_key_exists('enlace',$datos))
                     <a href="{{ str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre']}],str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}],$datos['enlace'])) }}">
                         @endif
-                        @if(is_array($datos['campo']))
-                        <?php
-                        $prefijoCampo = "";
-                        foreach ($datos['campo'] as $campo) {
-                            echo $prefijoCampo . $sub->{$campo};
-                            $prefijoCampo = ", ";
-                        }
-                        ?>
-                        @else
-                        {!! $sub->{$datos['campo']} !!}
+                        {!! CrudLoader::getNombreDeLista($sub, $datos['campo']) !!}
+                        @if(array_key_exists('enlace',$datos))
+                    </a>
+                    @endif
+                </p>
+                @endforeach
+                @else
+                -
+                @endif
+                @elseif ($datos['tipo']=="relationshipssel")
+                @if (CrudLoader::hasRelation($value, $columna))
+                @foreach($value->{$columna}()->get() as $sub)
+                <p>
+                    @if(array_key_exists('enlace',$datos))
+                    <a href="{{ str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre']}],str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}],$datos['enlace'])) }}">
+                        @endif
+                        {!! CrudLoader::getNombreDeLista($sub, $datos['campo']) !!}
+                        @if(array_key_exists('columnas',$datos))
+                            @if(is_array($datos['columnas']))
+                                @if (is_object($sub->pivot))
+                                (
+                                @foreach($datos['columnas'] as $infoPivote)
+                                    @if($infoPivote['type'] != "hidden" && $infoPivote['type'] != "label")
+                                        @if ($infoPivote['type'] == "number" && isset($infoPivote['format']))
+                                        {!! number_format($sub->pivot->{$infoPivote['campo']},$infoPivote['format'][0],$infoPivote['format'][1],$infoPivote['format'][2]) !!}
+                                        @elseif ($infoPivote['type'] == "select" && isset($infoPivote['opciones']))
+                                        {!! $infoPivote['opciones'][$sub->pivot->{$infoPivote['campo']}] !!}
+                                        @else
+                                        {!! $sub->pivot->{$infoPivote['campo']} !!},
+                                        @endif
+                                    @endif
+                                @endforeach
+                                )
+                                @endif
+                            @endif
                         @endif
                         @if(array_key_exists('enlace',$datos))
                     </a>
@@ -405,7 +398,7 @@ if (is_array($botones)) {
             $confirmTitle = '';
             if (stripos($boton, "<a") >= 0) {
                 try {
-                    $nodes = Sirgrimorum\CrudGenerator\CrudGenerator::extract_tags($boton, "a");
+                    $nodes = CrudLoader::extract_tags($boton, "a");
                     if (isset($nodes[0]['attributes']['href'])) {
                         $urlBoton = $nodes[0]['attributes']['href'];
                     } else {

@@ -36,12 +36,14 @@ class ExtendedValidator extends Validator {
         
         $ignore_id = null;
         $ignore_column = null;
+        //Si en el input se envió el valor _registro, omitirá ese valor
         if (array_has($data, "_registro")) {
             $modeloM = ucfirst(substr($table, 0, strlen($table) - 1));
             $config = CrudGenerator::getConfig($modeloM);
             $ignore_column = $config['id'];
             $ignore_id = array_get($data, "_registro");
         } else {
+            //Si el úlitmo valor del Unique es un id, omitirá ese valor
             $lastParam = end($parameters);
             if (preg_match('/^[1-9][0-9]*$/', $lastParam)) {
                 $modeloM = ucfirst(substr($table, 0, strlen($table) - 1));
@@ -73,6 +75,77 @@ class ExtendedValidator extends Validator {
     }
 
     public function replaceUniqueComposite($message, $attribute, $rule, $parameters) {
+        // remove first parameter and assume it is the table name
+        $table = array_shift($parameters);
+        $modeloM = ucfirst(substr($table, 0, strlen($table) - 1));
+
+        $config = CrudGenerator::getConfig($modeloM);
+        if (array_has($config, "campos." . $attribute . ".label")) {
+            $campos = '"' . array_get($config, "campos." . $attribute . ".label") . '"';
+        } else {
+            $campos = '"' . $attribute . '"';
+        }
+        $prefix = ", ";
+        foreach ($parameters as $parameter) {
+            if (array_has($config, "campos." . $parameter . ".label")) {
+                $campos.= $prefix . '"' . array_get($config, "campos." . $parameter . ".label") . '"';
+            } else {
+                $campos.= $prefix . '"' . $parameter . '"';
+            }
+        }
+        return str_replace(":fields", $campos, $message);
+    }
+    
+    // Laravel uses this convention to look for validation rules, this function will be triggered 
+    // for unique_except
+    public function validateUniqueExcept($attribute, $value, $parameters) {
+        $this->requireParameterCount(2, $parameters, 'unique_except');
+
+        $data = $this->getData();
+        // remove first parameter and assume it is the table name
+        $table = array_shift($parameters);
+        
+        $ignore_id = null;
+        $ignore_column = null;
+        //Si en el input se envió el valor _registro, omitirá ese valor
+        if (array_has($data, "_registro")) {
+            $modeloM = ucfirst(substr($table, 0, strlen($table) - 1));
+            $config = CrudGenerator::getConfig($modeloM);
+            $ignore_column = $config['id'];
+            $ignore_id = array_get($data, "_registro");
+        } else {
+            //Si el úlitmo valor del Unique es un id, omitirá ese valor
+            $lastParam = end($parameters);
+            if (preg_match('/^[1-9][0-9]*$/', $lastParam)) {
+                $modeloM = ucfirst(substr($table, 0, strlen($table) - 1));
+                $config = CrudGenerator::getConfig($modeloM);
+                $ignore_column = $config['id'];
+                $ignore_id = $lastParam;
+                array_pop($parameters);
+            }
+        }
+
+        // start building the conditions
+        $fields = [ $attribute => $value]; // current field, the first in wich the rule is aplied not valid with getCount
+        // iterates over the other parameters and build the conditions for all the required fields
+        while ($field = array_shift($parameters)) {
+            $fields[$field] = Arr::get($data, $field);
+        }
+
+        $verifier = $this->getPresenceVerifier();
+        return $verifier->getCount(
+                        $table, $attribute, $value, $ignore_id, $ignore_column, $fields
+                ) == 0;
+         /* 
+         */
+        //echo "<p>ignore_id=" . $ignore_id . ", ignore_column=" . $ignore_column . "</p>";
+        // query the table with all the conditions
+        $result = \DB::table($table)->select(\DB::raw(1))->where($fields)->where($ignore_column,"<>",$ignore_id)->first();
+
+        return empty($result); // true if empty
+    }
+
+    public function replaceUniqueExcept($message, $attribute, $rule, $parameters) {
         // remove first parameter and assume it is the table name
         $table = array_shift($parameters);
         $modeloM = ucfirst(substr($table, 0, strlen($table) - 1));

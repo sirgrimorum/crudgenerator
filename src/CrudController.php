@@ -23,7 +23,7 @@ class CrudController extends BaseController {
         $config = CrudGenerator::getConfig($modelo);
         //return "<pre>" . print_r($config, true) . "</pre>";
         //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
-        return $this->devolver($request, $config, $this->checkPermission($request, $config));
+        return $this->devolver($request, $config, CrudGenerator::checkPermission($config));
     }
 
     public function create($localecode, $modelo, Request $request) {
@@ -31,7 +31,7 @@ class CrudController extends BaseController {
         $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfig($modelo);
         //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
-        return $this->devolver($request, $config, $this->checkPermission($request, $config));
+        return $this->devolver($request, $config, CrudGenerator::checkPermission($config));
     }
 
     public function store($localecode, $modelo, Request $request) {
@@ -41,15 +41,15 @@ class CrudController extends BaseController {
         //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
         //$config = CrudGenerator::translateConfig($config);
         $config = CrudGenerator::getConfig($modelo);
-        if (!$permiso = $this->checkPermission($request, $config)) {
+        if (!$permiso = CrudGenerator::checkPermission($config)) {
             return $this->devolver($request, $config, $permiso);
         }
-        if (($validator = $this->validateModel($config, $request)) !== false) {
+        if (($validator = CrudGenerator::validateModel($config, $request)) !== false) {
             if ($validator->fails()) {
                 return $this->devolverValidation($validator, $modelo, $request);
             }
         }
-        $objeto = $this->saveObjeto($config, $request);
+        $objeto = CrudGenerator::saveObjeto($config, $request);
         return $this->devolver($request, $config, $permiso, $objeto);
     }
 
@@ -60,7 +60,7 @@ class CrudController extends BaseController {
         //$registro = $modeloM::find($id);
         //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
         $config = CrudGenerator::getConfig($modelo);
-        return $this->devolver($request, $config, $this->checkPermission($request, $config, $registro), $registro);
+        return $this->devolver($request, $config, CrudGenerator::checkPermission($config, $registro), $registro);
     }
 
     public function edit($localecode, $modelo, $registro, Request $request) {
@@ -69,7 +69,7 @@ class CrudController extends BaseController {
         $modeloM = ucfirst($modelo);
         //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
         $config = CrudGenerator::getConfig($modelo);
-        return $this->devolver($request, $config, $this->checkPermission($request, $config, $registro), $registro);
+        return $this->devolver($request, $config, CrudGenerator::checkPermission($config, $registro), $registro);
     }
 
     public function update($localecode, $modelo, $registro, Request $request) {
@@ -79,15 +79,15 @@ class CrudController extends BaseController {
         //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
         //$config = CrudGenerator::translateConfig($config);
         $config = CrudGenerator::getConfig($modelo);
-        if (!$permiso = $this->checkPermission($request, $config, $registro)) {
+        if (!$permiso = CrudGenerator::checkPermission($config, $registro)) {
             return $this->devolver($request, $config, $permiso, $registro);
         }
-        if (($validator = $this->validateModel($config, $request)) !== false) {
+        if (($validator = CrudGenerator::validateModel($config, $request)) !== false) {
             if ($validator->fails()) {
                 return $this->devolverValidation($validator, $modelo, $request, $registro);
             }
         }
-        $objeto = $this->saveObjeto($config, $request, $registro);
+        $objeto = CrudGenerator::saveObjeto($config, $request, $registro);
         return $this->devolver($request, $config, $permiso, $objeto);
     }
 
@@ -98,7 +98,7 @@ class CrudController extends BaseController {
         //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
         //$config = CrudGenerator::translateConfig($config);
         $config = CrudGenerator::getConfig($modelo);
-        if (!$permiso = $this->checkPermission($request, $config, $registro)) {
+        if (!$permiso = CrudGenerator::checkPermission($config, $registro)) {
             return $this->devolver($request, $config, $permiso, $registro);
         }
         $muerto = $config['modelo']::find($registro);
@@ -373,281 +373,6 @@ class CrudController extends BaseController {
         }
     }
 
-    private function checkPermission(Request $request, $config, $registro = 0) {
-        $action = substr($request->route()->getName(), stripos($request->route()->getName(), "::") + 2);
-$resultado = true;
-        $general = false;
-        if (isset($config['permissions'])) {
-            if (isset($config['permissions'][$action])) {
-                $callback = $config['permissions'][$action];
-            } elseif (isset($config['permissions']['default'])) {
-                $callback = $config['permissions']['default'];
-            } else {
-                $general = true;
-            }
-        } else {
-            $general = true;
-        }
-        if ($general) {
-            $callback = config('sirgrimorum.crudgenerator.permission');
-        }
-        if (is_callable($callback)) {
-            if ($action != "store") {
-                if ($registro > 0) {
-                    $objModelo = $config['modelo']::find($registro);
-                    $resultado = (bool) $callback($objModelo);
-                } else {
-                    $resultado = (bool) $callback();
-                }
-            } else {
-                $resultado = (bool) $callback($request);
-            }
-        } else {
-            $resultado = (bool) $callback;
-        }
-
-        return $resultado;
-    }
-
-    private function validateModel($config, Request $request) {
-        $rules = [];
-        $modeloM = class_basename($config["modelo"]);
-        $modelo = strtolower($modeloM);
-        if (isset($config['rules'])) {
-            if (is_array($config['rules'])) {
-                $rules = $config['rules'];
-            }
-        }
-        if (count($rules) == 0) {
-            $objModelo = new $config['modelo'];
-            if (isset($objModelo->rules)) {
-                if (is_array($objModelo->rules)) {
-                    $rules = $objModelo->rules;
-                }
-            }
-        }
-        if (count($rules) > 0) {
-            $customAttributes = [];
-            foreach ($rules as $field => $datos) {
-                if (array_has($config, "campos." . $field . ".label")) {
-                    $customAttributes[$field] = array_get($config, "campos." . $field . ".label");
-                }
-            }
-            $error_messages = [];
-            if (isset($config['error_messages'])) {
-                if (is_array($config['error_messages'])) {
-                    $error_messages = $config['error_messages'];
-                }
-            }
-            if (count($error_messages) == 0) {
-                $objModelo = new $config['modelo'];
-                if (isset($objModelo->error_messages)) {
-                    if (is_array($objModelo->error_messages)) {
-                        $error_messages = $objModelo->error_messages;
-                    }
-                }
-            }
-            $error_messages = array_merge(trans("crudgenerator::admin.error_messages"), $error_messages);
-            $validator = Validator::make($request->all(), $rules, $error_messages, $customAttributes);
-            return $validator;
-        }
-        return false;
-    }
-
-    public function saveObjeto($config, Request $input, $obj = null) {
-        if (!$obj) {
-            $objModelo = new $config['modelo'];
-        } else {
-            if (!is_object($obj)) {
-                $objModelo = $config['modelo']::find($obj);
-            } else {
-                $objModelo = $obj;
-            }
-        }
-        //echo "<p>modelo</p><pre>" . print_r($objModelo, true) . "</pre>";
-
-        if ($objModelo) {
-            foreach ($config['campos'] as $campo => $detalles) {
-                if (!isset($detalles["nodb"])) {
-                    switch ($detalles['tipo']) {
-                        case 'checkbox':
-                        case 'email':
-                        case 'hidden':
-                        case 'html':
-                        case 'number':
-                        case 'password':
-                        case 'radio':
-                        case 'slider':
-                        case 'text':
-                        case 'textarea':
-                            if ($input->has($campo)) {
-                                $objModelo->{$campo} = $input->input($campo);
-                            } elseif (isset($detalles['valor'])) {
-                                $objModelo->{$campo} = $detalles['valor'];
-                            }
-                            break;
-                        case 'relationship':
-                            if ($input->has($campo)) {
-                                if (CrudGenerator::hasRelation($objModelo, $campo)) {
-                                    echo "<p>aqui</p>";
-                                    $objModelo->{$campo}()->associate($input->input($campo));
-                                } else {
-                                    $objModelo->{$campo} = $input->input($campo);
-                                }
-                            } elseif (isset($detalles['valor'])) {
-                                if (CrudGenerator::hasRelation($objModelo, $campo)) {
-                                    $objModelo->{$campo}()->associate($detalles['valor']);
-                                } else {
-                                    $objModelo->{$campo} = $detalles['valor'];
-                                }
-                            }
-                            break;
-                        case 'relationships':
-                            if ($input->has($campo)) {
-                                $objModelo->{$campo}()->sync($input->input($campo));
-                            } elseif (isset($detalles['valor'])) {
-                                $objModelo->{$campo}()->sync($detalles['valor']);
-                            }
-                            break;
-                        case 'relationshipssel':
-                            if ($input->has($campo)) {
-                                $datos = [];
-                                foreach ($input->input($campo) as $id => $pivot) {
-                                    $datos[$id] = [];
-                                    foreach ($detalles['columnas'] as $subdetalles) {
-                                        if ($subdetalles['type'] == "text" || $subdetalles['type'] == "textarea" || $subdetalles['type'] == "number" || $subdetalles['type'] == "hidden") {
-                                            if ($input->has($campo . "_" . $subdetalles['campo'] . "_" . $id)) {
-                                                $datos[$id][$subdetalles['campo']] = $input->input($campo . "_" . $subdetalles['campo'] . "_" . $id);
-                                            } else {
-                                                $datos[$id][$subdetalles['campo']] = $subdetalles['valor'];
-                                            }
-                                        }
-                                    }
-                                }
-                                $objModelo->{$campo}()->sync($datos);
-                            } elseif (isset($detalles['valor'])) {
-                                $objModelo->{$campo}()->sync($detalles['valor']);
-                            }
-                            break;
-                        case 'select':
-                            if ($input->has($campo)) {
-                                if (!isset($detalles["multiple"])) {
-                                    $objModelo->{$campo} = $input->input($campo);
-                                } elseif ($detalles["multiple"] != "multiple") {
-                                    $objModelo->{$campo} = $input->input($campo);
-                                } else {
-                                    $objModelo->{$campo} = $input->input($campo);
-                                }
-                            } elseif (isset($detalles['valor'])) {
-                                $objModelo->{$campo} = $detalles['valor'];
-                            }
-                            break;
-                        case 'date':
-                        case 'datetime':
-                        case 'time':
-                            if ($input->has($campo)) {
-                                if (isset($detalles["timezone"])) {
-                                    $timezone = $detalles["timezone"];
-                                } else {
-                                    $timezone = config("app.timezone");
-                                }
-                                $date = new \Carbon\Carbon($input->input($campo), $timezone);
-                                $objModelo->{$campo} = $date->getTimestamp();
-                            } elseif (isset($detalles['valor'])) {
-                                if (isset($detalles["timezone"])) {
-                                    $timezone = $detalles["timezone"];
-                                } else {
-                                    $timezone = config("app.timezone");
-                                }
-                                $date = new \Carbon\Carbon($detalles['valor'], $timezone);
-                                $objModelo->{$campo} = $date->getTimestamp();
-                            }
-                            break;
-                        case 'file':
-                            if ($input->has($campo)) {
-                                $file = Input::file($campo);
-
-                                if ($file) {
-                                    try {
-                                        if (substr($file->getMimeType(), 0, 5) == 'image') {
-                                            $esImagen = true;
-                                        } else {
-                                            $esImagen = false;
-                                        }
-                                    } catch (Error $err) {
-                                        $esImagen = false;
-                                    }
-                                    $destinationPath = public_path() . str_finish($detalles['path'], '/');
-                                    if (isset($detalles['pre'])) {
-                                        if ($detalles['pre'] == '_originalName_') {
-                                            $filename = $file->getClientOriginalName();
-                                        } else {
-                                            $filename = $detalles['pre'];
-                                        }
-                                    }
-                                    if (isset($detalles['length'])) {
-                                        $numRand = $detalles['length'];
-                                    } else {
-                                        $numRand = 20;
-                                    }
-                                    $filename = $filename . str_random($numRand) . "." . $file->getClientOriginalExtension();
-                                    $upload_success = $file->move($destinationPath, $filename);
-                                    if ($upload_success) {
-                                        if ($esImagen && isset($detalles['resize'])) {
-                                            foreach ($detalles['resize'] as $resize) {
-                                                $image_resize = Image::make($destinationPath . $filename);
-                                                $width = 0;
-                                                if (isset($resize['width'])) {
-                                                    $width = $resize['width'];
-                                                }
-                                                $height = 0;
-                                                if (isset($resize['height'])) {
-                                                    $height = $resize['height'];
-                                                }
-                                                if ($width > 0 || $height > 0) {
-                                                    if ($width == 0 || $height == 0) {
-                                                        $image_resize->resize($width, $height, function ($constraint) {
-                                                            $constraint->aspectRatio();
-                                                        });
-                                                    } else {
-                                                        $image_resize->resize($width, $height);
-                                                    }
-                                                }
-                                                $destinationPath = public_path() . str_finish($resize['path'], '/');
-                                                $quality = 100;
-                                                if (isset($resize['quality'])) {
-                                                    $quality = $resize['quality'];
-                                                }
-                                                $image_resize->save($destinationPath . $filename, $quality);
-                                            }
-                                            // resizing an uploaded file
-                                            //return Response::json('success', 200);
-                                        }
-                                        $newFilename = $filename;
-                                        if (isset($detalles['saveCompletePath'])) {
-                                            if ($detalles['saveCompletePath']) {
-                                                $newFilename = $detalles['path'] . $filename;
-                                            }
-                                        }
-                                        $objModelo->{$campo} = $newFilename;
-                                    } else {
-                                        return Response::json('error', 400);
-                                    }
-                                }
-                            } elseif (isset($detalles['valor'])) {
-                                $objModelo->{$campo} = $detalles['valor'];
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-            $objModelo->save();
-            return $objModelo;
-        } else {
-            return false;
-        }
-    }
+    
 
 }

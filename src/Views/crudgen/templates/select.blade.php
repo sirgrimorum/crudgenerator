@@ -73,6 +73,7 @@ if ($js_section != "") {
     $(document).ready(function() {
         $('#{{ $tabla . "_" . $columna }}').select2({
             minimumResultsForSearch: 8,
+            width: '100%',
             language: "{{ App::getLocale()}}"
         });
     });
