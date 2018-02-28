@@ -102,9 +102,9 @@ trait CrudFiles {
      * @return boolean
      */
     public static function removeFile($filename, $public = true) {
-        if ($public){
+        if ($public) {
             $path = public_path($filename);
-        }else{
+        } else {
             $path = base_path($filename);
         }
         if (file_exists($path)) {
@@ -240,6 +240,12 @@ trait CrudFiles {
      */
     public static function saveConfig($config, $path, $config_path = "") {
         $inPath = $path;
+        if (isset($config['parametros'])) {
+            $parametros = $config['parametros'];
+            unset($config['parametros']);
+        } else {
+            $parametros = "";
+        }
         $path = str_finish(str_replace([".", "/"], ["\\", "\\"], $path), '.php');
         if ($config_path == "") {
             $config_path = config_path($path);
@@ -288,7 +294,7 @@ trait CrudFiles {
                     $strValue = "false";
                 }
                 $strArr .= $tabs . '"' . $key . '" => ' . $strValue . ', ' . chr(13) . chr(10);
-            } elseif (is_callable($value) && $value !== "file") {
+            } elseif (is_callable($value) && $value !== "file"  && $value !== "url"  && $value !== "config") {
                 $closure = new SuperClosure($value);
                 $strArr .= $tabs . '"' . $key . '" => ' . print_r($closure->getCode(), true) . ', ' . chr(13) . chr(10);
             } elseif (is_object($value)) {
@@ -305,17 +311,59 @@ trait CrudFiles {
     /**
      * Know if a filename in public is an image with configuration array
      * @param string $filename The file name
-     * @param array $detalles The configuration array for the field
-     * @return boolean
+     * @param array $detalles Optiona, The configuration array for the field
+     * @return string The type of file, options are: image, video, audio, pdf, text,office, compressed, other
      */
-    public static function filenameIsImage(string $filename, array $detalles) {
-        $allowedMimeTypes = ['image/jpeg', 'image/gif', 'image/png', 'image/bmp', 'image/svg+xml'];
-        $path = str_start($filename, str_finish($detalles['path'], '\\'));
-        $contentType = mime_content_type(public_path($path));
-        if (!in_array($contentType, $allowedMimeTypes)) {
+    public static function filenameIs(string $filename, array $detalles = []) {
+        $allowedMimeTypes = [
+            'image' => ['image/jpeg', 'image/gif', 'image/png', 'image/bmp', 'image/x-windows-bmp', 'image/svg+xml', 'image/x-icon', 'image/tiff'],
+            //'video' =>['video/avi', 'video/msvideo', 'video/x-msvideo', 'video/mpeg', 'video/x-motion-jpeg','video/quicktime','video/vivo','video/webm','video/mp4','video/ogg', 'video/3gpp', 'video/x-ms-asf' 'application/octet-stream'],
+            'video' => ['video/avi', 'video/mpeg', 'video/webm', 'video/mp4', 'video/ogg', 'video/3gpp', 'application/octet-stream'],
+            //'audio' =>['audio/x-gsm', 'audio/mpeg', 'audio/midi', 'audio/x-midi', 'audio/mod','audio/mpeg3','audio/s3m','audio/wav'],
+            'audio' => ['audio/mpeg', 'audio/midi', 'audio/mod', 'audio/mpeg3', 'audio/wav'],
+            'pdf' => ['application/pdf'],
+            'text' => ['text/html', 'text/plain', 'text/richtext'],
+            'office' => ['application/mspowerpoint', 'application/msword', 'application/excel','application/vnd.ms-excel','application/vnd.ms-powerpoint'],
+            'compressed' => ['application/x-compressed', 'application/zip', 'multipart/x-zip', 'application/x-zip-compressed'],
+        ];
+        $mimeType = \Sirgrimorum\CrudGenerator\CrudGenerator::fileMime($filename, $detalles);
+        foreach ($allowedMimeTypes as $type => $allowedMimeType) {
+            if (in_array($mimeType, $allowedMimeType)) {
+                return $type;
+            }
+        }
+        return 'other';
+    }
+
+    /**
+     * Get Mime of a filename in public with configuration array
+     * @param string $filename The file name
+     * @param array $detalles Optiona, The configuration array for the field
+     * @return string The mime type
+     */
+    public static function fileMime(string $filename, array $detalles = []) {
+        if (isset($detalles['path'])) {
+            $path = str_start($filename, str_finish($detalles['path'], '\\'));
+        } else {
+            $path = $filename;
+        }
+        $ext = pathinfo($path, PATHINFO_EXTENSION);
+        if (file_exists($path)) {
+            $typesArray = config("sirgrimorum.mimebyext", []);
+            $mimeType = "";
+            if (!count($typesArray) == 0) {
+                if (isset($typesArray[$ext])) {
+                    $mimeType = $typesArray[$ext];
+                }
+            }
+            $otro = $mimeType;
+            if ($mimeType == "") {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mimeType = finfo_file($finfo, public_path($path));
+            }
+            return $mimeType;
+        } else {
             return false;
-        }else{
-            return true;
         }
     }
 

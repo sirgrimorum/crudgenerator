@@ -7,7 +7,7 @@ if ($columnaT['type'] == 'label') {
     if ($columnaT['type'] == 'labelpivot') {
         $valorM = $pivote->{$columnaT['campo']};
     } else {
-        $valorM = old($columna . "_" . $columnaT['campo'] . "_" . $tablaInterId);
+        $valorM = old($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId);
         if ($valorM == "") {
             try {
                 $valorM = $pivote->{$columnaT['campo']};
@@ -40,14 +40,14 @@ $atributos = [
     'style' => "max-height:100px;",
     $readonly
 ];
-if (isset($columnaT['campo'])) {
+if (isset($columnaT['campo']) && $columnaT['type']!='label') {
     $atributos['class'] .= ' ' . $columna . '_' . $columnaT['campo'];
     $atributos['id'] = $columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId;
 }
 ?>
 @if ($loop->first)
-<div class="card mb-1 mt-1 {{$card_class}}" id="{{$columna . "_" . $tablaOtroId}}_principal">
-    {{ Form::hidden($columna. "[" . $tablaOtroId ."]", $tablaOtroId, array('class' => 'form-control', 'id' => $columna . '_' . $tablaInterId)) }}
+<div class="card mb-1 mt-1 {{$card_class}}" id="{{$columna . "_" . $tablaOtroId}}_principal" data-pivote="principal">
+    {{ Form::hidden($columna. "[" . $tablaOtroId ."]", $tablaOtroId, array('class' => 'form-control', 'id' => $columna . '_' . $tablaOtroId)) }}
     <div class="card-header text-center">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
@@ -69,7 +69,7 @@ if (isset($columnaT['campo'])) {
             @endif
             @else
             @if ($columnaT['type']=='hidden')
-            {{ Form::hidden($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, $valorM, array('class' => 'form-control', 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaInterId)) }}
+            {{ Form::hidden($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, $valorM, array('class' => 'form-control', 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId)) }}
             @else
             <div class="form-group col">
                 {{ Form::label($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, ucfirst($columnaT['label']), ['class'=>""]) }}
@@ -96,7 +96,7 @@ if (isset($columnaT['campo'])) {
     @endif
     <div class="collapse" id='{{ $tabla . '_' . $columna . "_" . $tablaOtroId}}_info'>
         <div class='card-footer text-muted'>
-            @include("sirgrimorum::admin.show.simple", ["modelo" => class_basename($datos["modelo"]),"config" => "","registro"=>$tablaInterId])
+            @include("sirgrimorum::admin.show.simple", ["modelo" => class_basename($datos["modelo"]),"config" => "","registro"=>$tablaOtroId])
         </div>
     </div>
 </div>

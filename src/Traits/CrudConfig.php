@@ -11,7 +11,7 @@ use ReflectionMethod;
 trait CrudConfig {
 
     /**
-     * Get the configuration parameters for a model using de CrudLoader format.
+     * Get the configuration array for a model using de CrudGenerator format.
      * 
      * Using the model, it would bring it from the crudgenerator.admin_routes array.
      * 
@@ -43,6 +43,18 @@ trait CrudConfig {
      */
     public static function getConfig($modelo, $smartMerge = false, $config = '', $baseConfig = '', $trans = true, $fail = true, $override = false) {
         /**
+         * Save parameters passed
+         */
+        $parametros = json_encode([
+            "modelo" => $modelo,
+            "smartMerge" => $smartMerge,
+            "config" => $config,
+            "baseConfig" => $baseConfig,
+            "trans" => $trans,
+            "fail" => $fail,
+            "override" => $override
+        ]);
+        /**
          * Get initial config and model name
          */
         if (!array_has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
@@ -51,7 +63,6 @@ trait CrudConfig {
                 //$modelo = strtolower($modelo);
             }
         }
-
         if (!$override) {
             if ($config == '') {
                 $config = 'render';
@@ -94,7 +105,7 @@ trait CrudConfig {
                 $smartMerge = false;
             }
         } else {
-            if (is_array($config)){
+            if (is_array($config)) {
                 $preConfig = $config;
             }
             $config = 'render';
@@ -166,7 +177,37 @@ trait CrudConfig {
             }
         }
         //echo "<pre>" . print_r($config, true) . "</pre>";
+        $config['parametros'] = $parametros;
         return $config;
+    }
+
+    /**
+     * Get the configuration array for a model using de CrudGenerator format, just like getConfig, 
+     * but if in the request a "__parametros" field with a json is found, the configuratio will be created 
+     * using its values insted of the ones passed to this function.
+     * 
+     * @param string $modelo The Model class name, used to retreave the default configuration from crudgenerator.admin_routes
+     * @param boolean $smartMerge Optional, true for smart merge or false (default) to only retrive the config
+     * @param mix $config Optional, The configuration route or array to load. empty or 'render'(default) to automaticaly create it, if no one is found using only $model. If $smatMerge is true, is used to overwrite $baseConfig
+     * @param mix $baseConfig Optional, used for smartMerge: The configuration route or array used as base for the merge, if empty(default) or not found, it would create automatically the Base config from the Model an the DB
+     * @param boolean $trans Optional, whether to translate the config or not, default is true
+     * @param boolean $fail Optional, whether to fail if automatically create config fails or simply return false
+     * @param boolean $override Optional, If true, override searching for existing config, and go to automaticaly create one
+     * @return array The configuration array localized. If smartMerge fail or result is empty, it would return baseConfig if $fail is true or false if $fail is false, if automatically create one fails it would return a 500 error if $fails is true otherwise it would return false.
+     */
+    public static function getConfigWithParametros($modelo, $smartMerge = false, $config = '', $baseConfig = '', $trans = true, $fail = true, $override = false) {
+        $request = request();
+        $newConfig = "";
+        if ($request->has("__parametros")) {
+            $parametros = json_decode($request->__parametros, true);
+            if (is_array($parametros)) {
+                $newConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfig($parametros["modelo"],$parametros["smartMerge"],$parametros["config"],$parametros["baseConfig"],$parametros["trans"],$parametros["fail"],$parametros["override"]);
+            }
+        }
+        if ($newConfig == "") {
+            $newConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfig($modelo, $smartMerge, $config, $baseConfig, $trans, $fail, $override);
+        }
+        return $newConfig;
     }
 
     /**
@@ -617,12 +658,12 @@ trait CrudConfig {
                     }
                 }
                 if ($datos['notNull'] && $datos['type'] != 'boolean') {
-                    if ($configCampos[$campo]['tipo']=="files"){
+                    if ($configCampos[$campo]['tipo'] == "files" || $configCampos[$campo]['tipo'] == "file") {
                         $rulesStr .=$prefixRules . 'required_without:' . $campo . "_filereg";
-                    }else{
+                    } else {
                         $rulesStr .=$prefixRules . 'required';
                     }
-                    
+
                     $prefixRules = "|";
                 }
                 if ($datos['isUniqueComposite']) {
@@ -826,6 +867,12 @@ trait CrudConfig {
      */
     private static function smartMergeConfig($config, $preConfig) {
         if (is_array($preConfig)) {
+            if (isset($preConfig['parametros'])) {
+                $parametros = $preConfig['parametros'];
+                unset($preConfig['parametros']);
+            } else {
+                $parametros = "";
+            }
             if (is_array($config)) {
                 foreach ($preConfig as $key => $value) {
                     if (!array_has($config, $key)) {
@@ -873,6 +920,9 @@ trait CrudConfig {
                     }
                 }
                 if (count($config) > 0) {
+                    if ($parametros != "") {
+                        $config["parametros"] = $parametros;
+                    }
                     return $config;
                 } else {
                     return false;
@@ -897,6 +947,12 @@ trait CrudConfig {
      */
     public static function translateConfig($array) {
         $result = [];
+        if (isset($array['parametros'])) {
+            $parametros = $array['parametros'];
+            unset($array['parametros']);
+        } else {
+            $parametros = "";
+        }
         foreach ($array as $key => $item) {
             if (gettype($item) != "Closure Object") {
                 if (is_array($item)) {
@@ -913,6 +969,9 @@ trait CrudConfig {
             } else {
                 $result[$key] = $item;
             }
+        }
+        if ($parametros != "") {
+            $result['parametros'] = $parametros;
         }
         return $result;
     }

@@ -15,37 +15,6 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="csrf-param" content="_token">
         <style>
-
-            body{
-                position: relative;
-            }
-
-            .jumbotron p {
-                font-weight:normal;
-            }
-
-            /* menu */
-            #menu_principal img.foto_profile{
-                max-height: 42px;
-                width: auto;
-                margin-bottom: -15px;
-                margin-top: -20px;
-            }
-            .login_menu, .reset_menu{
-                width: 250px;
-                padding-left: 20px;
-                padding-right: 20px;
-                margin-top: 30px;
-                margin-left: auto;
-                margin-right: auto;
-            }
-            .login_menu .form-group, .reset_menu .form-group{
-                margin: 0px 0px 5px 0px;
-            }
-            .reset_menu{
-                display: none;
-            }
-
             /* same height */
             /* columns of same height styles */
             .container-xs-height {
@@ -62,30 +31,12 @@
                 float: none !important;
             }
 
-            .gris_oscuro{
-                background-color: #222;
-                border-color: #080808;
-                background-image: -webkit-linear-gradient(top,#3c3c3c 0,#222 100%);
-                background-image: -o-linear-gradient(top,#3c3c3c 0,#222 100%);
-                background-image: -webkit-gradient(linear,left top,left bottom,from(#3c3c3c),to(#222));
-                background-image: linear-gradient(to bottom,#3c3c3c 0,#222 100%);
-                filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff3c3c3c', endColorstr='#ff222222', GradientType=0);
-                filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
-                background-repeat: repeat-x;
-            }
-
-            /*cuerpo*/
-
-            #main{
-                margin-top:51px;
-            }
-
+            /* footer */
             footer{
                 position:static;
                 bottom: 0px;
                 width: 100%;
             }
-            /* footer */
             .cont_footer{
                 padding-top: 20px;
                 padding-bottom: 20px;
@@ -94,68 +45,6 @@
             }
             .cont_footer, .cont_footer a{
                 color: #eee;
-            }
-
-            /* otros */
-            .boton_centrado{
-                text-align: center;
-            }
-            .ui-progressbar {
-                position: relative;
-            }
-            .progress-label {
-                position: absolute;
-                left: 50%;
-                top: 4px;
-                font-weight: bold;
-                /*text-shadow: 1px 1px 0 #fff;*/
-            }
-
-            .profile_pic {
-                margin-right: 20px;
-                min-width: 200px;
-            }
-            .profile_pic img{
-                max-height: 200px;
-            }
-
-            .media-body{
-                width: 90%;
-            }
-            .profile_pic .btn-group-xs{
-                margin-top:-20px;
-            }
-
-            .profile_pic .btn-group-xs button.btn-default{
-                background: none;
-                border: 0px;
-                text-shadow: none;
-                box-shadow: none;
-            }
-
-            .form-group .form-control{
-                margin-bottom: 18px;
-            }
-
-            .form-group .input-group .form-control{
-                margin-bottom: 0px;
-            }
-
-            .form-group .input-group{
-                margin-bottom: 18px;
-            }
-
-            .form-group .control-label{
-                line-height: 14px;
-            }
-
-            div.list-group-item{
-                cursor: pointer;
-            }
-            div.list-group-item:hover, div.list-group-item:focus {
-                color: #555;
-                text-decoration: none;
-                background-color: #f5f5f5;
             }
         </style>
         <!-- Campo definido para incluir estilos especificos en las vistas que lo requieran -->
@@ -260,7 +149,7 @@
 
             </main>
             <footer>
-                <div class="seccion gris_oscuro">
+                <div class="bg-dark text-white">
                     <div class="container cont_footer">
                         @section("piedepagina")
                         {{Route::current()->getName()}}

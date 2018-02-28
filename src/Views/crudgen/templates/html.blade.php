@@ -18,24 +18,26 @@ if ($errores == true) {
     if ($errors->has($columna)) {
         $error_campo = true;
         $claseError = 'is-invalid';
-    }else{
+    } else {
         $claseError = 'is-valid';
     }
 }
-if (isset($datos["readonly"])){
+if (isset($datos["readonly"])) {
     $readonly = $datos["readonly"];
-}else{
+} else {
     $readonly = "";
 }
 ?>
 <div class="form-group row">
-    {{ Form::label($columna, ucfirst($datos['label']), array('class'=>$config['class_label'])) }}
-    <div class="{{ $config['class_divinput'] }}">
-        <small class="form-text text-muted" id="{{ $tabla . '_' . $columna }}_help">
-            @if (isset($datos['description']))
+    <div class='{{$config['class_labelcont']}}'>
+        {{ Form::label($columna, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
+        @if (isset($datos['description']))
+        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $columna }}_help">
             {{ $datos['description'] }}
-            @endif
         </small>
+        @endif
+    </div>
+    <div class="{{ $config['class_divinput'] }}">
         {{ Form::textarea($columna, $dato, array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $columna,$readonly)) }}
         @if ($error_campo)
         <div class="invalid-feedback">
@@ -52,7 +54,7 @@ if ($js_section != "") {
 }
 ?>
 <script>
-    (function() {
+    (function () {
         CKEDITOR.replace('{{ $tabla . "_" . $columna }}');
     })();
 </script>

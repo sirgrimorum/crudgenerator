@@ -59,7 +59,12 @@ if (is_array($datos['campo'])){
 ?>
 @if (true)
 <div class="form-group {{ $claseError }}">
-    {{ Form::label($columna, ucfirst($datos['label']), array('class'=>$config['class_label'])) }}
+    {{ Form::label($columna, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
+        @if (isset($datos['description']))
+        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $columna }}_help">
+            {{ $datos['description'] }}
+        </small>
+        @endif
     <div class="{{ $config['class_divinput'] }}">
         <div class="typeahead__container">
             <div class="typeahead__field">

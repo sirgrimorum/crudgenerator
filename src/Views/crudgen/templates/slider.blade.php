@@ -18,50 +18,52 @@ if ($errores == true) {
     if ($errors->has($columna)) {
         $error_campo = true;
         $claseError = 'is-invalid';
-    }else{
+    } else {
         $claseError = 'is-valid';
     }
 }
-if (isset($datos["readonly"])){
+if (isset($datos["readonly"])) {
     $readonly = $datos["readonly"];
-}else{
+} else {
     $readonly = "";
 }
-if (isset($datos["min"])){
+if (isset($datos["min"])) {
     $min = $datos["min"];
-}else{
+} else {
     $min = 0;
 }
-if (isset($datos["max"])){
+if (isset($datos["max"])) {
     $max = $datos["max"];
-}else{
+} else {
     $max = 100;
 }
-if (isset($datos["step"])){
+if (isset($datos["step"])) {
     $step = $datos["step"];
-}else{
+} else {
     $step = 1;
 }
-if (isset($datos["post"])){
+if (isset($datos["post"])) {
     $post = $datos["post"];
-}else{
+} else {
     $post = "";
 }
-if (isset($datos["pre"])){
+if (isset($datos["pre"])) {
     $pre = $datos["pre"];
-}else{
+} else {
     $pre = "";
 }
 ?>
 <div class="form-group row">
-    {{ Form::label($columna, ucfirst($datos['label']), array('class'=>$config['class_label'])) }}
+    <div class='{{$config['class_labelcont']}}'>
+        {{ Form::label($columna, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
+        @if (isset($datos['description']))
+        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $columna }}_help">
+            {{ $datos['description'] }}
+        </small>
+        @endif
+    </div>
     <div class="{{ $config['class_divinput'] }}">
         {{ Form::text($columna, $dato, array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $columna, 'data-slider-id'=>$tabla . '_' . $columna . 'Slider', 'data-slider-min'=>$min, 'data-slider-max'=>$max, 'data-slider-step'=>$step, 'data-slider-value'=>$dato ,$readonly)) }}
-        <small class="form-text text-muted" id="{{ $tabla . '_' . $columna }}_help">
-            @if (isset($datos['description']))
-            {{ $datos['description'] }}
-            @endif
-        </small>
         @if ($error_campo)
         <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}
@@ -77,9 +79,9 @@ if ($js_section != "") {
 }
 ?>
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         $('#{{ $tabla . "_" . $columna }}').sliderb({
-            formatter:function(value){
+            formatter: function (value) {
                 return "{{ $pre }}" + value + "{{ $post }}";
             }
         });

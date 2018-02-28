@@ -47,11 +47,16 @@ trait CrudModels {
 
     /**
      * Generate a list of objects of a model in array format
+     * Could returns an array with 2 arrays in it:
+     * Complete, with value, label and data for each field in position 0
+     * and Simple, only with value per field at position 1
+     * 
      * @param array $config Configuration array
      * @param Model() $registros Optional Array of objects to show
+     * @param boolean|string $solo Optional if false, will return the complete an simple array, if 'simple' only the simple one, if 'complete' only the complete one
      * @return array with the objects in the config format
      */
-    public static function lists_array($config, $registros = null) {
+    public static function lists_array($config, $registros = null,$solo='complete') {
         //$config = \Sirgrimorum\CrudGenerator\CrudGenerator::translateConfig($config);
         if ($registros == null) {
             $modeloM = ucfirst($config['modelo']);
@@ -60,20 +65,33 @@ trait CrudModels {
         //if (request()->)
         $registros = \Sirgrimorum\CrudGenerator\CrudGenerator::filterWithQuery($registros, $config);
         $return = [];
+        $returnSimple = [];
         foreach ($registros as $registro) {
-            $row = \Sirgrimorum\CrudGenerator\CrudGenerator::registry_array($config, $registro);
+            list($row,$rowSimple) = \Sirgrimorum\CrudGenerator\CrudGenerator::registry_array($config, $registro);
             $return[] = $row;
+            $returnSimple[] = $rowSimple;
         }
-        return $return;
+        if ($solo == 'simple'){
+            return $returnSimple;
+        }elseif($solo == 'complete'){
+            return $return;
+        }else{
+            return [$return,$returnSimple];
+        }
     }
 
     /**
-     * Generate an object of a model in array format
+     * Generate an object of a model in array format.
+     * Returns an array with 2 arrays in it:
+     * Complete, with value, label and data for each field in position 0
+     * and Simple, only with value per field at position 1
+     * 
      * @param array $config Configuration array
      * @param Model() $registro Optional object to show
+     * @param boolean|string $solo Optional if false, will return the complete an simple array, if 'simple' only the simple one, if 'complete' only the complete one
      * @return array with the attributes in the config format
      */
-    public static function registry_array($config, $registro = null) {
+    public static function registry_array($config, $registro = null,$solo=false) {
         $modeloM = ucfirst($config['modelo']);
         if ($registro == null) {
             $value = $modeloM::first();
@@ -106,139 +124,286 @@ trait CrudModels {
         $row = [
             $registro->getKeyName() => $registro->getKey()
         ];
+        $rowSimple = [
+            $registro->getKeyName() => $registro->getKey()
+        ];
         foreach ($campos as $columna => $datos) {
-            $celda = "";
+            $celda = [];
+            $celdaData = [];
+            $auxcelda = "";
             if (isset($datos["pre"])) {
-                $celda = $datos["pre"];
+                $celdaData["pre"] = $datos;
             }
             if ($datos['tipo'] == "relationship") {
                 if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($value, $columna)) {
                     if (array_key_exists('enlace', $datos)) {
-                        $celda .= '<a href = "' . str_replace([":modelId", ":modelName"], [$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}], str_replace([urlencode(":modelId"), urlencode(": modelName")], [$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}], $datos['enlace'])) . '">';
+                        $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}], str_replace([urlencode(":modelId"), urlencode(": modelName")], [$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}], $datos['enlace'])) . '">';
                     }
-                    $celda .= \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
+                    $celda['data'] = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
+                    $celda['label'] = $datos['label'];
+                    $auxcelda = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
                     if (array_key_exists('enlace', $datos)) {
-                        $celda .='< / a>';
+                        $auxcelda = '< / a>';
                     }
+                    $celda['value'] = $auxcelda;
                 } else {
-                    $celda .='- ';
+                    $celda = '-';
                 }
             } elseif ($datos['tipo'] == "relationships") {
                 if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($value, $columna)) {
-                    $prefijoBloque = "";
+                    $celda = [];
+                    $auxcelda2 = "";
+                    $prefijo = "<ul><li>";
                     foreach ($value->{$columna}()->get() as $sub) {
+                        $auxcelda = "";
                         if (array_key_exists('enlace', $datos)) {
-                            $celda.= $prefijoBloque . '<a href = "' . str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre'] }], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}], $datos['enlace'])) . '">';
+                            $auxcelda2 .= $prefijo . '<a href = "' . str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre'] }], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}], $datos['enlace'])) . '">';
                         } else {
-                            $celda.= $prefijoBloque;
+                            $auxcelda2 .= $prefijo;
                         }
-                        $celda .= \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($sub, $datos['campo']);
+                        $auxcelda = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($sub, $datos['campo']);
+                        $auxcelda2 .= $auxcelda;
                         if (array_key_exists('enlace', $datos)) {
-                            $celda .='</a>';
+                            $auxcelda2 .='</a>';
                         }
-                        $prefijoBloque = "; ";
+                        $auxcelda2.="</li>";
+                        $prefijo = "<li>";
+                        $celda[$sub->getKey()] = $auxcelda;
                     }
-                } else {
-                    $celda .='-';
+                    if ($auxcelda2 != "") {
+                        $auxcelda2.="</ul>";
+                    }
+                    $celda = [
+                        "data" => $celda,
+                        "label" => $datos['label'],
+                        "value" => $auxcelda2
+                    ];
                 }
             } elseif ($datos['tipo'] == "relationshipssel") {
                 if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($value, $columna)) {
-                    $prefijoBloque = "";
+                    $celda = [];
+                    $auxcelda3 = "";
+                    $prefijo = "<ul><li>";
                     foreach ($value->{$columna}()->get() as $sub) {
+                        $celda[$sub->getKey()] = [];
+                        $auxcelda = "";
                         if (array_key_exists('enlace', $datos)) {
-                            $celda.= $prefijoBloque . '<a href = "' . str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre'] }], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}], $datos['enlace'])) . '">';
-                        } else {
-                            $celda.= $prefijoBloque;
+                            $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre'] }], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}], $datos['enlace'])) . '">';
                         }
-                        $celda .= \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($sub, $datos['campo']);
+                        $auxcelda2 = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($sub, $datos['campo']);
+                        $auxcelda.=$auxcelda2;
+                        if (array_key_exists('enlace', $datos)) {
+                            $auxcelda .='</a>';
+                        }
+                        $auxcelda3 .= $prefijo . $auxcelda;
+                        $auxcelda4="";
+                        $auxcelda5="";
+                        $prefijo2 = "<ul><li>";
                         if (array_key_exists('columnas', $datos)) {
                             if (is_array($datos['columnas'])) {
                                 if (is_object($sub->pivot)) {
-                                    $celda.= " (";
+                                    $celda[$sub->getKey()]['data'] = [];
                                     foreach ($datos['columnas'] as $infoPivote) {
                                         if ($infoPivote['type'] != "hidden" && $infoPivote['type'] != "label") {
+                                            $celda[$sub->getKey()]['data'][$infoPivote['campo']] = ['label' => $infoPivote['label']];
                                             if ($infoPivote['type'] == "number" && isset($infoPivote['format'])) {
-                                                $celda.= number_format($sub->pivot->{$infoPivote['campo']}, $infoPivote['format'][0], $infoPivote['format'][1], $infoPivote['format'][2]);
+                                                $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = number_format($sub->pivot->{$infoPivote['campo']}, $infoPivote['format'][0], $infoPivote['format'][1], $infoPivote['format'][2]);
                                             } elseif ($infoPivote['type'] == "select" && isset($infoPivote['opciones'])) {
-                                                $celda.= $infoPivote['opciones'][$sub->pivot->{$infoPivote['campo']}];
+                                                $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = $infoPivote['opciones'][$sub->pivot->{$infoPivote['campo']}];
                                             } else {
-                                                $celda.= $sub->pivot->{$infoPivote['campo']} . ', ';
+                                                $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = $sub->pivot->{$infoPivote['campo']} . ', ';
                                             }
+                                            $auxcelda4 .= $prefijo2 . $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] . "</li>";
+                                            $prefijo2 = "<li>";
+                                        }elseif($infoPivote['type'] == "label"){
+                                            if(isset($infoPivote['campo'])){
+                                                $auxcelda5=  \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($sub, $infoPivote['campo']);
+                                            }else{
+                                                $auxcelda5= $infoPivote['label'];
+                                            }
+                                            
                                         }
                                     }
-                                    $celda.= " )";
                                 }
                             }
                         }
-                        if (array_key_exists('enlace', $datos)) {
-                            $celda .='</a>';
+                        if ($auxcelda4!=""){
+                            $auxcelda4 .="</ul>";
                         }
-                        $prefijoBloque = "; ";
+                        $auxcelda3 .= $auxcelda4 . "</li>";
+                        $prefijo = "<li>";
+                        $celda[$sub->getKey()]['name'] = $auxcelda2;
+                        $celda[$sub->getKey()]['value'] = $auxcelda;
+                        $celda[$sub->getKey()]['label'] = $auxcelda5;
                     }
+                    if ($auxcelda3!=""){
+                        $auxcelda3 .="</ul>";
+                    }
+                    $celda = [
+                        "data" => $celda,
+                        "label" => $datos['label'],
+                        "value" => $auxcelda3
+                    ];
                 } else {
-                    $celda .='-';
+                    $celda = '-';
                 }
             } elseif ($datos['tipo'] == "select") {
                 if (array_key_exists($value->{$columna}, $datos['opciones'])) {
-                    $celda.=$datos['opciones'][$value->{$columna}];
+                    $celda['data'] = $datos['opciones'][$value->{$columna}];
+                    $celda['label'] = $datos['label'];
+                    $celda['value'] = $datos['opciones'][$value->{$columna}];
                 } else {
-                    $celda .='-';
+                    $celda = '-';
                 }
+            } elseif ($datos['tipo'] == "checkbox" || $datos['tipo'] == "radio") {
+                if (is_array($datos['value'])) {
+                    if (array_key_exists($value->{$columna}, $datos['value'])) {
+                        $auxcelda = $datos['value'][$value->{$columna}];
+                    } else {
+                        if ($value->{$columna} === true) {
+                            $auxcelda = trans('crudgenerator::admin.layout.labels.yes');
+                        } else {
+                            $auxcelda = trans('crudgenerator::admin.layout.labels.no');
+                        }
+                    }
+                } else {
+                    if ($datos['value'] == $value->{$columna} && $value->{$columna} == true) {
+                        $auxcelda = trans('crudgenerator::admin.layout.labels.yes');
+                    } elseif ($value->{$columna} == $datos['value']) {
+                        $auxcelda = $datos['value'];
+                    } elseif ($value->{$columna} == true) {
+                        $auxcelda = $datos['value'];
+                    } else {
+                        $auxcelda = trans('crudgenerator::admin.layout.labels.no');
+                    }
+                }
+                $celda['data'] = $value->{$columna};
+                $celda['label'] = $datos['label'];
+                $celda['value'] = $auxcelda;
             } elseif ($datos['tipo'] == "function") {
                 if (isset($datos['format'])) {
                     if (is_array($datos['format'])) {
-                        $celda.=number_format($value->{$columna}(), $datos['format'][0], $datos['format'][1], $datos['format'][2]);
+                        $auxcelda = number_format($value->{$columna}(), $datos['format'][0], $datos['format'][1], $datos['format'][2]);
                     } else {
-                        $celda .=number_format($value->{$columna}());
+                        $auxcelda = number_format($value->{$columna}());
                     }
                 } else {
-                    $celda.=$value->{$columna}();
+                    $auxcelda = $value->{$columna}();
                 }
-            } elseif ($datos['tipo'] == "url") {
-                $celda .= "<a href='" . $value->{$columna} . "' target='_blank'>" . $value->{$columna} . "</a>";
-            } elseif ($datos['tipo'] == "file") {
-                if (isset($datos['pathImage'])) {
-                    if ($value->{$columna} == "") {
-                        $celda .='-';
+                $celda['data'] = $auxcelda;
+                $celda['label'] = $datos['label'];
+                $celda['value'] = $auxcelda;
+            } elseif ($datos['tipo'] == "date" || $datos['tipo'] == "datetime" || $datos['tipo'] == "time") {
+                $format = "Y-m-d H:i:s";
+                if ($datos['tipo'] == "date") {
+                    $format = "Y-m-d";
+                } elseif ($datos['tipo'] == "time") {
+                    $format = "H:i:s";
+                }
+                if (isset($datos["format"]["carbon"])) {
+                    $format = $datos["format"]["carbon"];
+                } elseif (isset(trans("crudgenerator::admin.formats.carbon")[$datos['tipo']])) {
+                    $format = trans("crudgenerator::admin.formats.carbon." . $datos['tipo']);
+                }
+                $dato = $value->{$columna};
+
+                if ($dato != "") {
+                    if (isset($datos["timezone"])) {
+                        $timezone = $datos["timezone"];
                     } else {
-                        if (isset($datos['enlace'])) {
-                            $celda .= str_replace("{value}", $value->{$columna}, $datos['enlace']);
-                        } else {
-                            $celda .= asset('/images/' . $datos['pathImage'] . $value->{$columna});
-                        }
+                        $timezone = config("app.timezone");
                     }
+                    $date = new \Carbon\Carbon($dato, $timezone);
+                    $dato = $date->format($format);
+                }
+                $celda['data'] = $value->{$columna};
+                $celda['label'] = $datos['label'];
+                $celda['value'] = $dato;
+            } elseif ($datos['tipo'] == "url") {
+                $celda = [
+                    'value' => $value->{$columna},
+                    'data' => $value->{$columna},
+                ];
+                if (\Sirgrimorum\CrudGenerator\CrudGenerator::urlType($registro->{$columna}) == "youtube") {
+                    $youtubeId = \Sirgrimorum\CrudGenerator\CrudGenerator::getYoutubeId($registro->{$columna});
+                    $celda['embed'] = "https://www.youtube.com/embed/" . $youtubeId;
                 } else {
-                    if ($value->{$columna} == "") {
-                        $celda .='-';
-                    } else {
-                        if (isset($datos['enlace'])) {
-                            $celda .= str_replace("{value}", $value->{$columna}, $datos['enlace']);
-                        } else {
-                            $celda .= $value->{$columna};
+                    $celda['embed'] = $value->{$columna};
+                }
+                $celda['label'] = $datos['label'];
+            } elseif ($datos['tipo'] == "file") {
+                if ($value->{$columna} == "") {
+                    $celda = '';
+                } else {
+                    $filename = str_start($value->{$columna}, str_finish($datos['path'], '\\'));
+                    $tipoFile = \Sirgrimorum\CrudGenerator\CrudGenerator::filenameIs($value->{$columna}, $datos);
+                    $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
+                    $celda = [
+                        "name" => $auxprevioName,
+                        "value" => $filename,
+                        "label" => $datos['label'],
+                        "type" => $tipoFile
+                    ];
+                }
+            } elseif ($datos['tipo'] == "files") {
+                if ($value->{$columna} == "") {
+                    $celda = '';
+                } else {
+                    try {
+                        $auxprevios = json_decode($value->{$columna});
+                        if (!is_array($auxprevios)) {
+                            $auxprevios = [];
                         }
+                    } catch (Exception $ex) {
+                        $auxprevios = [];
+                    }
+                    $celda['data'] = [];
+                    $celda['label'] = $datos['label'];
+                    $celda['value'] = $value->{$columna};
+                    foreach ($auxprevios as $datoReg) {
+                        $filename = str_start($datoReg->file, str_finish($datos['path'], '\\'));
+                        $tipoFile = \Sirgrimorum\CrudGenerator\CrudGenerator::filenameIs($datoReg->file, $datos);
+                        $celda['data'] = [
+                            "name" => $datoReg->name,
+                            "value" => $filename,
+                            "type" => $tipoFile
+                        ];
                     }
                 }
             } else {
                 if (array_key_exists('enlace', $datos)) {
-                    $celda .= '<a href = "' . str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $datos['enlace'])) . '">';
+                    $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $datos['enlace'])) . '">';
                 }
                 if ($datos['tipo'] == "number" && isset($datos['format'])) {
                     if (is_array($datos['format'])) {
-                        $celda .= number_format($value->{$columna}, $datos['format'][0], $datos['format'][1], $datos['format'][2]);
+                        $auxcelda .= number_format($value->{$columna}, $datos['format'][0], $datos['format'][1], $datos['format'][2]);
                     } else {
-                        $celda .=number_format($value->{$columna});
+                        $auxcelda .=number_format($value->{$columna});
                     }
                 } else {
-                    $celda .= $value->{$columna};
+                    $auxcelda .= $value->{$columna};
                 }
+                $celda['data'] = $value->{$columna};
+                $celda['label'] = $datos['label'];
+
                 if (array_key_exists('enlace', $datos)) {
-                    $celda .='</a>';
+                    $auxcelda = '</a>';
                 }
+                $celda['value'] = $auxcelda;
             }
             if (isset($datos["post"])) {
-                $celda .= " " . $datos["post"];
+                $celdaData['post'] = $datos["post"];
+            }
+            if (is_string($celda)) {
+                $celdaData['data'] = $celda;
+                $celdaData['value'] = $celda;
+                $celdaData['label'] = $datos['label'];
+                $celda = $celdaData;
+            } else {
+                $celda = array_merge($celda, $celdaData);
             }
             $row[$columna] = $celda;
+            $rowSimple[$columna] = $celda['value'];
         }
         if (count($botones) > 0) {
             $celda = "";
@@ -251,7 +416,13 @@ trait CrudModels {
             }
             $row["botones"] = $celda;
         }
-        return $row;
+        if ($solo == 'simple'){
+            return $rowSimple;
+        }elseif($solo == 'complete'){
+            return $row;
+        }else{
+            return [$row,$rowSimple];
+        }
     }
 
     /**
@@ -641,6 +812,7 @@ trait CrudModels {
                         case 'radio':
                         case 'slider':
                         case 'text':
+                        case 'url':
                         case 'textarea':
                             if ($input->has($campo)) {
                                 $objModelo->{$campo} = $input->input($campo);
@@ -698,21 +870,34 @@ trait CrudModels {
                             }
                             break;
                         case 'file':
+                            $existFile = $objModelo->{$campo};
+                            $filename = "";
                             if ($input->has($campo)) {
                                 $filename = \Sirgrimorum\CrudGenerator\CrudGenerator::saveFileFromRequest($input, $campo, $detalles);
                                 if ($filename !== false) {
                                     $objModelo->{$campo} = $filename;
+                                    if ($existFile != "") {
+                                        \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(str_start($existFile, str_finish($detalles['path'], '\\')));
+                                    }
                                 } else {
+                                    $filename = "";
                                     // Return with input????
                                 }
-                            } elseif (isset($detalles['valor'])) {
+                            } else {
+                                if (!$input->has($campo . "_filereg") && $existFile != "") {
+                                    \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(str_start($existFile, str_finish($detalles['path'], '\\')));
+                                } elseif ($input->has($campo . "_filereg") && $existFile != "") {
+                                    $filename = $existFile;
+                                }
+                            }
+                            if ($filename == "" && $existFile != "" && isset($detalles['valor'])) {
                                 $objModelo->{$campo} = $detalles['valor'];
                             }
                             break;
                         case 'files':
                             $existFiles = $objModelo->{$campo};
                             if (is_string($existFiles)) {
-                                $existFiles = json_decode($existFiles,true);
+                                $existFiles = json_decode($existFiles, true);
                             }
                             $masFiles = [];
                             if ($input->has($campo)) {
@@ -755,10 +940,10 @@ trait CrudModels {
                                     }
                                 }
                                 $finalFiles = array_merge($finalFiles, $masFiles);
-                            }else{
+                            } else {
                                 $finalFiles = $masFiles;
                             }
-                            
+
                             if (count($finalFiles) && isset($detalles['valor'])) {
                                 if (!is_array($detalles['valor'])) {
                                     $objModelo->{$campo} = json_encode(["name" => $detalles['valor'], "file" => $detalles['valor']]);
@@ -807,7 +992,7 @@ trait CrudModels {
                                         }
                                     }
                                     $objModelo->{$campo}()->sync($datos);
-                                } else{
+                                } else {
                                     $objModelo->{$campo}()->sync([]);
                                 }
                                 break;
@@ -858,7 +1043,7 @@ trait CrudModels {
                 } else {
                     $numRand = 20;
                 }
-                if (stripos($campo, ".") >= 0) {
+                if (stripos($campo, ".") > 0) {
                     $campoName = str_replace(".", "_name.", $campo);
                 } else {
                     $campoName = $campo . "_name";

@@ -120,7 +120,8 @@ class CrudGenerator {
                         'tabla' => (new $config['campos'][$itemsRelSelCampo]['modelo'])->getTable(),
                         'datos' => $config['campos'][$itemsRelSelCampo],
                         'js_section' => $js_section,
-                        'css_section' => $css_section
+                        'css_section' => $css_section,
+                        'modelo' => $modelo
             ]);
         } else {
             $view = View::make('sirgrimorum::crudgen.create', [
@@ -132,7 +133,8 @@ class CrudGenerator {
                         'tieneSearch' => CrudGenerator::hasTipo($config, [ 'relationshipssel']),
                         'tieneFile' => CrudGenerator::hasTipo($config, [ 'file', 'files']),
                         'js_section' => $js_section,
-                        'css_section' => $css_section
+                        'css_section' => $css_section,
+                        'modelo' => $modelo
             ]);
         }
         return $view->render();
@@ -148,7 +150,7 @@ class CrudGenerator {
      */
     public static function show($config, $id = null, $simple = false, $registro = null) {
         //$config = CrudGenerator::translateConfig($config);
-
+        $modelo = strtolower(class_basename($config["modelo"]));
         if ($registro == null) {
             $modeloM = ucfirst($config['modelo']);
             if ($id == null) {
@@ -174,7 +176,8 @@ class CrudGenerator {
                     'config' => $config,
                     'registro' => $registro,
                     'js_section' => $js_section,
-                    'css_section' => $css_section
+                    'css_section' => $css_section,
+                    'modelo' => $modelo
         ));
         return $view->render();
     }
@@ -273,7 +276,8 @@ class CrudGenerator {
                     'tieneSearch' => CrudGenerator::hasTipo($config, [ 'relationshipssel']),
                     'tieneFile' => CrudGenerator::hasTipo($config, [ 'file', 'files']),
                     'js_section' => $js_section,
-                    'css_section' => $css_section
+                    'css_section' => $css_section,
+                    'modelo' => $modelo
         ]);
         return $view->render();
     }
@@ -305,9 +309,9 @@ class CrudGenerator {
             $js_section = "";
             $css_section = "";
         }
+        $modelo = basename($modeloM);
         if (!isset($config['botones'])) {
             $base_url = route("sirgrimorum_home", App::getLocale());
-            $modelo = basename($modeloM);
             if (($textConfirm = trans('crudgenerator::' . strtolower($modelo) . '.messages.confirm_destroy')) == 'crudgenerator::' . strtolower($modelo) . '.mensajes.confirm_destroy') {
                 $textConfirm = trans('crudgenerator::admin.messages.confirm_destroy');
             }
@@ -333,7 +337,8 @@ class CrudGenerator {
                     'registros' => $registros,
                     'modales' => $modales,
                     'js_section' => $js_section,
-                    'css_section' => $css_section
+                    'css_section' => $css_section,
+                    'modelo' => strtolower($modelo)
         ]);
         return $view->render();
     }

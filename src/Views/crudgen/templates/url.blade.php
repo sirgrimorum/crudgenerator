@@ -27,7 +27,7 @@ if (isset($datos["readonly"])) {
 } else {
     $readonly = "";
 }
-if (isset($datos['placeholder'])) {
+if (isset($datos["placeholder"])) {
     $placeholder = $datos['placeholder'];
 } else {
     $placeholder = "";
@@ -43,14 +43,32 @@ if (isset($datos['placeholder'])) {
         @endif
     </div>
     <div class="{{ $config['class_divinput'] }}">
-        <div class="input-group w-50">
-            @if (isset($datos["pre"]))
-            <div class="input-group-prepend"><div class="input-group-text">{{ $datos["pre"] }}</div></div>
-            @endif
-            {{ Form::number($columna, $dato, array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $columna, 'step' => 'any', 'placeholder'=>$placeholder,$readonly)) }}
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <div class="rounded-left border border-secondary">
+                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="toogleUrl(this);"><i class="mt-2 fa fa-link fa-lg" aria-hidden="true"></i></div>
+                </div>
+                @if (isset($datos["pre"]))
+                <div class="input-group-text">{{ $datos["pre"] }}</div>
+                @endif
+            </div>
+            {{ Form::text($columna, $dato, array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $columna, 'placeholder'=>$placeholder,$readonly)) }}
             @if (isset($datos["post"]))
             <div class="input-group-append"><div class="input-group-text">{{ $datos["post"] }}</div></div>
             @endif
+        </div>
+        <div class="collapse" data-id="collapseUrlCont">
+            <div class="card" >
+                <?php
+                if (CrudLoader::urlType($dato) == "youtube") {
+                    $youtubeId = CrudLoader::getYoutubeId($registro->{$columna});
+                    $link = "https://www.youtube.com/embed/". $youtubeId;
+                }else{
+                    $link = $dato;
+                }
+                ?>
+                <iframe class="card-img-top" height="400" src="{{$link}}" style="border: none;"></iframe>
+            </div>
         </div>
         @if ($error_campo)
         <div class="invalid-feedback">

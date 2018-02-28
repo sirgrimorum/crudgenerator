@@ -20,6 +20,7 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
     public function boot() {
         $this->publishes([
             __DIR__ . '/Config/crudgenerator.php' => config_path('sirgrimorum/crudgenerator.php'),
+            __DIR__ . '/Config/mimebyext.php' => config_path('sirgrimorum/mimebyext.php'),
             __DIR__ . '/Config/models' => config_path('sirgrimorum/models'),
                 ], 'config');
 
@@ -27,8 +28,18 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
         $this->loadViewsFrom(__DIR__ . '/Views', 'sirgrimorum');
         $this->publishes([
             __DIR__ . '/Views/admin' => resource_path('views/vendor/sirgrimorum/admin'),
-            __DIR__ . '/Views/crudgen' => resource_path('views/vendor/sirgrimorum/crudgen'),
                 ], 'views');
+        $this->publishes([
+            __DIR__ . '/Views/templates' => resource_path('views/vendor/sirgrimorum/templates'),
+                ], 'templateviews');
+        $this->publishes([
+            __DIR__ . '/Views/crudgen/create.blade.php' => resource_path('views/vendor/sirgrimorum/crudgen/create.blade.php'),
+            __DIR__ . '/Views/crudgen/edit.blade.php' => resource_path('views/vendor/sirgrimorum/crudgen/edit.blade.php'),
+            __DIR__ . '/Views/crudgen/error.blade.php' => resource_path('views/vendor/sirgrimorum/crudgen/error.blade.php'),
+            __DIR__ . '/Views/crudgen/includes.blade.php' => resource_path('views/vendor/sirgrimorum/crudgen/includes.blade.php'),
+            __DIR__ . '/Views/crudgen/list.blade.php' => resource_path('views/vendor/sirgrimorum/crudgen/list.blade.php'),
+            __DIR__ . '/Views/crudgen/show.blade.php' => resource_path('views/vendor/sirgrimorum/crudgen/show.blade.php'),
+                ], 'crudviews');
         $this->publishes([
             __DIR__ . '/Views/templates' => resource_path('views/vendor/sirgrimorum/templates'),
                 ], 'templates');
@@ -374,6 +385,9 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
 
         $this->mergeConfigFrom(
                 __DIR__ . '/Config/crudgenerator.php', 'sirgrimorum.crudgenerator'
+        );
+        $this->mergeConfigFrom(
+                __DIR__ . '/Config/mimebyext.php', 'sirgrimorum.mimebyext'
         );
     }
 

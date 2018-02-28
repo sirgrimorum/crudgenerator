@@ -2,9 +2,9 @@
 $dato = old($columna);
 if ($dato == "") {
     try {
-        if (is_object($registro->{$columna})){
+        if (is_object($registro->{$columna})) {
             $dato = $registro->{$columna}->getKey();
-        }else{
+        } else {
             $dato = $registro->{$columna};
         }
     } catch (Exception $ex) {
@@ -22,7 +22,7 @@ if ($errores == true) {
     if ($errors->has($columna)) {
         $error_campo = true;
         $claseError = 'is-invalid';
-    }else{
+    } else {
         $claseError = 'is-valid';
     }
 }
@@ -31,10 +31,10 @@ if (isset($datos["readonly"])) {
 } else {
     $readonly = "";
 }
-if (isset($datos["placeholder"])){
+if (isset($datos["placeholder"])) {
     $placeholder = $datos['placeholder'];
-}else{
-    $placeholder="";
+} else {
+    $placeholder = "";
 }
 $atributos = [
     'class' => 'form-control ' . $config['class_input'] . ' ' . $claseError,
@@ -44,14 +44,16 @@ $atributos = [
 ];
 ?>
 <div class="form-group row">
-    {{ Form::label($columna, ucfirst($datos['label']), array('class'=>$config['class_label'])) }}
+    <div class='{{$config['class_labelcont']}}'>
+        {{ Form::label($columna, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
+        @if (isset($datos['description']))
+        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $columna }}_help">
+            {{ $datos['description'] }}
+        </small>
+        @endif
+    </div>
     <div class="{{ $config['class_divinput'] }}">
         {{ Form::select($columna, $datos["todos"], $dato, $atributos) }}
-        <small class="form-text text-muted" id="{{ $tabla . '_' . $columna }}_help">
-            @if (isset($datos['description']))
-            {{ $datos['description'] }}
-            @endif
-        </small>
         @if ($error_campo)
         <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}
@@ -67,7 +69,7 @@ if ($js_section != "") {
 }
 ?>
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         $('#{{ $tabla . "_" . $columna }}').select2({
             minimumResultsForSearch: 8,
             width: '100%',

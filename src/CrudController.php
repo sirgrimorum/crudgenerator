@@ -21,8 +21,6 @@ class CrudController extends BaseController {
         App::setLocale($localecode);
         $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfig($modelo);
-        //return "<pre>" . print_r($config, true) . "</pre>";
-        //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config));
     }
 
@@ -30,7 +28,6 @@ class CrudController extends BaseController {
         App::setLocale($localecode);
         $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfig($modelo);
-        //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config));
     }
 
@@ -38,9 +35,7 @@ class CrudController extends BaseController {
         App::setLocale($localecode);
 
         $modeloM = ucfirst($modelo);
-        //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
-        //$config = CrudGenerator::translateConfig($config);
-        $config = CrudGenerator::getConfig($modelo);
+        $config = CrudGenerator::getConfigWithParametros($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config)) {
             return $this->devolver($request, $config, $permiso);
         }
@@ -57,8 +52,6 @@ class CrudController extends BaseController {
         App::setLocale($localecode);
 
         $modeloM = ucfirst($modelo);
-        //$registro = $modeloM::find($id);
-        //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
         $config = CrudGenerator::getConfig($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config, $registro), $registro);
     }
@@ -67,7 +60,6 @@ class CrudController extends BaseController {
         App::setLocale($localecode);
 
         $modeloM = ucfirst($modelo);
-        //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
         $config = CrudGenerator::getConfig($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config, $registro), $registro);
     }
@@ -76,9 +68,7 @@ class CrudController extends BaseController {
         App::setLocale($localecode);
 
         $modeloM = ucfirst($modelo);
-        //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
-        //$config = CrudGenerator::translateConfig($config);
-        $config = CrudGenerator::getConfig($modelo);
+        $config = CrudGenerator::getConfigWithParametros($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config, $registro)) {
             return $this->devolver($request, $config, $permiso, $registro);
         }
@@ -95,9 +85,7 @@ class CrudController extends BaseController {
         App::setLocale($localecode);
 
         $modeloM = ucfirst($modelo);
-        //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modeloM));
-        //$config = CrudGenerator::translateConfig($config);
-        $config = CrudGenerator::getConfig($modelo);
+        $config = CrudGenerator::getConfigWithParametros($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config, $registro)) {
             return $this->devolver($request, $config, $permiso, $registro);
         }
@@ -108,6 +96,69 @@ class CrudController extends BaseController {
         ];
         $muerto->delete();
         return $this->devolver($request, $config, $permiso, 0, $datos);
+    }
+
+    public function modelfile($localecode, $modelo, $campo, Request $request) {
+        App::setLocale($localecode);
+        $modeloM = ucfirst($modelo);
+        $config = CrudGenerator::getConfig($modelo);
+        if (!$permiso = CrudGenerator::checkPermission($config, 0, 'show')) {
+            return $this->devolver($request, $config, $permiso, 0, "", 'show');
+        }
+        if (isset($config['campos'][$campo])) {
+            $detalles = $config['campos'][$campo];
+            if ($request->has('_f')) {
+                $filename = $request->_f;
+                return $this->devolverFile($filename, $detalles);
+            } else {
+                abort(500, "Error preparing no file in query '_f' for the model '$model");
+            }
+        }
+        abort(500, "Error preparing the file '$filename' in '$path' for the model '$model");
+    }
+
+    public function file($localecode, Request $request) {
+        App::setLocale($localecode);
+        if ($request->has('_f')) {
+            $filename = $request->_f;
+            return $this->devolverFile($filename);
+        }
+        abort(500, "Error no file in query '_f'");
+    }
+
+    private function devolverFile($filename, $detalles = []) {
+        $tipo = CrudGenerator::filenameIs($filename, $detalles);
+        if (isset($detalles['path'])) {
+            $path = str_start($filename, str_finish($detalles['path'], '\\'));
+        } else {
+            $path = $filename;
+        }
+        switch ($tipo) {
+            case 'video':
+                $stream = new VideoStream($path);
+                return response()->stream(function() use ($stream) {
+                            $stream->start();
+                        });
+                break;
+            case 'audio':
+                $stream = new AudioStream($path);
+                return response()->stream(function() use ($stream) {
+                            $stream->start();
+                        });
+                /* return response()->stream(function () use ($file_location) {
+                  $stream = fopen($file_location, 'r');
+                  fpassthru($stream);
+                  }, 200, $headers); */
+                break;
+            case 'image':
+            case 'pdf':
+            case 'text':
+                return response()->file(public_path($path));
+                break;
+            default:
+                return response()->download(public_path($path));
+                break;
+        }
     }
 
     private function devolverValidation($validator, $modelo, Request $request, $registro = 0) {
@@ -159,8 +210,10 @@ class CrudController extends BaseController {
         }
     }
 
-    private function devolver(Request $request, $config, $permiso, $objeto = 0, $extraDatos = "") {
-        $action = substr($request->route()->getName(), stripos($request->route()->getName(), "::") + 2);
+    private function devolver(Request $request, $config, $permiso, $objeto = 0, $extraDatos = "", $action = "") {
+        if ($action == "") {
+            $action = substr($request->route()->getName(), stripos($request->route()->getName(), "::") + 2);
+        }
         $localecode = App::getLocale();
         $modelo = strtolower(class_basename($config["modelo"]));
         $plural = $modelo . 's';
@@ -225,6 +278,7 @@ class CrudController extends BaseController {
         }
         if ($permiso) {
             $result = "";
+
             if ($tipoReturn == 'json') {
                 switch ($action) {
                     case "create":
@@ -233,14 +287,11 @@ class CrudController extends BaseController {
                         ];
                         break;
                     case "index":
-                        $crud = new CrudGenerator($request->app);
-                        $result = $crud->lists_array($config);
+                        $result = CrudGenerator::lists_array($config, null, 'complete');
                         break;
                     case "show":
                     case "edit":
-                        $crud = new CrudGenerator($request->app);
-                        $config = $crud->translateConfig($config);
-                        $result = $crud->registry_array($config, $registro);
+                        $result = CrudGenerator::registry_array($config, $registro, 'complete');
                         break;
                     case "store":
                     case "update":
@@ -311,6 +362,7 @@ class CrudController extends BaseController {
                 }
             }
             if ($request->ajax() || $tipoReturn == 'json') {
+
                 $result = [
                     'status' => 200,
                     'statusText' => trans("crudgenerator::admin.messages.200"),
@@ -320,6 +372,7 @@ class CrudController extends BaseController {
                 if ($request->has('callback')) {
                     return response()->json($result, 200)->setCallback($request->callback);
                 } else {
+                    //return "<p></p><pre>" . print_r($result, true) . "</pre>";
                     return response()->json($result, 200);
                 }
             } else {
@@ -372,7 +425,5 @@ class CrudController extends BaseController {
             }
         }
     }
-
-    
 
 }

@@ -64,7 +64,7 @@ if (isset($config['render'])) {
 }
 ?>
 <table class="table table-striped table-bordered" id='list_{{ $tablaid }}'>
-    <thead>
+    <thead class="thead-dark">
         <tr>
             @foreach($campos as $columna => $datos)
             @if (!CrudLoader::inside_array($datos,"hide","list"))
@@ -100,8 +100,9 @@ if (isset($config['render'])) {
                 @endif
                 @elseif ($datos['tipo']=="relationships")
                 @if (CrudLoader::hasRelation($value, $columna))
+                <ul>
                 @foreach($value->{$columna}()->get() as $sub)
-                <p>
+                <li>
                     @if(array_key_exists('enlace',$datos))
                     <a href="{{ str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre']}],str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}],$datos['enlace'])) }}">
                         @endif
@@ -109,25 +110,31 @@ if (isset($config['render'])) {
                         @if(array_key_exists('enlace',$datos))
                     </a>
                     @endif
-                </p>
+                </li>
                 @endforeach
+                </ul>
                 @else
                 -
                 @endif
                 @elseif ($datos['tipo']=="relationshipssel")
                 @if (CrudLoader::hasRelation($value, $columna))
+                <ul>
                 @foreach($value->{$columna}()->get() as $sub)
-                <p>
+                <li>
                     @if(array_key_exists('enlace',$datos))
                     <a href="{{ str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre']}],str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}],$datos['enlace'])) }}">
                         @endif
                         {!! CrudLoader::getNombreDeLista($sub, $datos['campo']) !!}
+                        @if(array_key_exists('enlace',$datos))
+                    </a>
+                    @endif
                         @if(array_key_exists('columnas',$datos))
                             @if(is_array($datos['columnas']))
                                 @if (is_object($sub->pivot))
-                                (
+                                <ul>
                                 @foreach($datos['columnas'] as $infoPivote)
                                     @if($infoPivote['type'] != "hidden" && $infoPivote['type'] != "label")
+                                    <li>
                                         @if ($infoPivote['type'] == "number" && isset($infoPivote['format']))
                                         {!! number_format($sub->pivot->{$infoPivote['campo']},$infoPivote['format'][0],$infoPivote['format'][1],$infoPivote['format'][2]) !!}
                                         @elseif ($infoPivote['type'] == "select" && isset($infoPivote['opciones']))
@@ -135,17 +142,16 @@ if (isset($config['render'])) {
                                         @else
                                         {!! $sub->pivot->{$infoPivote['campo']} !!},
                                         @endif
+                                    </li>
                                     @endif
                                 @endforeach
-                                )
+                                </ul>   
                                 @endif
                             @endif
                         @endif
-                        @if(array_key_exists('enlace',$datos))
-                    </a>
-                    @endif
-                </p>
+                </li>
                 @endforeach
+                </ul>
                 @else
                 -
                 @endif
@@ -155,7 +161,7 @@ if (isset($config['render'])) {
                 @else
                 -
                 @endif
-                @elseif ($datos['tipo']=="checkbox")
+                @elseif ($datos['tipo']=="checkbox" || $datos['tipo']=="radio")
                 @if (is_array($datos['value']))
                 @if (array_key_exists($value->{$columna},$datos['value']))
                 {!! $datos['value'][$value->{$columna}] !!}
@@ -214,43 +220,115 @@ if (isset($config['render'])) {
                 {!! $value->{$columna}() !!}
                 @endif
                 @elseif ($datos['tipo']=="url")
-                <a href='{{ $value->{$columna} }}' target='_blank'>{{ $value->{$columna} }}</a>
+                <a href='{{ $value->{$columna} }}' target='_blank'><i class="mt-2 fa fa-link fa-lg" aria-hidden="true"></i></a>
                 @elseif ($datos['tipo']=="file")
-                @if (isset($datos['pathImage']))
                 @if ($value->{$columna} == "" )
                 -
                 @else
-                @if (isset($datos['enlace']))
-                <a href='{{ str_replace("{value}", $value->{$columna}, $datos['enlace'] ) }}' target="_blank">
-                    @endif
-                    @if (preg_match('/(\.jpg|\.png|\.bmp)$/', $value->{$columna}))
-                    <?php
-                    if ($datos['saveCompletePath']) {
-                        $image_name = basename($value->{$columna});
-                    } else {
-                        $image_name = $value->{$columna};
+                <?php
+                $auxprevio = $value->{$columna};
+                $filename = str_start($auxprevio, str_finish($datos['path'], '\\'));
+                $tipoFile = CrudLoader::filenameIs($auxprevio, $datos);
+                $auxprevioName = substr($auxprevio, stripos($auxprevio, '__') + 2, stripos($auxprevio, '.', stripos($auxprevio, '__')) - (stripos($auxprevio, '__') + 2));
+                ?>
+                @if($tipoFile == 'image')
+                <figure class="figure">
+                    <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >                   
+                        <img src="{{asset($filename)}}" class="figure-img img-fluid rounded" alt="{{$auxprevioName}}">
+                        <figcaption class="figure-caption">{{$auxprevioName}}</figcaption>
+                    </a>
+                </figure>
+                @else
+                <ul class="fa-ul">
+                    <li class="pl-2">
+                        @switch($tipoFile)
+                        @case('image')
+                        <i class="fa fa-lg fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="{{asset($filename)}}"></i>
+                        @break
+                        @case('video')
+                        <i class="fa fa-film fa-lg fa-li" aria-hidden="true"></i>
+                        @break
+                        @case('audio')
+                        <i class="fa fa-file-audio-o fa-lg fa-li" aria-hidden="true"></i>
+                        @break
+                        @case('pdf')
+                        <i class="fa fa-file-pdf-o fa-lg fa-li" aria-hidden="true"></i>
+                        @break
+                        @case('text')
+                        <i class="fa fa-file-text-o fa-lg fa-li" aria-hidden="true"></i>
+                        @break
+                        @case('office')
+                        <i class="fa fa-file-word-o fa-lg fa-li" aria-hidden="true"></i>
+                        @break
+                        @case('compressed')
+                        <i class="fa fa-file-archive-o fa-lg fa-li" aria-hidden="true"></i>
+                        @break
+                        @case('other')
+                        <i class="fa fa-file-o fa-lg fa-li" aria-hidden="true"></i>
+                        @break
+                        @endswitch
+                    <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
+                        {{$auxprevioName}}
+                    </a>
+                    </li>
+                </ul>
+                @endif
+                @endif
+                @elseif ($datos['tipo']=="files")
+                <?php
+                try {
+                    $auxprevios = json_decode($value->{$columna});
+                    if (!is_array($auxprevios)){
+                        $auxprevios = [];
                     }
-                    ?>
-                    <image class="img-responsive" src="{{ asset('/images/' . str_finish($datos['pathImage'],'/') . $image_name ) }}" alt="{{ $columna }}"/>
-                    @else
-                    <image class="img-responsive" src="{{ asset('/images/img/file.png' ) }}" alt="{{ $columna }}"/>
-                    @endif
-                    @if (isset($datos['enlace']))
-                </a>
-                @endif
-                @endif
-                @else
-                @if ($value->{$columna} == "" )
+                } catch (Exception $ex) {
+                    $auxprevios = [];
+                }
+                ?>
+                @if (count($auxprevios)==0)
                 -
                 @else
-                @if (isset($datos['enlace']))
-                <a href='{{ str_replace("{value}", $value->{$columna}, $datos['enlace'] ) }}' target="_blank">
-                    @endif
-                    {!! $value->{$columna} !!}
-                    @if (isset($datos['enlace']))
-                </a>
+                <ul class="fa-ul">
+                @foreach($auxprevios as $datoReg)
+                @if(is_object($datoReg))
+                <?php
+                $filename = str_start($datoReg->file, str_finish($datos['path'], '\\'));
+                $tipoFile =CrudLoader::filenameIs($datoReg->file,$datos);
+                ?>
+                    <li class="pl-2">
+                        @switch($tipoFile)
+                        @case('image')
+                        <i class="fa fa-lg fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="{{asset($filename)}}"></i>
+                        @break
+                        @case('video')
+                        <i class="fa fa-film fa-lg fa-li" aria-hidden="true"></i>
+                        @break
+                        @case('audio')
+                        <i class="fa fa-file-audio-o fa-lg fa-li" aria-hidden="true"></i>
+                        @break
+                        @case('pdf')
+                        <i class="fa fa-file-pdf-o fa-lg fa-li" aria-hidden="true"></i>
+                        @break
+                        @case('text')
+                        <i class="fa fa-file-text-o fa-lg fa-li" aria-hidden="true"></i>
+                        @break
+                        @case('office')
+                        <i class="fa fa-file-word-o fa-lg fa-li" aria-hidden="true"></i>
+                        @break
+                        @case('compressed')
+                        <i class="fa fa-file-archive-o fa-lg fa-li" aria-hidden="true"></i>
+                        @break
+                        @case('other')
+                        <i class="fa fa-file-o fa-lg fa-li" aria-hidden="true"></i>
+                        @break
+                        @endswitch
+                    <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
+                        {{$datoReg->name}}
+                    </a>
+                    </li>
                 @endif
-                @endif
+                @endforeach
+                </ul>
                 @endif
                 @else
                 @if(array_key_exists('enlace',$datos))

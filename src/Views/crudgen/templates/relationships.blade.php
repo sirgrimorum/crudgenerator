@@ -47,14 +47,16 @@ $atributos = [
 ];
 ?>
 <div class="form-group row">
-    {{ Form::label($columna, ucfirst($datos['label']), array('class'=>$config['class_label'])) }}
+    <div class='{{$config['class_labelcont']}}'>
+        {{ Form::label($columna, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
+        @if (isset($datos['description']))
+        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $columna }}_help">
+            {{ $datos['description'] }}
+        </small>
+        @endif
+    </div>
     <div class="{{ $config['class_divinput'] }}">
         {{ Form::select($columna . "[]", $datos["todos"], $dato, $atributos) }}
-        <small class="form-text text-muted" id="{{ $tabla . '_' . $columna }}_help">
-            @if (isset($datos['description']))
-            {{ $datos['description'] }}
-            @endif
-        </small>
         @if ($error_campo)
         <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}

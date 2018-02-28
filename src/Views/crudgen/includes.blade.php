@@ -232,6 +232,33 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
                 var $collapse_image_cont = $(img).parent().parent().parent().next('div[data-id="collapseImageCont"]').first();
                 $collapse_image_cont.collapse('toggle');
             }
+            function toogleVideo(vid){
+                var $collapse_video_cont = $(vid).parent().parent().parent().next('div[data-id="collapseVideoCont"]').first();
+                $collapse_video_cont.collapse('toggle');
+            }
+            function toogleAudio(aud){
+                var $collapse_audio_cont = $(aud).parent().parent().parent().next('div[data-id="collapseAudioCont"]').first();
+                $collapse_audio_cont.collapse('toggle');
+            }
+            function tooglePdf(aud){
+                var $collapse_pdf_cont = $(aud).parent().parent().parent().next('div[data-id="collapsePdfCont"]').first();
+                $collapse_pdf_cont.collapse('toggle');
+            }
+            function toogleUrl(url){
+                var $collapse_url_cont = $(url).parent().parent().parent().next('div[data-id="collapseUrlCont"]').first();
+                var $url_text = $(url).parent().parent().parent().find('input[type="text"]').first();
+                var $url_iframe = $collapse_url_cont.find('iframe').first();
+                var link = $url_text.val();
+                if (link.indexOf("youtube")>0){
+                    //var regExp = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
+                    var regExp = /^.*(?:youtube(?:-nocookie)?\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11}).*/;
+                    var match = link.match(regExp);
+                    console.log($url_text.val(),match);
+                    link = 'https://www.youtube.com/embed/' + match[1];
+                }
+                $url_iframe.attr("src",link);
+                $collapse_url_cont.collapse('toggle');
+            }
             function addFile(tipo,columna){
                 //var html = $("#" + tipo +"_clone").clone().removeClass('d-none').wrap('<div/>').parent().html();
                 var html = $("#" + tipo +"_clone").clone().html();
@@ -242,7 +269,31 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
                 $("#" + tipo +"_container >div").last().after($html);
             }
             function removeFile(objeto,tipo){
-                $(objeto).parents(".input-group").remove();
+                if (tipo !="nuevo"){
+                //$("#" + tipo + "_name_nuevo").attr("required","required");
+                //console.log('quitar',idSelected,nameSelected);
+                $nameText = $(objeto).parent().parent().find('input.nombre_file[type="text"]').first();
+                confirmTitle = '{{trans('crudgenerator::admin.layout.labels.confirm_title')}}';
+                confirmTitle = confirmTitle.replace(":modelName", $nameText.val());
+                confirmContent = '{!!trans('crudgenerator::admin.messages.confirm_removefile')!!}';
+                confirmContent = confirmContent.replace(":modelName", $nameText.val());
+                $.confirm({
+                    theme: '{{config('sirgrimorum.crudgenerator.confirm_theme')}}',
+                    icon: '{!!config('sirgrimorum.crudgenerator.confirm_icon')!!}',
+                    title: confirmTitle,
+                    content: confirmContent,
+                        buttons: {
+                            ['{{trans('crudgenerator::admin.layout.labels.yes')}}']: function () {
+                                $(objeto).parents(".input-group").remove();
+                            },
+                            ['{{trans('crudgenerator::admin.layout.labels.no')}}']: function () {
+
+                            },
+                        }
+                    });
+                }else{
+                    $(objeto).parents(".input-group").remove();
+                }
             }
         </script>
         <?php

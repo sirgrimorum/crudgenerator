@@ -4,7 +4,7 @@ $confirmIcon = config('sirgrimorum.crudgenerator.confirm_icon');
 $confirmContent = trans('crudgenerator::admin.messages.confirm_removepivot');
 $confirmYes = trans('crudgenerator::admin.layout.labels.yes');
 $confirmNo = trans('crudgenerator::admin.layout.labels.no');
-$confirmTitle = '';
+$confirmTitle = trans('crudgenerator::admin.layout.labels.confirm_title');
 $dato = old($columna);
 if ($dato == "") {
     try {
@@ -68,13 +68,15 @@ if (is_array($datos['campo'])) {
 }
 ?>
 <div class="form-group row {{ $claseError }}">
-    {{ Form::label($columna, ucfirst($datos['label']), array('class'=>$config['class_label'])) }}
-    <div class="{{ $config['class_divinput'] }}" id="{{ $tabla . '_' . $columna }}_container">
-        <small class="form-text text-muted" id="{{ $tabla . '_' . $columna }}_help">
-            @if (isset($datos['description']))
+    <div class='{{$config['class_labelcont']}}'>
+        {{ Form::label($columna, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
+        @if (isset($datos['description']))
+        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $columna }}_help">
             {{ $datos['description'] }}
-            @endif
         </small>
+        @endif
+    </div>
+    <div class="{{ $config['class_divinput'] }}" id="{{ $tabla . '_' . $columna }}_container">
         <div class="typeahead__container">
             <div class="typeahead__field">
                 <span class="typeahead__query">

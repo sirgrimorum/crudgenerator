@@ -31,10 +31,13 @@ if (isset($config['relaciones'])) {
 $identificador = $config['id'];
 $url = $config['url'];
 if (!isset($config['class_form'])) {
-    $config['class_form'] = 'form-horizontal';
+    $config['class_form'] = '';
+}
+if (!isset($config['class_labelcont'])) {
+    $config['class_labelcont'] = 'col-xs-12 col-sm-3 col-md-2';
 }
 if (!isset($config['class_label'])) {
-    $config['class_label'] = 'col-xs-12 col-sm-4 col-md-2 col-form-label';
+    $config['class_label'] = 'col-form-label font-weight-bold mb-0 pb-0';
 }
 if (!isset($config['class_divinput'])) {
     $config['class_divinput'] = 'col-xs-12 col-sm-8 col-md-10';
@@ -58,14 +61,17 @@ if (Request::has('_return')) {
 }
 echo Form::hidden("_action", "edit", array('id' => $tabla . '__action'));
 echo Form::hidden("_registro", $registro->{$identificador}, array('id' => $tabla . '__registro'));
+if (isset($config['parametros'])){
+    echo Form::hidden("__parametros", $config['parametros'], array('id' => $tabla . '__parametros'));
+}
 ?>
 
 @foreach($campos as $columna => $datos)
 @if (CrudLoader::inside_array($datos,"hide","edit")===false)
 @if (View::exists("sirgrimorum::crudgen.templates." .$datos['tipo']))
-@include("sirgrimorum::crudgen.templates." . $datos['tipo'],['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section])
+@include("sirgrimorum::crudgen.templates." . $datos['tipo'],['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$modelo])
 @else
-@include("sirgrimorum::crudgen.templates.text",['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section])
+@include("sirgrimorum::crudgen.templates.text",['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$modelo])
 @endif
 @endif
 @endforeach

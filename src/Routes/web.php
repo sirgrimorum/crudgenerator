@@ -29,7 +29,9 @@ Route::group(['prefix' => "{localecode}/" . config("sirgrimorum.crudgenerator.ad
         Route::get('/{registro}/edit', '\Sirgrimorum\CrudGenerator\CrudController@edit')->name('edit');
         Route::put('/{registro}/update', '\Sirgrimorum\CrudGenerator\CrudController@update')->name('update');
         Route::delete('/{registro}/destroy', '\Sirgrimorum\CrudGenerator\CrudController@destroy')->name('destroy');
+        Route::get('/file/{campo}', '\Sirgrimorum\CrudGenerator\CrudController@modelfile')->name('modelfile');
     });
+    Route::get('/file', '\Sirgrimorum\CrudGenerator\CrudController@file')->name('sirgrimorum_file');
 });
 
 Route::get(config("sirgrimorum.crudgenerator.admin_prefix"), function() {

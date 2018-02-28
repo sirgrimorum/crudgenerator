@@ -22,10 +22,12 @@
                 'create' => "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/articles/create",
             ],
             "files" => false // true if it whould contain file fields,
-            "class_form" => "[name of the class]", // optional class for the form, default 'form-horizontal'
-            "class_label" => "[name of the class]", // optional class for all the labels, default 'col-xs-12 col-sm-4 col-md-2'
+            "class_form" => "[name of the class]", // optional class for the form, default ''
+            "class_label" => "[name of the class]", // optional class for all the labels, default 'col-form-label font-weight-bold mb-0 pt-0'
+            "class_labelcont" => "[name of the class]", // optional class for all the labels containers, default 'col-xs-12 col-sm-4 col-md-2'
             "class_input" => "[name of the class]", // optional class for all the inputs, default '' 
             "class_divinput" => "[name of the class]", // optional class for all the divs containing the inputs, default 'col-xs-12 col-sm-8 col-md-10'
+            "class_formgroup" => "[name of the class]", // optional class for all the divs containing the div inputs in the show views, default 'border border-light'
             "class_offset" => "[name of the class]", // optional class for all the divs conatining buttons, checkboxes and radio buttons, default 'col-xs-offset-0 col-sm-offset-4 col-md-offset-2'
             "class_button" => "[name of the class]", // optional class for all the buttons default 'btn btn-primary'
             "campos" => [ // list of fields structure. For smart merge, set the value to "notThisTime" to CrudLoader to remove this attribute or field
@@ -45,7 +47,6 @@
                     "campo" => "[attribute taken as name for the model]", // required for the relationship, relationships and the relationshipssel types, may use an array of field names
                     "groupby" => "[attribute taken as group for options in select]", // optional for the relationship, relationships and the relationshipssel types, may use an array of field names
                     "todos" => "", // required for the relationship, relationships and the relationshipssel types, array of option models, leave blank if you want all of them
-                    "pathImage" => "[name of the path in assets]/", // required for the file and files type, used to retreave the image in show and lists views
                     "path" => "[name of the path in assets]/", // required for the file and files type, used to save the file, when url is "Sirgrimorum_CrudAdministrator"
                     "saveCompletePath" => true, // for the file and files type, if true, save the new filename including "path", when url is "Sirgrimorum_CrudAdministrator"
                     "length" => [number of characters in the random file name], // for file and files types, default 20 when url is "Sirgrimorum_CrudAdministrator"

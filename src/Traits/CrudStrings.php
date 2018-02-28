@@ -429,4 +429,36 @@ trait CrudStrings {
         return !preg_match('/[^,:{}\\[\\]0-9.\\-+Eaeflnr-u \\n\\r\\t]/', preg_replace('/"(\\.|[^"\\\\])*"/', '', $json_string));
     }
 
+    /**
+     * Get the youtube Id form a url
+     * @param string $url
+     * @return string
+     */
+    public static function getYoutubeId($url) {
+        preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $url, $match);
+        $youtube_id = $match[1];
+        return $youtube_id;
+    }
+
+    /**
+     * get the type of a url by its host
+     * @param string $url
+     * @return string
+     */
+    public static function urlType($url) {
+        $parsed = parse_url($url);
+        if (isset($parsed['host'])){
+            $hostname = $parsed['host'];
+        }else{
+            $hostname = $url;
+        }
+        if (strpos($hostname, 'youtube') > 0) {
+            return 'youtube';
+        } elseif (strpos($hostname, 'vimeo') > 0) {
+            return 'vimeo';
+        } else {
+            return 'unknown';
+        }
+    }
+
 }

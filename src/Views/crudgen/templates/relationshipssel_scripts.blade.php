@@ -30,7 +30,7 @@ if ($js_section != "") {
             ?>
             display: {!!$auxTexto!!},
         @else
-            display: ["{!!$datos['campo']!!}"],
+            display: ["{!!$datos['campo']!!}.value"],
         @endif
         hint: true,
         @if(isset($datos['groupby']))
@@ -81,10 +81,11 @@ if ($js_section != "") {
                     url:'{!! route('sirgrimorum_modelos::create',['localecode'=>App::getLocale(),'modelo'=>$modeloMio]) !!}?_return=simple&_itemRelSel={!!$columna!!}|' + item.id,
                     data:'',
                     success:function(data){
-                        console.log(data);
+                        console.log('llega ajax',data);
                         if (data.status == 200){
                             if ($("#{{$columna . "_"}}" + item.id +"_principal").length == 0){
-                                $("#{{ $tabla . '_' . $columna }}_container div:last-child").last().after(data.result);
+                                console.log('pegando a',  $("#{{ $tabla . '_' . $columna }}_container").find('div[data-pivote="principal"]').last());
+                                $("#{{ $tabla . '_' . $columna }}_container").find('div[data-pivote="principal"]').last().after(data.result);
                             }else{
                                 $.alert({
                                     theme: '{!!config("sirgrimorum.crudgenerator.error_theme")!!}',
@@ -100,7 +101,7 @@ if ($js_section != "") {
                                 title: data.title,
                                 content: data.statusText,
                             });
-                            console.log(data);
+                            console.log('error simple ajax', data);
                         }
                     },
                     error:function(jqXHR, textStatus, errorThrown){
@@ -120,7 +121,7 @@ if ($js_section != "") {
                             title: title,
                             content: content,
                         });
-                        console.log(jqXHR);
+                        console.log('error grave ajax',qXHR);
                     }
                 });
                 console.log(item);
