@@ -156,6 +156,94 @@ trait CrudStrings {
     }
 
     /**
+     *  Evaluate a custom function inside the config arrayetc.
+     * 
+     * @param array $array The config array to translate
+     * @param string $prefix The prefix that shows where the function must be replaced
+     * @param closure $function The function to evaluate
+     * @param string $close The close string that shows where the function must be stopped
+     * @return array The operated config array
+     */
+    public static function translateArray($array, $prefix, $function, $close = "__") {
+        $result = [];
+        foreach ($array as $key => $item) {
+            if (gettype($item) != "Closure Object") {
+                if (is_array($item)) {
+                    $result[$key] = \Sirgrimorum\CrudGenerator\CrudGenerator::translateArray($array, $prefix, $function, $close);
+                } elseif (is_string($item)) {
+                    $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, $prefix, $function, $close);
+                    $result[$key] = $item;
+                } else {
+                    $result[$key] = $item;
+                }
+            } else {
+                $result[$key] = $item;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Use the crudgenerator prefixes to change strings in config array to evaluate 
+     * functions such as route(), trans(), url(), etc.
+     * 
+     * For parameters, use ', ' to separate them inside the prefix and the close. 
+     * 
+     * For array, use json notation inside comas
+     * 
+     * @param string $item The string to operate
+     * @param string $prefix The prefix for the function
+     * @param string $function The name of the function to evaluate
+     * @param string $close Optional, the closing string for the prefix, default is '__'
+     * @return string The string with the results of the evaluations
+     */
+    private static function translateString($item, $prefix, $function, $close = "__") {
+        $result = "";
+        if (str_contains($item, $prefix)) {
+            if (($left = (stripos($item, $prefix))) !== false) {
+                while ($left !== false) {
+                    if (($right = stripos($item, $close, $left + strlen($prefix))) === false) {
+                        $right = strlen($item);
+                    }
+                    $textPiece = substr($item, $left + strlen($prefix), $right - ($left + strlen($prefix)));
+                    $piece = $textPiece;
+                    if (str_contains($textPiece, "{")) {
+                        $auxLeft = (stripos($textPiece, "{"));
+                        $auxRight = stripos($textPiece, "}", $left) + 1;
+                        $auxJson = substr($textPiece, $auxLeft, $auxRight - $auxLeft);
+                        $textPiece = str_replace($auxJson, "*****", $textPiece);
+                        $auxJson = str_replace(["'", ", }"], ['"', "}"], $auxJson);
+                        $auxArr = explode(",", str_replace([" ,", " ,"], [",", ","], $textPiece));
+                        if ($auxIndex = array_search("*****", $auxArr)) {
+                            $auxArr[$auxIndex] = json_decode($auxJson, true);
+                        } else {
+                            $auxArr[] = json_decode($auxJson);
+                        }
+                        $piece = call_user_func_array($function, $auxArr);
+                    } else {
+                        $piece = call_user_func($function, $textPiece);
+                    }
+                    if (is_string($piece)) {
+                        if ($right <= strlen($item)) {
+                            $item = substr($item, 0, $left) . $piece . substr($item, $right + 2);
+                        } else {
+                            $item = substr($item, 0, $left) . $piece;
+                        }
+                        $left = (stripos($item, $prefix));
+                    } else {
+                        $item = $piece;
+                        $left = false;
+                    }
+                }
+            }
+            $result = $item;
+        } else {
+            $result = $item;
+        }
+        return $result;
+    }
+    
+    /**
      * Get if a Model has a relation
      * @param string $model
      * @param string $key the attribute name for the relation
