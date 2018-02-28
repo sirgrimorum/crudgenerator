@@ -202,7 +202,7 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
 
         Artisan::command('crudgen:createlang {model : The The NAME of the model} {--path= : Provide a custom paht for saving the model langs relatice to resource_path(), default is in vendor/crudgenerator (trans(crudgenerator::model))}', function ($model) {
             $this->line("Preparing model attributes");
-            $bar = $this->output->createProgressBar(4);
+            $bar = $this->output->createProgressBar(5);
             $options = $this->options('path');
             if ($options['path'] != "") {
                 $path = $options['path'];
@@ -221,11 +221,24 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
             $this->line("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
             if (CrudGenerator::saveResource("sirgrimorum::templates.lang", false, resource_path($path), $filename, $config)) {
                 $this->info("Model Lang file saved!");
-                $bar->finish();
             } else {
                 $this->error("Something went wrong and the model lang file could not be saved");
-                $bar->finish();
             }
+            $bar->advance();
+            $confirm = $this->choice("Do you wisth to create a Lang File for the model in es?", ['yes', 'no'], 0);
+            if ($confirm == 'yes') {
+                $path = "lang/vendor/crudgenerator/es";
+                $filename = str_finish(strtolower($model), ".php");
+                $this->line("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
+                if (CrudGenerator::saveResource("sirgrimorum::templates.langes", false, resource_path($path), $filename, $config)) {
+                    $this->info("Model Lang file saved!");
+                    $bar->finish();
+                } else {
+                    $this->error("Something went wrong and the model lang file could not be saved");
+                    $bar->finish();
+                }
+            }
+            $bar->finish();
         })->describe('Create a Model Lang file from config array');
 
         Artisan::command('crudgen:createconfig {model : The NAME of the model}{--merge : Try to merge with existing config file if it exist}{--path= : Provide a custom paht for saving the config file}', function ($model) {
@@ -279,7 +292,7 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
         })->describe('Create a config file for a model');
 
         Artisan::command('crudgen:resources {model : The NAME of the model}', function ($model) {
-            $bar = $this->output->createProgressBar(11);
+            $bar = $this->output->createProgressBar(12);
             $confirm = $this->choice("Do you wisth to generate the files with Localized Routes?", ['yes', 'no'], 0);
             if ($confirm == "yes") {
                 $localized = true;
@@ -358,6 +371,18 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
                 $filename = str_finish(strtolower($model), ".php");
                 $this->line("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
                 if (CrudGenerator::saveResource("sirgrimorum::templates.lang", $localized, resource_path($path), $filename, $config)) {
+                    $this->info("Model Lang file saved!");
+                } else {
+                    $this->error("Something went wrong and the model lang file could not be saved");
+                }
+            }
+            $bar->advance();
+            $confirm = $this->choice("Do you wisth to create a Lang File for the model in es?", ['yes', 'no'], 0);
+            if ($confirm == 'yes') {
+                $path = "lang/vendor/crudgenerator/es";
+                $filename = str_finish(strtolower($model), ".php");
+                $this->line("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
+                if (CrudGenerator::saveResource("sirgrimorum::templates.langes", $localized, resource_path($path), $filename, $config)) {
                     $this->info("Model Lang file saved!");
                     $bar->finish();
                 } else {
