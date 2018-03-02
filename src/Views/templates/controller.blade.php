@@ -48,11 +48,7 @@ class {Model}Controller extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    @if($localized)
-    public function index($localecode, Request $request) {
-    @else
     public function index(Request $request) {
-    @endif
         $this->authorize('index', {Model}::class);
         return view('models.{model}.index', [
             'user' => $request->user(),
@@ -65,18 +61,10 @@ class {Model}Controller extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    @if($localized)
-    public function create($localecode, Request $request) {
-    @else
     public function create(Request $request) {
-    @endif
         $this->authorize('create', {Model}::class);
         $config = $this->config;
-        @if($localized)
-        $config['url']= route('{model}.store',['localecode'=>$localecode]);
-        @else
         $config['url']= route('{model}.store');
-        @endif
         $config['botones']=trans("crudgenerator::{model}.labels.create");
         return view('models.{model}.create', [
             'user' => $request->user(),
@@ -90,11 +78,7 @@ class {Model}Controller extends Controller {
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    @if($localized)
-    public function store($localecode, {Model}Request $request) {
-    @else
     public function store({Model}Request $request) {
-    @endif
         $this->authorize('store', {Model}::class);
         $objeto = CrudGenerator::saveObjeto($this->config, $request);
         $mensajes = [];
@@ -104,12 +88,7 @@ class {Model}Controller extends Controller {
         if (is_array(trans("crudgenerator::{model}.messages"))) {
             $mensajes = array_merge($mensajes, trans("crudgenerator::{model}.messages"));
         }
-        @if($localized)
-        return redirect(route('{model}.index',\App::getLocale()))
-        @else
-        return redirect(route('{model}.index'))
-        @endif
-                ->with(config("sirgrimorum.crudgenerator.status_messages_key"),str_replace([":modelName", ":modelId"], [$objeto->{$this->config['nombre']}, $objeto->{$this->config['id']}], $mensajes["store_success"]) );
+        return redirect(route('{model}.index'))->with(config("sirgrimorum.crudgenerator.status_messages_key"),str_replace([":modelName", ":modelId"], [$objeto->{$this->config['nombre']}, $objeto->{$this->config['id']}], $mensajes["store_success"]) );
     }
     
     /**
@@ -118,11 +97,7 @@ class {Model}Controller extends Controller {
      * @param  \App\{Model}  ${model}
      * @return \Illuminate\Http\Response
      */
-    @if($localized)
-    public function show($localecode, {Model} ${model}, Request $request) {
-    @else
     public function show({Model} ${model}, Request $request) {
-    @endif
         $this->authorize('show', ${model});
         return view('models.{model}.show', [
             'user' => $request->user(),
@@ -137,18 +112,10 @@ class {Model}Controller extends Controller {
      * @param  \App\{Model}  ${model}
      * @return \Illuminate\Http\Response
      */
-    @if($localized)
-    public function edit($localecode, {Model} ${model}, Request $request) {
-    @else
     public function edit({Model} ${model}, Request $request) {
-    @endif
         $this->authorize('edit', ${model});
         $config = $this->config;
-        @if($localized)
-        $config['url']= route('{model}.update',['localecode'=>$localecode,${model}->getKey()]);
-        @else
         $config['url']= route('{model}.update',[${model}->getKey()]);
-        @endif
         $config['botones']=trans("crudgenerator::{model}.labels.edit");
         return view('models.{model}.edit', [
             'user' => $request->user(),
@@ -164,11 +131,7 @@ class {Model}Controller extends Controller {
      * @param  \App\{Model}  ${model}
      * @return \Illuminate\Http\Response
      */
-    @if($localized)
-    public function update($localecode, {Model} ${model}, {Model}Request $request) {
-    @else
     public function update({Model} ${model}, {Model}Request $request) {
-    @endif
         $this->authorize('update', ${model});
         $objeto = CrudGenerator::saveObjeto($this->config, $request, ${model});
         $mensajes = [];
@@ -178,12 +141,7 @@ class {Model}Controller extends Controller {
         if (is_array(trans("crudgenerator::{model}.messages"))) {
             $mensajes = array_merge($mensajes, trans("crudgenerator::{model}.messages"));
         }
-        @if($localized)
-        return redirect(route('{model}.index',\App::getLocale()))
-        @else
-        return redirect(route('{model}.index'))
-        @endif
-                ->with(config("sirgrimorum.crudgenerator.status_messages_key"), str_replace([":modelName", ":modelId"], [$objeto->{$this->config['nombre']}, $objeto->{$this->config['id']}], $mensajes["update_success"]) );
+        return redirect(route('{model}.index'))->with(config("sirgrimorum.crudgenerator.status_messages_key"), str_replace([":modelName", ":modelId"], [$objeto->{$this->config['nombre']}, $objeto->{$this->config['id']}], $mensajes["update_success"]) );
     }
 
     /**
@@ -192,11 +150,7 @@ class {Model}Controller extends Controller {
      * @param  \App\{Model}  ${model}
      * @return \Illuminate\Http\Response
      */
-    @if($localized)
-    public function destroy($localecode, {Model} ${model}, {Model}Request $request){
-    @else
     public function destroy({Model} ${model}, {Model}Request $request){
-    @endif
         $this->authorize('destroy',${model});
         $datos = [
             'id' => ${model}->{$this->config['id']},
@@ -210,12 +164,7 @@ class {Model}Controller extends Controller {
         if (is_array(trans("crudgenerator::{model}.messages"))) {
             $mensajes = array_merge($mensajes, trans("crudgenerator::{model}.messages"));
         }
-        @if($localized)
-        return redirect(route('{model}.index',\App::getLocale()))
-        @else
-        return redirect(route('{model}.index'))
-        @endif
-                ->with(config("sirgrimorum.crudgenerator.status_messages_key"),str_replace([":modelName", ":modelId"], [$datos['nombre'], $datos['id'] ], $mensajes["destroy_success"]) );
+        return redirect(route('{model}.index'))->with(config("sirgrimorum.crudgenerator.status_messages_key"),str_replace([":modelName", ":modelId"], [$datos['nombre'], $datos['id'] ], $mensajes["destroy_success"]) );
     }
 
 }

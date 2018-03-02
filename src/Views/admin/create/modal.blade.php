@@ -19,7 +19,7 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
                 //$config['botones'] = trans("crudgenerator::article.labels.create");
                 //$config['url'] = url($base_url . "/" . strtolower($modelo) . "/store");
                 ?>
-                {!! CrudLoader::create($config,true) !!}
+                {!! CrudGenerator::create($config,true) !!}
             </div>
         </div>
     </div>

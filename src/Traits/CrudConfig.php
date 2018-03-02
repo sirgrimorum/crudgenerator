@@ -201,7 +201,7 @@ trait CrudConfig {
         if ($request->has("__parametros")) {
             $parametros = json_decode($request->__parametros, true);
             if (is_array($parametros)) {
-                $newConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfig($parametros["modelo"],$parametros["smartMerge"],$parametros["config"],$parametros["baseConfig"],$parametros["trans"],$parametros["fail"],$parametros["override"]);
+                $newConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfig($parametros["modelo"], $parametros["smartMerge"], $parametros["config"], $parametros["baseConfig"], $parametros["trans"], $parametros["fail"], $parametros["override"]);
             }
         }
         if ($newConfig == "") {
@@ -412,17 +412,18 @@ trait CrudConfig {
                                     return ($value['intermedia'] == $datosQueryAux[1]);
                                 });
                                 if (count($deTabla) > 0) {
+                                    $auxDeTabla = array_values($deTabla)[0];
                                     $datosQuery = [
-                                        'tablaIntermedia' => $deTabla[0]['intermedia'],
-                                        'intermediaRelatedId' => $deTabla[0]['col_intermediaOtro'],
-                                        'relatedId' => $deTabla[0]['otro_col'],
-                                        'intermediaModelId' => $deTabla[0]['col_intermediaMia'],
-                                        'modelId' => $deTabla[0]['mia_col'],
-                                        'foreignId' => $deTabla[0]['keyIntermediaMia'],
-                                        'otro' => $deTabla[0]['otro'],
-                                        'pivotColumns' => $deTabla[0]['pivotColumns']
+                                        'tablaIntermedia' => $auxDeTabla['intermedia'],
+                                        'intermediaRelatedId' => $auxDeTabla['col_intermediaOtro'],
+                                        'relatedId' => $auxDeTabla['otro_col'],
+                                        'intermediaModelId' => $auxDeTabla['col_intermediaMia'],
+                                        'modelId' => $auxDeTabla['mia_col'],
+                                        'foreignId' => $auxDeTabla['keyIntermediaMia'],
+                                        'otro' => $auxDeTabla['otro'],
+                                        'pivotColumns' => $auxDeTabla['pivotColumns']
                                     ];
-                                    unset($columns['manytomany'][array_search($deTabla[0], $columns['manytomany'], true)]);
+                                    unset($columns['manytomany'][array_search($auxDeTabla, $columns['manytomany'], true)]);
                                 } else {
                                     $datosQuery = [
                                         'tablaIntermedia' => $datosQueryAux[1],
@@ -442,10 +443,10 @@ trait CrudConfig {
                                 });
                                 if (count($deTabla) > 0) {
                                     $datosQuery = [
-                                        'relatedId' => $deTabla[0]['patron_col'],
+                                        'relatedId' => array_values($deTabla)[0]['patron_col'],
                                         'modelRelatedId' => $foreign,
                                     ];
-                                    unset($columns['belongsto'][array_search($deTabla[0], $columns['belongsto'], true)]);
+                                    unset($columns['belongsto'][array_search(array_values($deTabla)[0], $columns['belongsto'], true)]);
                                 } else {
                                     $datosQuery = [
                                         'relatedId' => $datosQueryAux[2],
@@ -462,10 +463,10 @@ trait CrudConfig {
                                 if (count($deTabla) > 0) {
                                     $datosQuery = [
                                         //'foreignId' => $foreign,
-                                        'relatedId' => $deTabla[0]['cliente_col'],
-                                        'modelId' => $deTabla[0]['patron_col'],
+                                        'relatedId' => array_values($deTabla)[0]['cliente_col'],
+                                        'modelId' => array_values($deTabla)[0]['patron_col'],
                                     ];
-                                    unset($columns['hasmany'][array_search($deTabla[0], $columns['hasmany'], true)]);
+                                    unset($columns['hasmany'][array_search(array_values($deTabla)[0], $columns['hasmany'], true)]);
                                 } else {
                                     $datosQuery = [
                                         //'foreignId' => $modeloE->{$method->name}()->getForeignKey(),
@@ -774,6 +775,14 @@ trait CrudConfig {
                                         case 'text':
                                         case 'blob':
                                             $pivotColumnAux['type'] = 'textarea';
+                                            if (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'html')) {
+                                                $pivotColumnAux['type'] = "html";
+                                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || \Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
+                                                $pivotColumnAux['type'] = "files";
+                                                $pivotColumnAux['pathImage'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
+                                                $pivotColumnAux['path'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
+                                                $pivotColumnAux['saveCompletePath'] = true;
+                                            }
                                             break;
                                         case 'integer':
                                         case 'bigint':
@@ -796,24 +805,36 @@ trait CrudConfig {
                                         //case 'datetimetz':
                                         case 'date':
                                         case 'timestamp':
-                                            $pivotColumnAux['type'] = 'text';
+                                            //$pivotColumnAux['type'] = 'text';
                                             $typeAux = $pivotColumn['type'];
                                             if ($typeAux == 'timestamp') {
                                                 $typeAux = 'datetime';
                                             }
-                                            //$pivotColumnAux['type'] = $typeAux;
+                                            $pivotColumnAux['type'] = $typeAux;
                                             $pivotColumnAux['format'] = [
                                                 "carbon" => $transPrefix . "crudgenerator::admin.formats.carbon." . $typeAux,
                                                 "moment" => $transPrefix . "crudgenerator::admin.formats.moment." . $typeAux
                                             ];
                                             break;
                                         case 'boolean':
-                                            $pivotColumnAux['type'] = "text";
+                                            $pivotColumnAux['value'] = true;
                                             $pivotColumnAux['type'] = 'checkbox';
                                             break;
                                         case 'text':
                                         default:
                                             $pivotColumnAux['type'] = "text";
+                                            if (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'email')) {
+                                                $pivotColumnAux['type'] = "email";
+                                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'url')) {
+                                                $pivotColumnAux['type'] = "url";
+                                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'password')) {
+                                                $pivotColumnAux['type'] = "password";
+                                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || \Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
+                                                $pivotColumnAux['type'] = "file";
+                                                $pivotColumnAux['pathImage'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
+                                                $pivotColumnAux['path'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
+                                                $pivotColumnAux['saveCompletePath'] = true;
+                                            }
                                             break;
                                     }
                                     $pivotColumns[] = $pivotColumnAux;
@@ -824,7 +845,7 @@ trait CrudConfig {
                                 }
                             }
                         }
-                        $rulesStr .=$prefixRules . 'exists:' . $datos['relation']['related']['tabla'] . ',' . $datos['relation']['datosQuery']['relatedId'];
+                        $rulesStr .=$prefixRules . 'exists:' . $datos['relation']['related']['tabla'] . ',' . $datos['relation']['datosQuery']['modelId'];
                         $prefixRules = "|";
                         if ($datos['type'] == 'HasMany') {
                             $configCampos[$campo]['nodb'] = "nodb";

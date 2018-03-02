@@ -28,7 +28,7 @@ if (Lang::has("crudgenerator::{model}.labels.singular")) {
 </nav>
 <h1>[[ trans('crudgenerator::admin.layout.crear') ]] [[ ucfirst($singulares) ]]</h1>
 <div class='container'>
-    [!! CrudLoader::create($config) !!]
+    [!! CrudGenerator::create($config) !!]
 </div>
 </div>
 *stop

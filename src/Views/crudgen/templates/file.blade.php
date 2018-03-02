@@ -1,7 +1,12 @@
 <?php
 $dato = "";
 $datoImg = "";
-$dato = old($columna . "_name");
+if (isset($config["extraId"])) {
+    $extraId = $config['extraId'];
+} else {
+    $extraId = $columna;
+}
+$dato = old($extraId . "_name");
 try {
     $auxprevio = $registro->{$columna};
 } catch (Exception $ex) {
@@ -32,21 +37,26 @@ if (isset($datos["placeholder"])) {
 } else {
     $placeholder = "";
 }
+if (isset($datos["extraId"])) {
+    $extraId = $datos['extraId'];
+} else {
+    $extraId = "";
+}
 ?>
 <div class="form-group row">
     <div class='{{$config['class_labelcont']}}'>
-        {{ Form::label($columna, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
+        {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))
-        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $columna }}_help">
+        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $extraId }}_help">
             {{ $datos['description'] }}
         </small>
         @endif
     </div>
-    <div class="{{ $config['class_divinput'] }}" id="{{$tabla . "_" . $columna}}_container">
+    <div class="{{ $config['class_divinput'] }}" id="{{$tabla . "_" . $extraId}}_container">
         @if($auxprevio!="")
         <?php
         $filename = str_start($auxprevio, str_finish($datos['path'], '\\'));
-        $tipoFile = CrudLoader::filenameIs($auxprevio, $datos);
+        $tipoFile = CrudGenerator::filenameIs($auxprevio, $datos);
         $auxprevioName = substr($auxprevio, stripos($auxprevio, '__') + 2, stripos($auxprevio, '.', stripos($auxprevio, '__')) - (stripos($auxprevio, '__') + 2));
         $error_campo = false;
         $claseError = '';
@@ -91,10 +101,10 @@ if (isset($datos["placeholder"])) {
                 </div>
                 <div class="input-group-text">{{trans("crudgenerator::admin.layout.labels.file")}}</div>
             </div>
-            {{ Form::text($columna . "_namereg", $auxprevioName, ['class' => 'form-control nombre_file ',  'placeholder'=>trans("crudgenerator::admin.layout.labels.name"), "readonly"=>"readonly"]) }}
-            {{ Form::hidden($columna . "_filereg", $auxprevio, ['class' => 'form-control ',]) }}
+            {{ Form::text($extraId . "_namereg", $auxprevioName, ['class' => 'form-control nombre_file ',  'placeholder'=>trans("crudgenerator::admin.layout.labels.name"), "readonly"=>"readonly"]) }}
+            {{ Form::hidden($extraId . "_filereg", $auxprevio, ['class' => 'form-control ',]) }}
             <div class="input-group-append">
-                <button type="button" class="btn btn-outline-danger" onclick="removeFile(this,'{{$tabla . "_" . $columna}}')"  title="{{trans("crudgenerator::admin.layout.labels.remove")}}"><i class="fa fa-minus" aria-hidden="true"></i></button>
+                <button type="button" class="btn btn-outline-danger" onclick="removeFile(this,'{{$tabla . "_" . $extraId}}')"  title="{{trans("crudgenerator::admin.layout.labels.remove")}}"><i class="fa fa-minus" aria-hidden="true"></i></button>
             </div>
         </div>
         @if($tipoFile =='image')
@@ -135,9 +145,9 @@ if (isset($datos["placeholder"])) {
                 </div>
                 <div class="input-group-text rounded-left">{{trans("crudgenerator::admin.layout.labels.new_file")}}</div>
             </div>
-            {{ Form::text($columna . "_name", $dato, ['class' => 'form-control ' . $claseError, 'placeholder'=>trans("crudgenerator::admin.layout.labels.name"), 'id'=>$tabla . "_" . $columna . "_name_nuevo",$readonly]) }}
+            {{ Form::text($extraId . "_name", $dato, ['class' => 'form-control ' . $claseError, 'placeholder'=>trans("crudgenerator::admin.layout.labels.name"), 'id'=>$tabla . "_" . $columna . "_name_nuevo",$readonly]) }}
             <div class="custom-file">
-                {{ Form::file($columna . "", ['class' => 'custom-file-input form-control ' . $claseError, $placeholder, $readonly,"data-toggle"=>"custom-file"]) }}
+                {{ Form::file($extraId . "", ['class' => 'custom-file-input form-control ' . $claseError, $placeholder, $readonly,"data-toggle"=>"custom-file"]) }}
                 <label class="custom-file-label">{{trans("crudgenerator::admin.layout.labels.choose_file")}}</label>
             </div>
             @if ($error_campo)

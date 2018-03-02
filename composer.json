@@ -28,15 +28,25 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "3.4.0-dev"
+            "dev-master": "3.5.1-dev"
         },
         "laravel": {
             "providers": [
                 "Sirgrimorum\\CrudGenerator\\CrudGeneratorServiceProvider"
             ],
             "aliases": {
-                "CrudLoader": "Sirgrimorum\\CrudGenerator\\CrudGeneratorFacade"
+                "CrudGenerator": "Sirgrimorum\\CrudGenerator\\CrudGeneratorFacade"
             }
         }
+    },
+    "scripts": {
+        "post-package-install": [
+            "@php artisan crudgen:registermiddleware",
+            "@php artisan vendor:publish --tag=langapp"
+        ],
+        "post-package-update": [
+            "@php artisan crudgen:registermiddleware",
+            "@php artisan vendor:publish --tag=langapp"
+        ]
     }
 }

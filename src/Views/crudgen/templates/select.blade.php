@@ -1,5 +1,10 @@
 <?php
-$dato = old($columna);
+if (isset($config["extraId"])) {
+    $extraId = $config['extraId'];
+} else {
+    $extraId = $columna;
+}
+$dato = old($extraId);
 if ($dato == "") {
     try {
         $dato = $registro->{$columna};
@@ -34,23 +39,24 @@ if (isset($datos["placeholder"])) {
 }
 if (isset($datos['multiple'])) {
     if ($datos['multiple'] == 'multiple') {
-        $nomColumna = $columna . "[]";
-        $arrayAttr = ['multiple' => 'multiple', 'class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $columna, $readonly];
+        $nomColumna = $extraId . "[]";
+        $arrayAttr = ['multiple' => 'multiple', 'class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $extraId, $readonly];
     } else {
-        $nomColumna = $columna;
-        $arrayAttr = ['class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $columna, $readonly];
+        $nomColumna = $extraId;
+        $arrayAttr = ['class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $extraId, $readonly];
     }
 } else {
-    $nomColumna = $columna;
-    $arrayAttr = ['class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $columna, $readonly];
+    $nomColumna = $extraId;
+    $arrayAttr = ['class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $extraId, $readonly];
 }
+
 //$arrayAttr["placeholder"]=$placeholder;
 ?>
 <div class="form-group row">
     <div class='{{$config['class_labelcont']}}'>
-        {{ Form::label($columna, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
+        {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))
-        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $columna }}_help">
+        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $extraId }}_help">
             {{ $datos['description'] }}
         </small>
         @endif
@@ -73,7 +79,7 @@ if ($js_section != "") {
 ?>
 <script>
     $(document).ready(function () {
-        $('#{{ $tabla . "_" . $columna }}').select2({
+        $('#{{ $tabla . "_" . $extraId }}').select2({
             minimumResultsForSearch: 8,
             width: '100%',
             language: "{{ App::getLocale()}}"

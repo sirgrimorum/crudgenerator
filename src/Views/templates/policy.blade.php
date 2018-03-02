@@ -25,37 +25,37 @@ class {Model}Policy
     public function index(User $user){
         //return ${model}->user_id == $user->id;
         $config = CrudGenerator::getConfig('{model}');
-        return CrudGenerator::checkPermission('index', $config);
+        return CrudGenerator::checkPermission($config);
     }
     
     public function create(User $user){
         $config = CrudGenerator::getConfig('{model}');
-        return CrudGenerator::checkPermission('create', $config);
+        return CrudGenerator::checkPermission($config);
     }
     
     public function store(User $user){
         $config = CrudGenerator::getConfig('{model}');
-        return CrudGenerator::checkPermission('store', $config);
+        return CrudGenerator::checkPermission($config);
     }
     
     public function show(User $user, {Model} ${model}){
         $config = CrudGenerator::getConfig('{model}');
-        return CrudGenerator::checkPermission('show', $config, ${model}->getKey());
+        return CrudGenerator::checkPermission($config, ${model}->getKey());
     }
     
     public function edit(User $user, {Model} ${model}){
         $config = CrudGenerator::getConfig('{model}');
-        return CrudGenerator::checkPermission('edit', $config, ${model}->getKey());
+        return CrudGenerator::checkPermission($config, ${model}->getKey());
     }
     
     public function update(User $user, {Model} ${model}){
         $config = CrudGenerator::getConfig('{model}');
-        return CrudGenerator::checkPermission('update', $config, ${model}->getKey());
+        return CrudGenerator::checkPermission($config, ${model}->getKey());
     }
     
     public function destroy(User $user, {Model} ${model}){
         $config = CrudGenerator::getConfig('{model}');
-        return CrudGenerator::checkPermission('destroy', $config, ${model}->getKey());
+        return CrudGenerator::checkPermission($config, ${model}->getKey());
     }
     
 }

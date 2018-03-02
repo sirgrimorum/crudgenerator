@@ -1,4 +1,4 @@
-@extends("sirgrimorum::admin/templates/html")
+
 <?php
 if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
     $singulares = trans("crudgenerator::" . strtolower($modelo) . ".labels.singular");
@@ -6,7 +6,7 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
     $singulares = $modelo;
 }
 ?>
-@section('contenido')
+
 <div class="modal fade" id="{{$modelo}}_index_modal" tabindex="-1" role="dialog" aria-labelledby="{{$modelo}}_index_modalLabel">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -27,7 +27,7 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
                     "<a class='btn btn-danger' href='" . url($base_url . "/" . strtolower($modelo) . "/:modelId/destroy") . "' data-confirm='" . $textConfirm . "' data-yes='" . $textConfirm = trans('crudgenerator::admin.layout.labels.yes') . "' data-yes='" . $textConfirm = trans('crudgenerator::admin.layout.labels.no') . "' data-confirmtheme='" . config('sirgrimorum.crudgenerator..confirm_theme') . "' data-confirmicon='" . config('sirgrimorum.crudgenerator..confirm_icon') . "' data-method='delete' rel='nofollow' title='" . trans('crudgenerator::admin.layout.borrar') . "'><span class='glyphicon glyphicon-trash' aria-hidden='true'></span></a>",
                 ];
                 ?>
-                    {!! CrudLoader::lists($config,false,true) !!}
+                    {!! CrudGenerator::lists($config,false,true) !!}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">{{trans('crudgenerator::admin.layout.labels.close')}}</button>
@@ -36,5 +36,3 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
         </div>
     </div>
 </div>
-<button type="button" data-toggle="modal" data-target="#{{$modelo}}_index_modal">Launch modal</button>
-@stop

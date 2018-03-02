@@ -80,7 +80,7 @@
                                 $plurales = ucfirst($modelo) . 's';
                             }
                             ?>
-                            <li><a class="nav-link" href="{{ route('sirgrimorum_modelos::index',['localecode'=> App::getLocale(),'modelo'=>strtolower($modelo)]) }}">{{ $plurales }}</a></li>
+                            <li><a class="nav-link" href="{{ route('sirgrimorum_modelos::index',['modelo'=>strtolower($modelo)]) }}">{{ $plurales }}</a></li>
                             @endforeach
                             @stack("menuobj")
                         </ul>
@@ -92,7 +92,7 @@
                                 <ul class="dropdown-menu" role="menu" aria-labelledby="navbarDropdown">
                                     @foreach(config("sirgrimorum.crudgenerator.list_locales") as $localeCode)
                                     <li>
-                                        <a class="dropdown-item" rel="alternate" hreflang="{{$localeCode}}" href="{{route('sirgrimorum_home',$localeCode) }}">
+                                        <a class="dropdown-item" rel="alternate" hreflang="{{$localeCode}}" href="{{CrudGenerator::changeLocale($localeCode) }}">
                                             {{{ trans('crudgenerator::admin.layout.labels.'.$localeCode) }}}
                                         </a>
                                     </li>
@@ -151,6 +151,7 @@
             <footer>
                 <div class="bg-dark text-white">
                     <div class="container cont_footer">
+                        {{ request()->path()}}
                         @section("piedepagina")
                         {{Route::current()->getName()}}
                         @show
@@ -158,12 +159,12 @@
                 </div>
             </footer>
         </div>
-        @if (config("sirgrimorum.crudgenerator.modal_section") != "")
-            @stack(config("sirgrimorum.crudgenerator.modal_section"))
-        @endif
         <script src="{{ asset('js/app.js') }}"></script>
         @if (config("sirgrimorum.crudgenerator.js_section") != "")
             @stack(config("sirgrimorum.crudgenerator.js_section"))
+        @endif
+        @if (config("sirgrimorum.crudgenerator.modal_section") != "")
+            @stack(config("sirgrimorum.crudgenerator.modal_section"))
         @endif
     </body>
 </html>

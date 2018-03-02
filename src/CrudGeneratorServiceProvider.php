@@ -24,6 +24,7 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
             __DIR__ . '/Config/models' => config_path('sirgrimorum/models'),
                 ], 'config');
 
+        $this->loadTranslationsFrom(__DIR__ . 'Lang', 'crudgenerator');
         $this->loadRoutesFrom(__DIR__ . '/Routes/web.php');
         $this->loadViewsFrom(__DIR__ . '/Views', 'sirgrimorum');
         $this->publishes([
@@ -44,10 +45,12 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
             __DIR__ . '/Views/templates' => resource_path('views/vendor/sirgrimorum/templates'),
                 ], 'templates');
 
-        $this->loadTranslationsFrom(__DIR__ . 'Lang', 'crudgenerator');
         $this->publishes([
             __DIR__ . '/Lang' => resource_path('lang/vendor/crudgenerator'),
                 ], 'lang');
+        $this->publishes([
+            __DIR__ . '/Langapp' => resource_path('lang'),
+                ], 'langapp');
 
         /**
          * Assets
@@ -290,6 +293,14 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
                 $bar->finish();
             }
         })->describe('Create a config file for a model');
+        
+        Artisan::command('crudgen:registermiddleware',function(){
+            if (CrudGenerator::registerMiddleware()) {
+                    $this->info("CrudGenerator middleware registered");
+                } else {
+                    $this->error("Something went wrong registering CrudGenerator middleware, please register ir in app/Http/Kernel.php");
+                }
+        })->describe('Register the CrudGenerator middleware in app/Http/Kernel.php');
 
         Artisan::command('crudgen:resources {model : The NAME of the model}', function ($model) {
             $bar = $this->output->createProgressBar(12);
@@ -350,12 +361,13 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
             }
             $confirm = $this->choice("Do you wisth to append new routes for the model (web routes)?", ['yes', 'no'], 0);
             if ($confirm == 'yes') {
-                if (CrudGenerator::generateResources($config, $localized, $bar, "routes")) {
+            if (CrudGenerator::registerRoutes($config, $localized)) {
                     $this->info("Routes registered");
                 } else {
                     $this->error("Something went wrong registering routes");
                 }
             }
+            CrudGenerator::registerTransRoutes($config);
             $confirm = $this->choice("Do you wisth to register the model policy?", ['yes', 'no'], 0);
             if ($confirm == 'yes') {
                 if (CrudGenerator::registerPolicy($config)) {
@@ -402,16 +414,14 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
     public function register() {
         //AliasLoader::getInstance()->alias('CrudLoader', CrudGenerator::class);
         $loader = AliasLoader::getInstance();
-        $loader->alias(
-                'CrudLoader', \Sirgrimorum\CrudGenerator\CrudGenerator::class
-        );
 
-        $this->app->singleton(CrudGenerator::class, function (Application $app) {
+        $this->app->singleton(CrudGenerator::class, function (\Illuminate\Foundation\Application $app) {
             return new CrudGenerator($app);
         });
+        $loader->alias('CrudGenerator',  CrudGenerator::class );
 
 
-        //$this->app->alias(, 'CrudLoader');
+        $this->app->alias( CrudGenerator::class,'CrudGenerator');
 
         $this->mergeConfigFrom(
                 __DIR__ . '/Config/crudgenerator.php', 'sirgrimorum.crudgenerator'
@@ -419,6 +429,10 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
         $this->mergeConfigFrom(
                 __DIR__ . '/Config/mimebyext.php', 'sirgrimorum.mimebyext'
         );
+    }
+    
+    public function provides() {
+        return ['CrudGenerator'];
     }
 
 }

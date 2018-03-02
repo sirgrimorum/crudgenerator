@@ -18,7 +18,7 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
                 //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modelo));
                 $config['botones'] = trans("crudgenerator::article.labels.create");
                 ?>
-                {!! CrudLoader::show($config,$registro,true) !!}
+                {!! CrudGenerator::show($config,$registro,true) !!}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">{{trans('crudgenerator::admin.layout.labels.close')}}</button>

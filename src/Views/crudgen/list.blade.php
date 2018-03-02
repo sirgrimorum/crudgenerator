@@ -67,7 +67,7 @@ if (isset($config['render'])) {
     <thead class="thead-dark">
         <tr>
             @foreach($campos as $columna => $datos)
-            @if (!CrudLoader::inside_array($datos,"hide","list"))
+            @if (!CrudGenerator::inside_array($datos,"hide","list"))
             <th>{{ ucfirst($datos['label'])}}</th>
             @endif
             @endforeach
@@ -77,18 +77,18 @@ if (isset($config['render'])) {
         @foreach($registros as $key => $value)
         <tr id = "{{ $tablaid }}__{{ $value->{$config['id']} }}|{!! $value->{$config['nombre']} !!}">
             @foreach($campos as $columna => $datos)
-            @if (CrudLoader::inside_array($datos,"hide","list")===false)
+            @if (CrudGenerator::inside_array($datos,"hide","list")===false)
             <td>
                 @if (isset($datos["pre"]))
                 {!! $datos["pre"] !!}
                 @endif
                 @if ($datos['tipo']=="relationship")
-                @if (CrudLoader::hasRelation($value,$columna))
+                @if (CrudGenerator::hasRelation($value,$columna))
                 @if(array_key_exists('enlace',$datos))
                 <a href="{{ str_replace([":modelId", ":modelName"],[$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}],str_replace([urlencode(":modelId"), urlencode(":modelName")],[$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}],$datos['enlace'])) }}">
                     @endif
                     @if($value->{$columna})
-                    {!! CrudLoader::getNombreDeLista($value->{$columna}, $datos['campo']) !!}
+                    {!! CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']) !!}
                     @else
                     -
                     @endif
@@ -99,14 +99,14 @@ if (isset($config['render'])) {
                 -
                 @endif
                 @elseif ($datos['tipo']=="relationships")
-                @if (CrudLoader::hasRelation($value, $columna))
+                @if (CrudGenerator::hasRelation($value, $columna))
                 <ul>
                 @foreach($value->{$columna}()->get() as $sub)
                 <li>
                     @if(array_key_exists('enlace',$datos))
                     <a href="{{ str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre']}],str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}],$datos['enlace'])) }}">
                         @endif
-                        {!! CrudLoader::getNombreDeLista($sub, $datos['campo']) !!}
+                        {!! CrudGenerator::getNombreDeLista($sub, $datos['campo']) !!}
                         @if(array_key_exists('enlace',$datos))
                     </a>
                     @endif
@@ -117,14 +117,14 @@ if (isset($config['render'])) {
                 -
                 @endif
                 @elseif ($datos['tipo']=="relationshipssel")
-                @if (CrudLoader::hasRelation($value, $columna))
+                @if (CrudGenerator::hasRelation($value, $columna))
                 <ul>
                 @foreach($value->{$columna}()->get() as $sub)
                 <li>
                     @if(array_key_exists('enlace',$datos))
                     <a href="{{ str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre']}],str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}],$datos['enlace'])) }}">
                         @endif
-                        {!! CrudLoader::getNombreDeLista($sub, $datos['campo']) !!}
+                        {!! CrudGenerator::getNombreDeLista($sub, $datos['campo']) !!}
                         @if(array_key_exists('enlace',$datos))
                     </a>
                     @endif
@@ -228,12 +228,12 @@ if (isset($config['render'])) {
                 <?php
                 $auxprevio = $value->{$columna};
                 $filename = str_start($auxprevio, str_finish($datos['path'], '\\'));
-                $tipoFile = CrudLoader::filenameIs($auxprevio, $datos);
+                $tipoFile = CrudGenerator::filenameIs($auxprevio, $datos);
                 $auxprevioName = substr($auxprevio, stripos($auxprevio, '__') + 2, stripos($auxprevio, '.', stripos($auxprevio, '__')) - (stripos($auxprevio, '__') + 2));
                 ?>
                 @if($tipoFile == 'image')
                 <figure class="figure">
-                    <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >                   
+                    <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >                   
                         <img src="{{asset($filename)}}" class="figure-img img-fluid rounded" alt="{{$auxprevioName}}">
                         <figcaption class="figure-caption">{{$auxprevioName}}</figcaption>
                     </a>
@@ -267,7 +267,7 @@ if (isset($config['render'])) {
                         <i class="fa fa-file-o fa-lg fa-li" aria-hidden="true"></i>
                         @break
                         @endswitch
-                    <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
+                    <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
                         {{$auxprevioName}}
                     </a>
                     </li>
@@ -293,7 +293,7 @@ if (isset($config['render'])) {
                 @if(is_object($datoReg))
                 <?php
                 $filename = str_start($datoReg->file, str_finish($datos['path'], '\\'));
-                $tipoFile =CrudLoader::filenameIs($datoReg->file,$datos);
+                $tipoFile =CrudGenerator::filenameIs($datoReg->file,$datos);
                 ?>
                     <li class="pl-2">
                         @switch($tipoFile)
@@ -322,7 +322,7 @@ if (isset($config['render'])) {
                         <i class="fa fa-file-o fa-lg fa-li" aria-hidden="true"></i>
                         @break
                         @endswitch
-                    <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
+                    <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
                         {{$datoReg->name}}
                     </a>
                     </li>
@@ -476,7 +476,7 @@ if (is_array($botones)) {
             $confirmTitle = '';
             if (stripos($boton, "<a") >= 0) {
                 try {
-                    $nodes = CrudLoader::extract_tags($boton, "a");
+                    $nodes = CrudGenerator::extract_tags($boton, "a");
                     if (isset($nodes[0]['attributes']['href'])) {
                         $urlBoton = $nodes[0]['attributes']['href'];
                     } else {

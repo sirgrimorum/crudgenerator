@@ -29,6 +29,6 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
 $config['botones'] = trans("crudgenerator::article.labels.create");
 ?>
 <div class='container'>
-    {!! CrudLoader::show($config,$registro) !!}
+    {!! CrudGenerator::show($config,$registro) !!}
 </div>
 @stop

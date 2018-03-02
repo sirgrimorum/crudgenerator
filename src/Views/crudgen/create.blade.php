@@ -64,7 +64,7 @@ if (isset($config['parametros'])){
 }
 
 foreach ($campos as $columna => $datos) {
-    if (!isset($datos['nodb']) && !isset($datos['readonly']) && CrudLoader::inside_array($datos, "hide", "create") === false) {
+    if (!isset($datos['nodb']) && !isset($datos['readonly']) && CrudGenerator::inside_array($datos, "hide", "create") === false) {
         if (View::exists("sirgrimorum::crudgen.templates." . $datos['tipo'])) {
             ?>
             @include("sirgrimorum::crudgen.templates." . $datos['tipo'], ['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$modelo])

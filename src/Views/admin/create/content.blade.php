@@ -30,6 +30,6 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
 //$config['url'] = url($base_url . "/" . strtolower($modelo) . "/store");
 ?>
 <div class='container'>
-    {!! CrudLoader::create($config) !!}
+    {!! CrudGenerator::create($config) !!}
 </div>
 @stop

@@ -51,24 +51,24 @@ if ($js_section != "") {
             @if (isset($datos['groupby']))
             @if($listaOpciones)
                @foreach($listaOpciones as $indice=>$opcionGroup)
-            "{{CrudLoader::getNombreDeLista('',$listaTransOpciones[$indice])}}": {
+            "{{CrudGenerator::getNombreDeLista('',$listaTransOpciones[$indice])}}": {
                 ajax: {
-                    url: "{!! route('sirgrimorum_modelos::index',['localecode'=>App::getLocale(),'modelo'=>$modeloOtro]) !!}?_return=pureJson&_q={{CrudLoader::getNombreDeLista('',$opcionGroup,'|')}}&_a={{CrudLoader::getNombreDeLista('',$datos['groupby'],'|')}}&_aByA=1&_or=false",
+                    url: "{!! route('sirgrimorum_modelos::index',['modelo'=>$modeloOtro]) !!}?_return=pureJson&_q={{CrudGenerator::getNombreDeLista('',$opcionGroup,'|')}}&_a={{CrudGenerator::getNombreDeLista('',$datos['groupby'],'|')}}&_aByA=1&_or=false",
                     path: "result"
                 }
             },               
                 @endforeach
             @else
                 ajax: {
-                    //url: "{!! route('sirgrimorum_modelos::index',['localecode'=>App::getLocale(),'modelo'=>$modeloOtro]) !!}?_return=pureJson&_q=@{{query}}*%&_a={{$camposQuery}}",
-                    url: "{!! route('sirgrimorum_modelos::index',['localecode'=>App::getLocale(),'modelo'=>$modeloOtro]) !!}?_return=pureJson",
+                    //url: "{!! route('sirgrimorum_modelos::index',['modelo'=>$modeloOtro]) !!}?_return=pureJson&_q=@{{query}}*%&_a={{$camposQuery}}",
+                    url: "{!! route('sirgrimorum_modelos::index',['modelo'=>$modeloOtro]) !!}?_return=pureJson",
                     path: "result"
                 }
             @endif
             @else
                 ajax: {
-                    //url: "{!! route('sirgrimorum_modelos::index',['localecode'=>App::getLocale(),'modelo'=>$modeloOtro]) !!}?_return=pureJson&_q=@{{query}}*%&_a={{$camposQuery}}",
-                    url: "{!! route('sirgrimorum_modelos::index',['localecode'=>App::getLocale(),'modelo'=>$modeloOtro]) !!}?_return=pureJson",
+                    //url: "{!! route('sirgrimorum_modelos::index',['modelo'=>$modeloOtro]) !!}?_return=pureJson&_q=@{{query}}*%&_a={{$camposQuery}}",
+                    url: "{!! route('sirgrimorum_modelos::index',['modelo'=>$modeloOtro]) !!}?_return=pureJson",
                     path: "result"
                 }
             @endif
@@ -78,7 +78,7 @@ if ($js_section != "") {
                 $.ajax({
                     type: 'get',
                     dataType: 'json',
-                    url:'{!! route('sirgrimorum_modelos::create',['localecode'=>App::getLocale(),'modelo'=>$modeloMio]) !!}?_return=simple&_itemRelSel={!!$columna!!}|' + item.id,
+                    url:'{!! route('sirgrimorum_modelos::create',['modelo'=>$modeloMio]) !!}?_return=simple&_itemRelSel={!!$columna!!}|' + item.id,
                     data:'',
                     success:function(data){
                         console.log('llega ajax',data);

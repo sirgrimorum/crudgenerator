@@ -23,12 +23,14 @@ class CrudGenerator {
         Traits\CrudFiles,
         Traits\CrudModels;
 
+    protected $app;
+
     /**
      * 
      * @param string $app Ipara nada
      */
     function __construct($app) {
-        
+        $this->app = $app;
     }
 
     /**
@@ -105,7 +107,7 @@ class CrudGenerator {
             $css_section = "";
         }
         if ($config['url'] == "Sirgrimorum_CrudAdministrator") {
-            $config['url'] = route("sirgrimorum_modelo::store", ["localecode" => \App::getLocale(), "modelo" => $modelo]);
+            $config['url'] = route("sirgrimorum_modelo::store", ["modelo" => $modelo]);
             if (\Lang::has('crudgenerator::' . $modelo . '.labels.create')) {
                 $config['botones'] = trans("crudgenerator::$modelo.labels.create");
             } else {
@@ -252,7 +254,7 @@ class CrudGenerator {
             return View::make('sirgrimorum::crudgen.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
         }
         if ($config['url'] == "Sirgrimorum_CrudAdministrator") {
-            $config['url'] = route("sirgrimorum_modelo::update", ["localecode" => \App::getLocale(), "modelo" => $modelo, "registro" => $registro->id]);
+            $config['url'] = route("sirgrimorum_modelo::update", ["modelo" => $modelo, "registro" => $registro->id]);
             if (\Lang::has('crudgenerator::' . $modelo . '.labels.edit')) {
                 $config['botones'] = trans("crudgenerator::$modelo.labels.edit");
             } else {

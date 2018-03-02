@@ -26,8 +26,8 @@ if (isset($datos['groupby'])) {
     } else {
         $langGroup = trans('crudgenerator::admin.layout.all');
     }
-    $listaTransOpciones = CrudLoader::getOpcionesDeCampo($datos['modelo'], $datos['groupby']);
-    $listaOpciones = CrudLoader::getOpcionesDeCampo($datos['modelo'], $datos['groupby'], false);
+    $listaTransOpciones = CrudGenerator::getOpcionesDeCampo($datos['modelo'], $datos['groupby']);
+    $listaOpciones = CrudGenerator::getOpcionesDeCampo($datos['modelo'], $datos['groupby'], false);
     //echo "<pre>" . print_r($listaOpciones, true) . "</pre>";
 }
 if (is_array($datos['campo'])) {

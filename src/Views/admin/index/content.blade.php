@@ -42,6 +42,6 @@ $config['botones'] = [
 ];*/
 ?>
 <div class='container'>
-    {!! CrudLoader::lists($config, config('sirgrimorum.crudgenerator.use_modals')) !!}
+    {!! CrudGenerator::lists($config, config('sirgrimorum.crudgenerator.use_modals')) !!}
 </div>
 @stop

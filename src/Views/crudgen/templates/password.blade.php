@@ -1,5 +1,10 @@
 <?php
-$dato = old($columna);
+if (isset($config["extraId"])) {
+    $extraId = $config['extraId'];
+} else {
+    $extraId = $columna;
+}
+$dato = old($extraId);
 if ($dato == "") {
     try {
         $dato = $registro->{$columna};
@@ -35,15 +40,15 @@ if (isset($datos['placeholder'])) {
 ?>
 <div class="form-group row">
     <div class='{{$config['class_labelcont']}}'>
-        {{ Form::label($columna, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
+        {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))
-        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $columna }}_help">
+        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $extraId }}_help">
             {{ $datos['description'] }}
         </small>
         @endif
     </div>
     <div class="{{ $config['class_divinput'] }}">
-        {{ Form::password($columna,  array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $columna, 'placeholder'=>$placeholder,$readonly)) }}
+        {{ Form::password($extraId,  array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $extraId, 'placeholder'=>$placeholder,$readonly)) }}
         @if ($error_campo)
         <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}

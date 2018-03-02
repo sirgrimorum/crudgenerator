@@ -28,17 +28,173 @@ trait CrudFiles {
             $fin = -1;
             $encontrado = -1;
             foreach ($contents as $index => $line) {
-                if (strpos($line, '$policies = [') > 0) {
+                if (strpos($line, '$policies = [') !==false) {
                     $inicio = $index;
                 }
-                if (strpos($line, $config['modelo']) > 0 && $inicio >= 0 && $fin == -1) {
+                if (strpos($line, $config['modelo']) !==false && $inicio >= 0 && $fin == -1) {
                     $encontrado = $index;
                 }
-                if (strpos($line, "];") > 0 && $inicio >= 0 && $fin == -1) {
+                if (strpos($line, "];") !==false && $inicio >= 0 && $fin == -1) {
                     $fin = $index;
                 }
             }
             $newTexto = chr(9) . "'" . $config['modelo'] . "' => 'App\\Policies\\" . $policyName . "', " . chr(13) . chr(10);
+            if ($encontrado >= 0) {
+                $contents[$encontrado] = $newTexto;
+            } elseif ($inicio >= 0 && $fin >= 0) {
+                $newContent = array_slice($contents, 0, $fin);
+                $newContent[] = $newTexto;
+                foreach (array_slice($contents, $fin) as $linea) {
+                    $newContent[] = $linea;
+                }
+                $contents = $newContent;
+            }
+            $contents = file_put_contents($path, $contents);
+        } else {
+            $contents = false;
+        }
+        return $contents;
+    }
+
+    /**
+     * Register a the routes to a model in the lang/routes.php file
+     * 
+     * @param array $config Array
+     * @return boolean If the policy was registered or not
+     */
+    public static function registerTransRoutes($config) {
+        $modeloM = ucfirst(basename($config['modelo']));
+        $modelo = strtolower($modeloM);
+        $policyName = $modeloM . 'Policy';
+        foreach (config("sirgrimorum.crudgenerator.list_locales") as $locale) {
+            echo "<p>copiando a-" . $locale . "-</p>";
+            $path = str_finish(str_replace([ "/"], [ "\\"], resource_path("lang/$locale/routes.php")), '.php');
+            if (file_exists($path)) {
+                $modeloM = basename($config['modelo']);
+                $contents = file($path);
+                $inicio = -1;
+                $fin = -1;
+                $encontrado = -1;
+                foreach ($contents as $index => $line) {
+                    if (strpos($line, '"routes" => [') !==false || strpos($line, '"routes"=>[') !==false ) {
+                        $inicio = $index;
+                    }
+                    if (strpos($line, "'{$modelo}s'") !==false && $inicio >= 0 && $fin == -1) {
+                        $encontrado = $index;
+                    }
+                    if (strpos($line, "],") !==false && $inicio >= 0 && $fin == -1) {
+                        $fin = $index;
+                    }
+                }
+                $newTexto = chr(9) . "'{$modelo}s' => '{$modelo}s', " . chr(13) . chr(10);
+                if ($encontrado >= 0) {
+                    //$contents[$encontrado] = $newTexto;
+                } elseif ($inicio >= 0 && $fin >= 0) {
+                    $newContent = array_slice($contents, 0, $fin);
+                    $newContent[] = $newTexto;
+                    foreach (array_slice($contents, $fin) as $linea) {
+                        $newContent[] = $linea;
+                    }
+                    $contents = $newContent;
+                }
+                $contents = file_put_contents($path, $contents);
+            } else {
+                $contents = false;
+            }
+        }
+        return $contents;
+    }
+
+    /**
+     * Register the routes to a model resources in web.php routes file using a config Array
+     * 
+     * @param array $config Array
+     * @param bolean $localized If the routes should be localized or not
+     * @return boolean If the policy was registered or not
+     */
+    public static function registerRoutes($config, $localized) {
+        $path = base_path('routes');
+        if (!$localized) {
+            return \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('routes', $localized, $path, 'web.php', $config, 0764, "append");
+        }
+
+        $modeloM = ucfirst(basename($config['modelo']));
+        $modelo = strtolower($modeloM);
+        $path = str_finish(str_replace([ "/"], [ "\\"], base_path('routes/web.php')), '.php');
+        if (file_exists($path)) {
+            $modeloM = basename($config['modelo']);
+            $contents = file($path);
+            $inicio = -1;
+            $fin = -1;
+            $encontrado = -1;
+            foreach ($contents as $index => $line) {
+                if (strpos($line, "group(['prefix' => CrudGenerator::setLocale(), 'middleware' => ['web','crudgenlocalization']") !== false) {
+                    $inicio = $index;
+                }
+                if (strpos($line, "Route::group(['prefix' => CrudGenerator::transRouteModel(\"{$modelo}s\")") !== false && $inicio >= 0) {
+                    $encontrado = $index;
+                }
+                if (strpos($line, "})->name('locale_home');") !== false && $inicio >= 0 && $fin == -1) {
+                    $fin = $index + 1;
+                }
+            }
+            if ($inicio == -1) {
+                $path = base_path('routes');
+                return \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('routes', $localized, $path, 'web.php', $config, 0764, "append");
+            }
+            if ($encontrado >= 0) {
+                return false;
+            } elseif ($inicio >= 0 && $fin >= 0) {
+                $newContent = array_slice($contents, 0, $fin);
+                $searchArr = ["{?php}", "{php?}", "[[", "]]", "[!!", "!!]", "{modelo}", "{Modelo}", "{model}", "{Model}", "*extends", "*section", "*stop", "*stack", "*push", "*if", "*else", "*foreach", "*end", "{ " . $modelo . " }"];
+                $replaceArr = ["<?php", "?>", "{{", "}}", "{!!", "!!}", $modelo, $modeloM, $modelo, $modeloM, "@extends", "@section", "@stop", "@stack", "@push", "@if", "@else", "@foreach", "@end", "{" . $modelo . "}"];
+                $contenido = view("sirgrimorum::templates.routes", ["config" => $config, "localized" => false])->render();
+                $contenido = str_replace($searchArr, $replaceArr, $contenido);
+                $data = explode(chr(13) . chr(10), $contenido);
+                $newContent[] = chr(13) . chr(10);
+                foreach ($data as $linea) {
+                    $newContent[] = $linea . chr(13) . chr(10);
+                }
+                $newContent[] = chr(13) . chr(10);
+                foreach (array_slice($contents, $fin) as $linea) {
+                    $newContent[] = $linea;
+                }
+                $contents = $newContent;
+            }
+            //$path = str_finish(str_replace([ "/"], [ "\\"], $path . str_start("web.php", "/")), '.php');
+            $contents = file_put_contents($path, $contents);
+        } else {
+            $contents = false;
+        }
+        return $contents;
+    }
+
+    /**
+     * Register the Localization Middleware in Hrrp/Kernel.php 
+     * 
+     * 
+     * @return boolean If the middleware was registered or not
+     */
+    public static function registerMiddleware() {
+        $path = str_finish(str_replace([ "/"], [ "\\"], app_path('Http/Kernel.php')), '.php');
+        $middlewareClass = "\\Sirgrimorum\\CrudGenerator\\Middleware\\CrudGeneratorLocaleRedirect";
+        if (file_exists($path)) {
+            $contents = file($path);
+            $inicio = -1;
+            $fin = -1;
+            $encontrado = -1;
+            foreach ($contents as $index => $line) {
+                if (strpos($line, '$routeMiddleware = [') !==false) {
+                    $inicio = $index;
+                }
+                if (strpos($line, $middlewareClass)!==false && $inicio >= 0 && $fin == -1) {
+                    $encontrado = $index;
+                }
+                if (strpos($line, "];") !==false && $inicio >= 0 && $fin == -1) {
+                    $fin = $index;
+                }
+            }
+            $newTexto = chr(9) . "'crudgenlocalization' => " . $middlewareClass . "::class, " . chr(13) . chr(10);
             if ($encontrado >= 0) {
                 $contents[$encontrado] = $newTexto;
             } elseif ($inicio >= 0 && $fin >= 0) {
@@ -294,7 +450,7 @@ trait CrudFiles {
                     $strValue = "false";
                 }
                 $strArr .= $tabs . '"' . $key . '" => ' . $strValue . ', ' . chr(13) . chr(10);
-            } elseif (is_callable($value) && $value !== "file"  && $value !== "url"  && $value !== "config") {
+            } elseif (is_callable($value) && !is_string($value) && $value !== "file" && $value !== "url" && $value !== "config") {
                 $closure = new SuperClosure($value);
                 $strArr .= $tabs . '"' . $key . '" => ' . print_r($closure->getCode(), true) . ', ' . chr(13) . chr(10);
             } elseif (is_object($value)) {
@@ -323,7 +479,7 @@ trait CrudFiles {
             'audio' => ['audio/mpeg', 'audio/midi', 'audio/mod', 'audio/mpeg3', 'audio/wav'],
             'pdf' => ['application/pdf'],
             'text' => ['text/html', 'text/plain', 'text/richtext'],
-            'office' => ['application/mspowerpoint', 'application/msword', 'application/excel','application/vnd.ms-excel','application/vnd.ms-powerpoint'],
+            'office' => ['application/mspowerpoint', 'application/msword', 'application/excel', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint'],
             'compressed' => ['application/x-compressed', 'application/zip', 'multipart/x-zip', 'application/x-zip-compressed'],
         ];
         $mimeType = \Sirgrimorum\CrudGenerator\CrudGenerator::fileMime($filename, $detalles);

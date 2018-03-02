@@ -242,7 +242,7 @@ trait CrudStrings {
         }
         return $result;
     }
-    
+
     /**
      * Get if a Model has a relation
      * @param string $model
@@ -535,9 +535,9 @@ trait CrudStrings {
      */
     public static function urlType($url) {
         $parsed = parse_url($url);
-        if (isset($parsed['host'])){
+        if (isset($parsed['host'])) {
             $hostname = $parsed['host'];
-        }else{
+        } else {
             $hostname = $url;
         }
         if (strpos($hostname, 'youtube') > 0) {
@@ -547,6 +547,271 @@ trait CrudStrings {
         } else {
             return 'unknown';
         }
+    }
+
+    /**
+     * Get and set the current locale (for use in route definition).
+     * @param string $locale Optional current locale, if empty, will try to get it form the url
+     * @return string
+     */
+    public static function setLocale($locale = null) {
+        $app = app();
+        $currentLocale = $app->config->get('app.locale');
+        if (empty($locale) || !is_string($locale)) {
+            // If the locale has not been passed through the function
+            // it tries to get it from the first segment of the url
+            $locale = $app->request->segment(1);
+        }
+        if (!in_array($locale, $app->config->get('sirgrimorum.crudgenerator.list_locales'))) {
+            $locale = $currentLocale;
+        }
+
+        //if (!empty($this->supportedLocales[$locale])) {
+        $currentLocale = $locale;
+        //}
+
+        $app->setLocale($currentLocale);
+
+        return $currentLocale;
+    }
+
+    /**
+     * Translate a route to a model (for use in route definition)
+     * Will search it in resources/lang/vendor/crudgenerator/{locale}/model.labels.{$modelo} or resources/lang/{locale}/model.{$modelo}
+     * @param string $modelo The model name (plural or singular)
+     * @return string
+     */
+    public static function transRouteModel($modelo) {
+        $app = app();
+        //$modeloClass = CrudGenerator::getModel($modelo, substr($modelo,0, strlen($modelo)-1));
+        $base = "";
+        $currentLocale = $app->getLocale();
+        $defaultLocale = $app->config->get('app.locale');
+        $modeloClass = $modelo;
+        $crud = true;
+        $transroute = $app->translator->trans('routes.routes.' . $modelo, [], $currentLocale);
+        if (stripos($transroute, ".") !== false) {
+            if (!file_exists(resource_path("lang/vendor/crudgenerator/" . $currentLocale . "/" . $modeloClass . ".php"))) {
+                if (!file_exists(resource_path("lang/vendor/crudgenerator/" . $defaultLocale . "/" . $modeloClass . ".php"))) {
+                    $modeloClass = substr($modelo, 0, strlen($modelo) - 1);
+                    if (!file_exists(resource_path("lang/vendor/crudgenerator/" . $currentLocale . "/" . $modeloClass . ".php"))) {
+                        if (!file_exists(resource_path("lang/vendor/crudgenerator/" . $defaultLocale . "/" . $modeloClass . ".php"))) {
+                            $modeloClass = $modelo;
+                            $crud = false;
+                            if (!file_exists(resource_path("lang/" . $currentLocale . "/" . $modeloClass . ".php"))) {
+                                if (!file_exists(resource_path("lang/" . $defaultLocale . "/" . $modeloClass . ".php"))) {
+                                    $modeloClass = substr($modelo, 0, strlen($modelo) - 1);
+                                    if (!file_exists(resource_path("lang/" . $currentLocale . "/" . $modeloClass . ".php"))) {
+                                        if (!file_exists(resource_path("lang/" . $defaultLocale . "/" . $modeloClass . ".php"))) {
+                                            $modeloClass = false;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if ($modeloClass !== false) {
+                //$modeloClass = strtolower(basename($modeloClass));
+                if ($crud) {
+                    $modeloClass = 'crudgenerator::' . $modeloClass . '.labels';
+                }
+                $base = $app->translator->trans($modeloClass . '.' . $modelo, [], $currentLocale);
+                if (stripos($base, ".") > 0) {
+                    $base = $modelo; //. $base;
+                } else {
+                    $base = strtolower($base);
+                }
+            }
+        } else {
+            $base = $transroute;
+        }
+        if ($base == "") {
+            $base = $modelo;
+        }
+        return $base;
+    }
+
+    /**
+     * Translate a route (for use in routes definition)
+     * Will look for the translation in resources/lang/vendor/crudgenerator/{locale}/admin.routes.{$route}
+     * @param string $route The route, it could be (modelo.action) or only (action)
+     * @return string
+     */
+    public static function transRoute($route) {
+        $app = app();
+        $locale = \Sirgrimorum\CrudGenerator\CrudGenerator::setLocale();
+        //$locale = $app->getLocale();
+        $routes = explode(".", $route);
+        $base = "";
+        if (count($routes) > 1) {
+            $base = \Sirgrimorum\CrudGenerator\CrudGenerator::transRouteModel($routes[0]);
+            if ($base != "") {
+                $base .= ".";
+            }
+            $route = $routes[1];
+        }
+        $transroute = $app->translator->trans('routes.actions.' . $route, [], $locale);
+        if (stripos($transroute, ".") !== false) {
+            $transroute = $app->translator->trans('crudgenerator::admin.routes.' . $route, [], $locale);
+            if (stripos($transroute, ".") !== false) {
+                $transroute = $route;
+            }
+        }
+        //$route = $app->translator->trans('crudgenerator::admin.routes.' . $route);
+        return $base . $transroute;
+    }
+
+    /**
+     *  Change the locale of a url
+     * @param string $locale New locale
+     * @param string $url Optional the url to change, if empty, will change the current url
+     * @return string
+     */
+    public static function changeLocale($locale, $url = null) {
+        $app = app();
+        //$modeloClass = CrudGenerator::getModel($modelo, substr($modelo,0, strlen($modelo)-1));
+        $base = "";
+        $currentLocale = $app->getLocale();
+        $defaultLocale = $app->config->get('app.locale');
+        if ($locale === null) {
+            $locale = $currentLocale;
+        }
+        if (!in_array($locale, $app->config->get('sirgrimorum.crudgenerator.list_locales'))) {
+            $locale = $currentLocale;
+        }
+        if (empty($url)) {
+            $url = $app->request->fullUrl();
+            $urlLocale = $app->request->segment(1);
+            if (in_array($urlLocale, $app->config->get('sirgrimorum.crudgenerator.list_locales'))) {
+                $url = str_replace("/" . $urlLocale . "/", "/" . $locale . "/", $url);
+            }
+        } else {
+            if (stripos($url, "/" . $currentLocale . "/") > 0) {
+                $url = str_replace("/" . $currentLocale . "/", "/" . $locale . "/", $url);
+            } elseif (substr($url, strlen($url) - (strlen($currentLocale) + 1)) == "/" . $currentLocale) {
+                $url = substr($url, 0, strlen($url) - (strlen($currentLocale))) . $currentLocale;
+            } elseif (stripos($url, "http://") === false && stripos($url, "https://") === false) {
+                $url = str_replace("//", "/", $locale . "/" . $url);
+            }
+        }
+
+
+        return $url;
+    }
+
+    /**
+     * Da el rgb de un color RGB a partir de un factor y un color por wavelength 
+     * @param real $color 
+     * @param real $factor
+     * @return int
+     */
+    private static function adjustColor($color, $factor) {
+        if ($color == 0.0) {
+            return 0;
+        } else {
+            return round(255.0 * pow(($color * $factor), 0.80));
+        }
+    }
+
+    /**
+     * Define el rgb de un wavelength
+     * @param int $wavelength 
+     * @param array valores para r, g y b
+     * @return array RGB
+     */
+    private static function setColors($wavelength, $rgb) {
+        $red = $rgb["r"];
+        $green = $rgb["g"];
+        $blue = $rgb["b"];
+        if ($wavelength >= 380 && $wavelength <= 439) {
+            $red = - ($wavelength - 440.0) / (440.0 - 380.0);
+            $green = 0.0;
+            $blue = 1.0;
+        } elseif ($wavelength >= 440 && $wavelength <= 489) {
+            $red = 0.0;
+            $green = ($wavelength - 440.0) / (490.0 - 440.0);
+            $blue = 1.0;
+        } elseif ($wavelength >= 490 && $wavelength <= 509) {
+            $red = 0.0;
+            $green = 1.0;
+            $blue = - ($wavelength - 510.0) / (510.0 - 490.0);
+        } elseif ($wavelength >= 510 && $wavelength <= 579) {
+            $red = ($wavelength - 510.0) / (580.0 - 510.0);
+            $green = 1.0;
+            $blue = 0.0;
+        } elseif ($wavelength >= 580 && $wavelength <= 644) {
+            $red = 1.0;
+            $green = - ($wavelength - 645.0) / (645.0 - 580.0);
+            $blue = 0.0;
+        } elseif ($wavelength >= 645 && $wavelength <= 780) {
+            $red = 1.0;
+            $green = 0.0;
+            $blue = 0.0;
+        } else {
+            $red = 0.0;
+            $green = 0.0;
+            $blue = 0.0;
+        }
+        $rgb["r"] = $red;
+        $rgb["g"] = $green;
+        $rgb["b"] = $blue;
+        return $rgb;
+    }
+
+    /**
+     * Define el factor de multiplicación de un color por wavelength
+     * @param int $wavelength
+     * @param array $rgb arreglo con el factor f
+     * @return array con el factor f
+     */
+    private static function setFactor($wavelength, $rgb) {
+        $factor = $rgb["f"];
+        if ($wavelength >= 380 && $wavelength <= 419) {
+            $factor = 0.3 + 0.7 * ($wavelength - 380.0) / (420.0 - 380.0);
+        } elseif ($wavelength >= 420 && $wavelength <= 700) {
+            $factor = 1.0;
+        } elseif ($wavelength >= 701 && $wavelength <= 780) {
+            $factor = 0.3 + 0.7 * (780.0 - $wavelength) / (780.0 - 700.0);
+        } else {
+            $factor = 0.0;
+        }
+        $rgb["f"] = $factor;
+        return $rgb;
+    }
+
+    /**
+     * Genera un array con un número específico de colores repartido uniformemente entre toda la gama
+     * @param int $numSteps Número de colores a devolver
+     * @return array Array de colores en rgb hexa string ej: #ff33b3
+     */
+    public static function arrColors($numSteps) {
+        $colors = [];
+        $rgb = [
+            "r" => 0,
+            "g" => 0,
+            "b" => 0,
+            "f" => 0
+        ];
+
+        for ($i = 0; $i < $numSteps; $i ++) {
+            $lambda = round(380 + 400 * ($i / ($numSteps - 1)));
+            $rgb = \Sirgrimorum\CrudGenerator\CrudGenerator::setColors($lambda, $rgb);
+            $rgb = \Sirgrimorum\CrudGenerator\CrudGenerator::setFactor($lambda, $rgb);
+            $rgb["r"] = \Sirgrimorum\CrudGenerator\CrudGenerator::adjustColor($rgb["r"], $rgb["f"]);
+            $rgb["g"] = \Sirgrimorum\CrudGenerator\CrudGenerator::adjustColor($rgb["g"], $rgb["f"]);
+            $rgb["b"] = \Sirgrimorum\CrudGenerator\CrudGenerator::adjustColor($rgb["b"], $rgb["f"]);
+            $redHex = dechex($rgb["r"]);
+            $redHex = (strlen($redHex) < 2) ? "0" . $redHex : $redHex;
+            $greenHex = dechex($rgb["g"]);
+            $greenHex = (strlen($greenHex) < 2) ? "0" . $greenHex : $greenHex;
+            $blueHex = dechex($rgb["b"]);
+            $blueHex = (strlen($blueHex) < 2) ? "0" . $blueHex : $blueHex;
+            $bgcolor = "#" . $redHex . $greenHex . $blueHex;
+            array_push($colors, $bgcolor);
+        }
+        return $colors;
     }
 
 }

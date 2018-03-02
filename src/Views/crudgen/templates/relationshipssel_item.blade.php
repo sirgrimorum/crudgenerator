@@ -1,8 +1,43 @@
+<?php
+$tabla = $config['tabla'];
+$campos = $config['campos'];
+$botones = $config['botones'];
+if (isset($config['files'])) {
+    $files = $config['files'];
+} else {
+    $files = false;
+}
+if (isset($config['relaciones'])) {
+    $relaciones = $config['relaciones'];
+}
+$url = $config['url'];
+if (!isset($config['class_form'])) {
+    $config['class_form'] = '';
+}
+if (!isset($config['class_labelcont'])) {
+    $config['class_labelcont'] = 'col-xs-12 col-sm-3 col-md-2';
+}
+if (!isset($config['class_label'])) {
+    $config['class_label'] = 'col-form-label font-weight-bold mb-0 pb-0';
+}
+if (!isset($config['class_divinput'])) {
+    $config['class_divinput'] = 'col-xs-12 col-sm-8 col-md-10';
+}
+if (!isset($config['class_input'])) {
+    $config['class_input'] = '';
+}
+if (!isset($config['class_offset'])) {
+    $config['class_offset'] = 'offset-xs-0 offset-sm-4 offset-md-2';
+}
+if (!isset($config['class_button'])) {
+    $config['class_button'] = 'btn btn-primary';
+}
 
+?>
 @foreach ($datos['columnas'] as $columnaT)
 <?php
 if ($columnaT['type'] == 'label') {
-    $valorM = CrudLoader::getNombreDeLista($tablaInterCampo, $datos['campo']);
+    $valorM = CrudGenerator::getNombreDeLista($tablaInterCampo, $datos['campo']);
 } elseif (is_object($pivote)) {
     if ($columnaT['type'] == 'labelpivot') {
         $valorM = $pivote->{$columnaT['campo']};
@@ -43,6 +78,9 @@ $atributos = [
 if (isset($columnaT['campo']) && $columnaT['type']!='label') {
     $atributos['class'] .= ' ' . $columna . '_' . $columnaT['campo'];
     $atributos['id'] = $columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId;
+    $config['extraId'] = $columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId;
+}else{
+    $config['extraId'] = $columna . "_" . "_" . $tablaOtroId;
 }
 ?>
 @if ($loop->first)
@@ -65,28 +103,27 @@ if (isset($columnaT['campo']) && $columnaT['type']!='label') {
     @if(!$loop->last)
     <div class="card-body">
 
-        <div class="form-row">
+        <div class="">
             @endif
             @else
-            @if ($columnaT['type']=='hidden')
-            {{ Form::hidden($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, $valorM, array('class' => 'form-control', 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId)) }}
-            @else
-            <div class="form-group col">
-                {{ Form::label($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, ucfirst($columnaT['label']), ['class'=>""]) }}
-                @if ($columnaT['type']=='label' || $columnaT['type']=='labelpivot')
-                {{ $valorM }}
-                @elseif ($columnaT['type']=='text')
-                {{ Form::text($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, $valorM, $atributos) }}
-                @elseif ($columnaT['type']=='textarea')
-                {{ Form::textarea($columna. "_" . $columnaT['campo'] . "_" . $tablaOtroId, $valorM, $atributos) }}
-                @elseif ($columnaT['type']=='number')
-                {{ Form::number($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, $valorM, $atributos) }}
-                @elseif ($columnaT['type']=='select')
-                {{ Form::select($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, $columnaT['opciones'], $valorM, $atributos) }}
-                @else
-                {{ Form::text($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, $valorM, $atributos) }}
-                @endif
+            @if ($columnaT['type']=='label' || $columnaT['type']=='labelpivot')
+            <div class="form-group row">
+                <div class='{{$config['class_labelcont']}}'>
+                    {{ Form::label($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, ucfirst($columnaT['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
+                    @if (isset($columnaT['description']))
+                    <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId }}_help">
+                    {{ $columnaT['description'] }}
+                    </small>
+                    @endif
+                </div>
+                <div class="{{ $config['class_divinput'] }}">
+                    {{ Form::text($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, $valorM, array('class' => 'form-control-plaintext ' . $config['class_input'] . ' ' . $claseError, 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, "readonly"=>"readonly")) }}
+                </div>
             </div>
+            @elseif (View::exists("sirgrimorum::crudgen.templates." . $columnaT['type']))
+                @include("sirgrimorum::crudgen.templates." . $columnaT['type'], ['datos'=>$columnaT,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$datos['modelo'], 'registro'=>$pivote,'errores'=>false, 'config'=>$config])
+            @else
+                @include("sirgrimorum::crudgen.templates.text", ['datos'=>$columnaT,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$datos['modelo'], 'registro'=>$pivote,'errores'=>false, 'config'=>$config])
             @endif
             @endif
             @if($loop->last)

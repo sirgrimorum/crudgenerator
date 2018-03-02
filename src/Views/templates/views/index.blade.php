@@ -60,7 +60,7 @@ $config['botones'] = [
 ];*/
 $modales = false;
 /**
- * To use CrudLoader Modals, uncomment
+ * To use CrudGenerator Modals, uncomment
  */
 /*
 unset($config['botones']);
@@ -69,7 +69,7 @@ $modales = true;
  */
 {php?}
 <div class='container'>
-    [!! CrudLoader::lists($config,$modales) !!]
+    [!! CrudGenerator::lists($config,$modales) !!]
 </div>
 </div>
 *stop

@@ -1,9 +1,12 @@
 <?php
 
-Route::group(['prefix' => "{localecode}/" . config("sirgrimorum.crudgenerator.admin_prefix"), 'middleware' => 'web'], function () {
-    Route::get('', function($localecode) {
-        App::setLocale($localecode);
+Route::get(config("sirgrimorum.crudgenerator.admin_prefix"), function($localecode = null) {
         //return $localecode;
+    return redirect(route('sirgrimorum_home'));
+})->name('_sirgrimorum_home');
+
+Route::group(['prefix' => Sirgrimorum\CrudGenerator\CrudGenerator::setLocale() . "/" . config("sirgrimorum.crudgenerator.admin_prefix"), 'middleware' => ['web','crudgenlocalization']], function () {
+    Route::get('', function() {
         $callback = config('sirgrimorum.crudgenerator.permission');
         if (is_callable($callback)) {
             $resultado = (bool) $callback();
@@ -13,7 +16,7 @@ Route::group(['prefix' => "{localecode}/" . config("sirgrimorum.crudgenerator.ad
         if (!$resultado) {
             return redirect(config("sirgrimorum.crudgenerator.login_path"))->with([
                         config("sirgrimorum.crudgenerator.error_messages_key") => trans('crudgenerator::admin.mensajes.permission'),
-                        config("sirgrimorum.crudgenerator.login_redirect_key") => route("sirgrimorum_home", ['localecode' => $localecode])
+                        config("sirgrimorum.crudgenerator.login_redirect_key") => route("sirgrimorum_home")
                             ]
             );
         }
@@ -33,7 +36,3 @@ Route::group(['prefix' => "{localecode}/" . config("sirgrimorum.crudgenerator.ad
     });
     Route::get('/file', '\Sirgrimorum\CrudGenerator\CrudController@file')->name('sirgrimorum_file');
 });
-
-Route::get(config("sirgrimorum.crudgenerator.admin_prefix"), function() {
-    return redirect(route('sirgrimorum_home', config("sirgrimorum.crudgenerator.default_locale")));
-})->name('_sirgrimorum_home');

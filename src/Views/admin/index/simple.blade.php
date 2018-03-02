@@ -18,4 +18,4 @@ $config['botones'] = [
     "<a class='btn btn-danger' href='" . url($base_url . "/" . strtolower($modelo) . "/:modelId/destroy") . "' data-confirm='" . $textConfirm . "' data-yes='" . $textConfirm = trans('crudgenerator::admin.layout.labels.yes') . "' data-yes='" . $textConfirm = trans('crudgenerator::admin.layout.labels.no') . "' data-confirmtheme='" . config('sirgrimorum.crudgenerator..confirm_theme') . "' data-confirmicon='" . config('sirgrimorum.crudgenerator..confirm_icon') . "' data-method='delete' rel='nofollow' title='" . trans('crudgenerator::admin.layout.borrar') . "'><span class='glyphicon glyphicon-trash' aria-hidden='true'></span></a>",
 ];
 ?>
-{!! CrudLoader::lists($config,false,true) !!}
+{!! CrudGenerator::lists($config,false,true) !!}

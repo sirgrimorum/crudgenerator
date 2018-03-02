@@ -72,7 +72,7 @@
                     "columnas" => [[ // required for the relationshipssel type, list of columns to show in the table
                         "label" => "[Header for the column]", // required, use the 'trans_prefix' value if you want localization
                         "placeholder" => "[Placeholder for the column]", // required for 'text' and 'number' types, use the 'trans_prefix' value if you want localization
-                        "type" => "[type of the filed]", // required, options are: "label" (value of a field in table), "labelpivot" (value of a field in the pivot table), "text", "textarea", "number", "hidden", "select"
+                        "type" => "[type of the filed]", // required, options are: "label" (value of a field in table), "labelpivot" (value of a field in the pivot table), "text", "textarea", "number", "hidden", "select" (or de other types of regular fields)
                         "campo" => "[name of the field]", // required
                         "opciones" => [] // required for select type, array of options, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.selects.options__"
  *                      "format" => [(number of decimals), "[decimal separator]", "[mil separator]"], // for number types, aplies format to the number []

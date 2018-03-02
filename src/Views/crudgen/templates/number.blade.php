@@ -1,5 +1,10 @@
 <?php
-$dato = old($columna);
+if (isset($config["extraId"])) {
+    $extraId = $config['extraId'];
+} else {
+    $extraId = $columna;
+}
+$dato = old($extraId);
 if ($dato == "") {
     try {
         $dato = $registro->{$columna};
@@ -35,9 +40,9 @@ if (isset($datos['placeholder'])) {
 ?>
 <div class="form-group row">
     <div class='{{$config['class_labelcont']}}'>
-        {{ Form::label($columna, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
+        {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))
-        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $columna }}_help">
+        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $extraId }}_help">
             {{ $datos['description'] }}
         </small>
         @endif
@@ -47,7 +52,7 @@ if (isset($datos['placeholder'])) {
             @if (isset($datos["pre"]))
             <div class="input-group-prepend"><div class="input-group-text">{{ $datos["pre"] }}</div></div>
             @endif
-            {{ Form::number($columna, $dato, array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $columna, 'step' => 'any', 'placeholder'=>$placeholder,$readonly)) }}
+            {{ Form::number($extraId, $dato, array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $extraId, 'step' => 'any', 'placeholder'=>$placeholder,$readonly)) }}
             @if (isset($datos["post"]))
             <div class="input-group-append"><div class="input-group-text">{{ $datos["post"] }}</div></div>
             @endif

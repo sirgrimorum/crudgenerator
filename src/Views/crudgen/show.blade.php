@@ -54,7 +54,7 @@ $identificador = $config['id'];
 
         <?php foreach ($campos as $columna => $datos) { ?>
             <div class="form-group row {{$config['class_formgroup']}}">
-                <?php if (CrudLoader::inside_array($datos, "hide", "show") === false) { ?>
+                <?php if (CrudGenerator::inside_array($datos, "hide", "show") === false) { ?>
                     <div class='{{$config['class_labelcont']}}'>
                         {{ Form::label($columna, ucfirst($datos['label']), ['class'=>$config['class_label']]) }}
                         <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $columna }}_help">
@@ -93,7 +93,7 @@ $identificador = $config['id'];
                                                 <div class="col-md-6 col-sm-12 col-xs-12">
                                                     <?php
                                                     $filename = str_start($datoReg->file, str_finish($datos['path'], '\\'));
-                                                    $tipoFile = CrudLoader::filenameIs($datoReg->file, $datos);
+                                                    $tipoFile = CrudGenerator::filenameIs($datoReg->file, $datos);
                                                     if ($tipoFile == 'image') {
                                                         ?>
                                                         <div class="card text-center">
@@ -173,13 +173,13 @@ $identificador = $config['id'];
                                     <?php
                                 }
                             } elseif ($datos['tipo'] == "relationship") {
-                                if (CrudLoader::hasRelation($registro, $columna)) {
+                                if (CrudGenerator::hasRelation($registro, $columna)) {
                                     if (array_key_exists('enlace', $datos)) {
                                         ?>
                                         <a href="{{ str_replace([":modelId",":modelName"],[$registro->{$columna}->{$datos['id']},$registro->{$columna}->{$datos['nombre']}],str_replace([urlencode (":modelId"),urlencode(":modelName")],[$registro->{$columna}->{$datos['id']},$registro->{$columna}->{$datos['nombre']}],$datos['enlace'])) }}">
                                             <?php
                                         }
-                                        echo CrudLoader::getNombreDeLista($registro->{$columna}, $datos['campo']);
+                                        echo CrudGenerator::getNombreDeLista($registro->{$columna}, $datos['campo']);
                                         if (array_key_exists('enlace', $datos)) {
                                             ?>
                                         </a>
@@ -189,7 +189,7 @@ $identificador = $config['id'];
                                     echo print_r($registro->{$columna}, true);
                                 }
                             } elseif ($datos['tipo'] == "relationships") {
-                                if (CrudLoader::hasRelation($registro, $columna)) {
+                                if (CrudGenerator::hasRelation($registro, $columna)) {
                                     ?>
                                     <ul>
                                         <?php
@@ -202,7 +202,7 @@ $identificador = $config['id'];
                                                     <a href="{{ str_replace([":modelId",":modelName"],[$sub->{$datos['id']},$sub->{$datos['nombre']}],str_replace([urlencode (":modelId"),urlencode(":modelName")],[$sub->{$datos['id']},$sub->{$datos['nombre']}],$datos['enlace'])) }}">
                                                         <?php
                                                     }
-                                                    echo CrudLoader::getNombreDeLista($sub, $datos['campo']);
+                                                    echo CrudGenerator::getNombreDeLista($sub, $datos['campo']);
                                                     if (array_key_exists('enlace', $datos)) {
                                                         ?>
                                                     </a>
@@ -219,7 +219,7 @@ $identificador = $config['id'];
                                     
                                 }
                             } elseif ($datos['tipo'] == "relationshipssel") {
-                                if (CrudLoader::hasRelation($registro, $columna)) {
+                                if (CrudGenerator::hasRelation($registro, $columna)) {
                                     ?>
                                     <dl class="row border-top border-secondary">
                                         <?php
@@ -232,7 +232,7 @@ $identificador = $config['id'];
                                                     <a href="{{ str_replace([":modelId",":modelName"],[$sub->{$datos['id']},$sub->{$datos['nombre']}],str_replace([urlencode (":modelId"),urlencode(":modelName")],[$sub->{$datos['id']},$sub->{$datos['nombre']}],$datos['enlace'])) }}">
                                                         <?php
                                                     }
-                                                    echo CrudLoader::getNombreDeLista($sub, $datos['campo']);
+                                                    echo CrudGenerator::getNombreDeLista($sub, $datos['campo']);
                                                     if (array_key_exists('enlace', $datos)) {
                                                         ?>
                                                     </a>
@@ -341,8 +341,8 @@ $identificador = $config['id'];
                                     echo $registro->{$columna}();
                                 }
                             } elseif ($datos['tipo'] == "url") {
-                                if (CrudLoader::urlType($registro->{$columna}) == "youtube") {
-                                    $youtubeId = CrudLoader::getYoutubeId($registro->{$columna});
+                                if (CrudGenerator::urlType($registro->{$columna}) == "youtube") {
+                                    $youtubeId = CrudGenerator::getYoutubeId($registro->{$columna});
                                     ?>
                                     <div class="card text-center" >
                                         <iframe class="card-img-top" height="400" src="https://www.youtube.com/embed/{{$youtubeId}}" style="border: none;"></iframe>
@@ -362,7 +362,7 @@ $identificador = $config['id'];
                                 } else {
                                     $auxprevio = $registro->{$columna};
                                     $filename = str_start($auxprevio, str_finish($datos['path'], '\\'));
-                                    $tipoFile = CrudLoader::filenameIs($auxprevio, $datos);
+                                    $tipoFile = CrudGenerator::filenameIs($auxprevio, $datos);
                                     $auxprevioName = substr($auxprevio, stripos($auxprevio, '__') + 2, stripos($auxprevio, '.', stripos($auxprevio, '__')) - (stripos($auxprevio, '__') + 2));
                                     if ($tipoFile == 'image') {
                                         ?>

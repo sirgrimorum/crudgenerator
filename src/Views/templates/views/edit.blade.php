@@ -30,7 +30,7 @@ if (Lang::has("crudgenerator::{model}.labels.singular")) {
 <h1>[[ trans('crudgenerator::admin.layout.editar') ]] [[ ucfirst($singulares) ]]</h1>
 
 <div class='container'>
-    [!! CrudLoader::edit($config,${model}) !!]
+    [!! CrudGenerator::edit($config,${model}) !!]
 </div>
 </div>
 *stop

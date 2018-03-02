@@ -67,7 +67,7 @@ if (isset($config['parametros'])){
 ?>
 
 @foreach($campos as $columna => $datos)
-@if (CrudLoader::inside_array($datos,"hide","edit")===false)
+@if (CrudGenerator::inside_array($datos,"hide","edit")===false)
 @if (View::exists("sirgrimorum::crudgen.templates." .$datos['tipo']))
 @include("sirgrimorum::crudgen.templates." . $datos['tipo'],['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$modelo])
 @else

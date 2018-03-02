@@ -17,23 +17,19 @@ class CrudController extends BaseController {
         DispatchesJobs,
         ValidatesRequests;
 
-    public function index($localecode, $modelo, Request $request) {
-        App::setLocale($localecode);
+    public function index($modelo, Request $request) {
         $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfig($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config));
     }
 
-    public function create($localecode, $modelo, Request $request) {
-        App::setLocale($localecode);
+    public function create($modelo, Request $request) {
         $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfig($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config));
     }
 
-    public function store($localecode, $modelo, Request $request) {
-        App::setLocale($localecode);
-
+    public function store($modelo, Request $request) {
         $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfigWithParametros($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config)) {
@@ -48,25 +44,19 @@ class CrudController extends BaseController {
         return $this->devolver($request, $config, $permiso, $objeto);
     }
 
-    public function show($localecode, $modelo, $registro, Request $request) {
-        App::setLocale($localecode);
-
+    public function show($modelo, $registro, Request $request) {
         $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfig($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config, $registro), $registro);
     }
 
-    public function edit($localecode, $modelo, $registro, Request $request) {
-        App::setLocale($localecode);
-
+    public function edit($modelo, $registro, Request $request) {
         $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfig($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config, $registro), $registro);
     }
 
-    public function update($localecode, $modelo, $registro, Request $request) {
-        App::setLocale($localecode);
-
+    public function update($modelo, $registro, Request $request) {
         $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfigWithParametros($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config, $registro)) {
@@ -81,9 +71,7 @@ class CrudController extends BaseController {
         return $this->devolver($request, $config, $permiso, $objeto);
     }
 
-    public function destroy($localecode, $modelo, $registro, Request $request) {
-        App::setLocale($localecode);
-
+    public function destroy($modelo, $registro, Request $request) {
         $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfigWithParametros($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config, $registro)) {
@@ -98,8 +86,7 @@ class CrudController extends BaseController {
         return $this->devolver($request, $config, $permiso, 0, $datos);
     }
 
-    public function modelfile($localecode, $modelo, $campo, Request $request) {
-        App::setLocale($localecode);
+    public function modelfile($modelo, $campo, Request $request) {
         $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfig($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config, 0, 'show')) {
@@ -117,8 +104,7 @@ class CrudController extends BaseController {
         abort(500, "Error preparing the file '$filename' in '$path' for the model '$model");
     }
 
-    public function file($localecode, Request $request) {
-        App::setLocale($localecode);
+    public function file(Request $request) {
         if ($request->has('_f')) {
             $filename = $request->_f;
             return $this->devolverFile($filename);
@@ -163,7 +149,6 @@ class CrudController extends BaseController {
 
     private function devolverValidation($validator, $modelo, Request $request, $registro = 0) {
         $action = substr($request->route()->getName(), stripos($request->route()->getName(), "::") + 2);
-        $localecode = App::getLocale();
 
         $tipoReturn = "content";
         if ($request->has('_return')) {
@@ -188,7 +173,7 @@ class CrudController extends BaseController {
             }
         } else {
             /*
-              $extra = ['modelo' => $modelo, 'localecode' => $localecode];
+              $extra = ['modelo' => $modelo];
               if ($action == 'update') {
               $extra['registro'] = $registro;
               $newaction = 'sirgrimorum_modelo::edit';
@@ -214,7 +199,6 @@ class CrudController extends BaseController {
         if ($action == "") {
             $action = substr($request->route()->getName(), stripos($request->route()->getName(), "::") + 2);
         }
-        $localecode = App::getLocale();
         $modelo = strtolower(class_basename($config["modelo"]));
         $plural = $modelo . 's';
         $modeloM = ucfirst($modelo);
@@ -317,7 +301,7 @@ class CrudController extends BaseController {
                     case "create":
                         $result = view('sirgrimorum::admin.' . $action . "." . $tipoReturn, [
                             "modelo" => $modeloM,
-                            "base_url" => route('sirgrimorum_home', $localecode),
+                            "base_url" => route('sirgrimorum_home'),
                             "plural" => $plural,
                             "config" => $config,
                                 ])->render();
@@ -326,7 +310,7 @@ class CrudController extends BaseController {
                     case "edit":
                         $result = view('sirgrimorum::admin/' . $action . "." . $tipoReturn, [
                             "modelo" => $modeloM,
-                            "base_url" => route('sirgrimorum_home', $localecode),
+                            "base_url" => route('sirgrimorum_home'),
                             "plural" => $plural,
                             "registro" => $registro,
                             "config" => $config,
@@ -352,7 +336,6 @@ class CrudController extends BaseController {
                         if ($tipoReturn == "content") {
                             $result = redirect(route('sirgrimorum_modelos::index', [
                                         'modelo' => $modelo,
-                                        'localecode' => $localecode,
                                     ]) . $getReturn)->with(config("sirgrimorum.crudgenerator.status_messages_key"), $mensajeStr)
                             ;
                         } else {
@@ -384,27 +367,27 @@ class CrudController extends BaseController {
                 case "create":
                     $result = [
                         config("sirgrimorum.crudgenerator.error_messages_key") => $mensajes['permission'],
-                        config("sirgrimorum.crudgenerator.login_redirect_key") => route("sirgrimorum_modelos::" . $action, ['localecode' => $localecode, 'modelo' => $modelo])
+                        config("sirgrimorum.crudgenerator.login_redirect_key") => route("sirgrimorum_modelos::" . $action, ['modelo' => $modelo])
                     ];
                     break;
                 case "show":
                 case "edit":
                     $result = [
                         config("sirgrimorum.crudgenerator.error_messages_key") => $mensajes['permission'],
-                        config("sirgrimorum.crudgenerator.login_redirect_key") => route("sirgrimorum_modelo::" . $action, ['localecode' => $localecode, 'modelo' => $modelo, 'registro' => $registro])
+                        config("sirgrimorum.crudgenerator.login_redirect_key") => route("sirgrimorum_modelo::" . $action, ['modelo' => $modelo, 'registro' => $registro])
                     ];
                     break;
                 case "store":
                 case "destroy":
                     $result = [
                         config("sirgrimorum.crudgenerator.error_messages_key") => $mensajes['permission'],
-                        config("sirgrimorum.crudgenerator.login_redirect_key") => route("sirgrimorum_modelos::index", ['localecode' => $localecode, 'modelo' => $modelo])
+                        config("sirgrimorum.crudgenerator.login_redirect_key") => route("sirgrimorum_modelos::index", ['modelo' => $modelo])
                     ];
                     break;
                 case "update":
                     $result = [
                         config("sirgrimorum.crudgenerator.error_messages_key") => $mensajes['permission'],
-                        config("sirgrimorum.crudgenerator.login_redirect_key") => route("sirgrimorum_modelo::edit", ['localecode' => $localecode, 'modelo' => $modelo, 'registro' => $registro])
+                        config("sirgrimorum.crudgenerator.login_redirect_key") => route("sirgrimorum_modelo::edit", ['modelo' => $modelo, 'registro' => $registro])
                     ];
                     break;
             }

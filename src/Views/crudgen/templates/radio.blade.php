@@ -1,5 +1,10 @@
 <?php
-$dato = old($columna);
+if (isset($config["extraId"])) {
+    $extraId = $config['extraId'];
+} else {
+    $extraId = $columna;
+}
+$dato = old($extraId);
 if ($dato == "") {
     try {
         $dato = $registro->{$columna};
@@ -37,16 +42,16 @@ if ($errores == true) {
         <div class="input-group mb-3">
             <div class="input-group-prepend">
                 <div class="input-group-text">
-                    {{ Form::radio($columna, $valor, array('class' => 'form-check-input ' .$claseError, 'id' => $tabla . '_' . $columna . '_' . $valor),$checked) }}
+                    {{ Form::radio($extraId, $valor, array('class' => 'form-check-input ' .$claseError, 'id' => $tabla . '_' . $extraId . '_' . $valor),$checked) }}
                 </div>
             </div>
-            <label class='form-control' for='{{$tabla . '_' . $columna . '_' . $valor}}'>
+            <label class='form-control' for='{{$tabla . '_' . $extraId . '_' . $valor}}'>
                 {{ $datos2['label'] }}
             </label>
             @if (isset($datos2['description']))
             <div class="input-group-append">
                 <div class="input-group-text">
-                    <small class="text-muted" id="{{ $tabla . '_' . $columna . '_' . $valor }}_help">
+                    <small class="text-muted" id="{{ $tabla . '_' . $extraId . '_' . $valor }}_help">
                         {{ $datos2['description'] }}
                     </small>
                 </div>
@@ -65,16 +70,16 @@ if ($errores == true) {
         <div class="input-group mb-3">
             <div class="input-group-prepend">
                 <div class="input-group-text">
-                    {{ Form::radio($columna, $datos['valor'], array('class' => 'form-check-input '  . $claseError, 'id' => $tabla . '_' . $columna),$checked) }}
+                    {{ Form::radio($extraId, $datos['valor'], array('class' => 'form-check-input '  . $claseError, 'id' => $tabla . '_' . $extraId),$checked) }}
                 </div>
             </div>
-            <label class='form-control' for='{{$tabla . '_' . $columna }}'>
+            <label class='form-control' for='{{$tabla . '_' . $extraId }}'>
                 {{ $datos['label'] }}
             </label>
             @if (isset($datos['description']))
             <div class="input-group-append">
                 <div class="input-group-text">
-                    <small class="text-muted" id="{{ $tabla . '_' . $columna }}_help">
+                    <small class="text-muted" id="{{ $tabla . '_' . $extraId }}_help">
                         {{ $datos['description'] }}
                     </small>
                 </div>

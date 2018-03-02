@@ -1,8 +1,9 @@
 <?php
 
 return [
-    'default_locale' => 'en',
+    'default_locale' => 'es',
     'list_locales' => ['en', 'es'],
+    'url_ignore' => [],
     /*
       |--------------------------------------------------------------------------
       | Prefix for administrator

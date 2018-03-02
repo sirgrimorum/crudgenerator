@@ -1,5 +1,10 @@
 <?php
-$dato = old($columna);
+if (isset($config["extraId"])) {
+    $extraId = $config['extraId'];
+} else {
+    $extraId = $columna;
+}
+$dato = old($extraId);
 if ($dato == "") {
     try {
         $dato = $registro->{$columna};
@@ -13,4 +18,4 @@ if ($dato == "") {
     }
 }
 ?>
-{{ Form::hidden($columna, $dato, array('class' => 'form-control', 'id' => $tabla . '_' . $columna)) }}
+{{ Form::hidden($extraId, $dato, array('class' => 'form-control', 'id' => $tabla . '_' . $extraId)) }}

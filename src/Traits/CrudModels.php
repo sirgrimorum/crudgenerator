@@ -982,7 +982,7 @@ trait CrudModels {
                                     foreach ($input->input($campo) as $id => $pivot) {
                                         $datos[$id] = [];
                                         foreach ($detalles['columnas'] as $subdetalles) {
-                                            if ($subdetalles['type'] == "text" || $subdetalles['type'] == "textarea" || $subdetalles['type'] == "number" || $subdetalles['type'] == "hidden") {
+                                            if ($subdetalles['type'] != "label" && $subdetalles['type'] != "labelpivot") {
                                                 if ($input->has($campo . "_" . $subdetalles['campo'] . "_" . $id)) {
                                                     $datos[$id][$subdetalles['campo']] = $input->input($campo . "_" . $subdetalles['campo'] . "_" . $id);
                                                 } else {

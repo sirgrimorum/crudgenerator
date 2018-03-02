@@ -4,8 +4,8 @@
 //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modelo));
 //$config['botones'] = trans("crudgenerator::article.labels.create");
 if ($config==""){
-    $config = CrudLoader::getConfig($modelo);
+    $config = CrudGenerator::getConfig($modelo);
 }
 
 ?>
-    {!! CrudLoader::show($config,$registro,true) !!}
+    {!! CrudGenerator::show($config,$registro,true) !!}

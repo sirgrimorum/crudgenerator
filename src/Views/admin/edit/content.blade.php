@@ -30,6 +30,6 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
 //$config['url'] = url($base_url . "/" . strtolower($modelo) . "/" . $registro . "/update");
 ?>
 <div class='container'>
-    {!! CrudLoader::edit($config,$registro) !!}
+    {!! CrudGenerator::edit($config,$registro) !!}
 </div>
 @stop
