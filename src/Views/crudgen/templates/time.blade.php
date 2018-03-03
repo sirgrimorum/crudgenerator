@@ -54,7 +54,7 @@ if (isset($datos["readonly"])) {
     $readonly = "";
 }
 ?>
-<div class="form-group row">
+<div class="form-group row" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>
         {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))

@@ -51,6 +51,7 @@ if (!isset($config['class_offset'])) {
 if (!isset($config['class_button'])) {
     $config['class_button'] = 'btn btn-primary';
 }
+$action = 'create';
 ?>
 @include("sirgrimorum::crudgen.includes")
 <?php
@@ -67,7 +68,7 @@ foreach ($campos as $columna => $datos) {
     if (!isset($datos['nodb']) && !isset($datos['readonly']) && CrudGenerator::inside_array($datos, "hide", "create") === false) {
         if (View::exists("sirgrimorum::crudgen.templates." . $datos['tipo'])) {
             ?>
-            @include("sirgrimorum::crudgen.templates." . $datos['tipo'], ['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$modelo])
+            @include("sirgrimorum::crudgen.templates." . $datos['tipo'], ['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$modelo, 'action'=>$action])
             <?php
         } else {
             ?>

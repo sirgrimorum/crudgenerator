@@ -89,7 +89,9 @@ if ($tieneSlider || $tieneDate || $tieneSelect || $tieneSearch || $tieneFile) {
         <?php
     }
 }
-if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || $tieneFile) {
+list($condiciones,$validadores)= Sirgrimorum\CrudGenerator\CrudGenerator::buildConditionalArray($config,$action);
+//echo "<p>Condiciones</p><pre>" . print_r([$condiciones,$validadores], true) . "</pre>";
+if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || $tieneFile || count($condiciones)>0) {
     if ($js_section != "") {
         ?>
         @push($js_section)
@@ -154,7 +156,7 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
         <script>
             $('body').on('change', 'input[type="file"][data-toggle="custom-file"]', function (ev) {
                 var $input = $(this);
-                console.log("qui",$input.parent().parent().find('img').first());
+                //console.log("qui",$input.parent().parent().find('img').first());
                 var $target_name = $input.parent().parent().children('input[type="text"]').first();
                 var $target_image = $input.parent().parent().find('img').first();
                 var $target = $input.parent().children('label').first();
@@ -296,6 +298,103 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
                 }
             }
         </script>
+        <?php
+    }
+    if (count($condiciones)>0){
+    ?>
+        <script>
+        <?php
+            foreach($condiciones as $idCampo=>$condicionados){
+                ?>
+                    $('body').on('change','#{{$idCampo}}', function(){
+                        <?php
+                        foreach ($condicionados as $condicionado){
+                            ?>
+                            evaluar_{{$condicionado}}();
+                            <?php
+                        }
+                        ?>
+                    });
+                <?php
+            }
+            foreach($validadores as $idCampo => $validaciones){
+                ?>
+                    function evaluar_{{$idCampo}}(){
+                        var mostrar = true;
+                        <?php
+                        foreach ($validaciones as $validador=>$valorVal){
+                            if($valorVal=='{:empty}'){
+                                ?>
+                                if ($("#{{$validador}}").val()!="" && $("#{{$validador}}").val()!="-" && !($("#{{$validador}}").val() === null || $("#{{$validador}}").val() === undefined)){
+                                    mostrar = false;
+                                }
+                                <?php
+                            }elseif($valorVal == '{:notempty}'){
+                                ?>
+                                if ($("#{{$validador}}").val()=="" || $("#{{$validador}}").val()=="-" || ($("#{{$validador}}").val() === null || $("#{{$validador}}").val() === undefined)){
+                                    mostrar = false;
+                                }
+                                <?php
+                            }elseif(stripos($valorVal,':!')===0){
+                                $valorVal = str_replace(":!", "", $valorVal);
+                                ?>
+                                if ($("#{{$validador}}").val()=="{{$valorVal}}"){
+                                    mostrar = false;
+                                }
+                                <?php
+                            }elseif(stripos($valorVal,':=')===0){
+                                $valorVal = str_replace(":=", "", $valorVal);
+                                ?>
+                                if ($("#{{$validador}}").val()!="{{$valorVal}}"){
+                                    mostrar = false;
+                                }
+                                <?php
+                            }elseif(stripos($valorVal,':>')===0){
+                                $valorVal = str_replace(":>", "", $valorVal);
+                                ?>
+                                if ($("#{{$validador}}").val()<="{{$valorVal}}"){
+                                    mostrar = false;
+                                }
+                                <?php
+                            }elseif(stripos($valorVal,':<')===0){
+                                $valorVal = str_replace(":<", "", $valorVal);
+                                ?>
+                                if ($("#{{$validador}}").val()>="{{$valorVal}}"){
+                                    mostrar = false;
+                                }
+                                <?php
+                            }else{
+                                ?>
+                                if ($("#{{$validador}}").val()!="{{$valorVal}}"){
+                                    mostrar = false;
+                                }
+                                <?php
+                            }
+                        }
+                        ?>
+                        var $contenedor = $('div[data-campo="{{$idCampo}}"][data-tipo="contenedor-campo"]').first();
+                        if ($contenedor.is(":visible") && !mostrar){
+                            $("#{{$idCampo}}").val("");
+                        }
+                        if (mostrar){
+                            $contenedor.show();
+                        }else{
+                            $contenedor.hide();
+                        }
+                    }
+                <?php
+            }
+            ?>
+            $(document).ready(function() {
+                <?php
+                foreach($validadores as $idCampo => $validaciones){
+                ?>
+                        evaluar_{{$idCampo}}();
+                <?php
+                }
+                ?>
+            });
+            </script>
         <?php
     }
     if ($js_section != "") {

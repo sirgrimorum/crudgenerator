@@ -56,7 +56,7 @@ trait CrudModels {
      * @param boolean|string $solo Optional if false, will return the complete an simple array, if 'simple' only the simple one, if 'complete' only the complete one
      * @return array with the objects in the config format
      */
-    public static function lists_array($config, $registros = null,$solo='complete') {
+    public static function lists_array($config, $registros = null, $solo = 'complete') {
         //$config = \Sirgrimorum\CrudGenerator\CrudGenerator::translateConfig($config);
         if ($registros == null) {
             $modeloM = ucfirst($config['modelo']);
@@ -67,16 +67,16 @@ trait CrudModels {
         $return = [];
         $returnSimple = [];
         foreach ($registros as $registro) {
-            list($row,$rowSimple) = \Sirgrimorum\CrudGenerator\CrudGenerator::registry_array($config, $registro);
+            list($row, $rowSimple) = \Sirgrimorum\CrudGenerator\CrudGenerator::registry_array($config, $registro);
             $return[] = $row;
             $returnSimple[] = $rowSimple;
         }
-        if ($solo == 'simple'){
+        if ($solo == 'simple') {
             return $returnSimple;
-        }elseif($solo == 'complete'){
+        } elseif ($solo == 'complete') {
             return $return;
-        }else{
-            return [$return,$returnSimple];
+        } else {
+            return [$return, $returnSimple];
         }
     }
 
@@ -91,7 +91,7 @@ trait CrudModels {
      * @param boolean|string $solo Optional if false, will return the complete an simple array, if 'simple' only the simple one, if 'complete' only the complete one
      * @return array with the attributes in the config format
      */
-    public static function registry_array($config, $registro = null,$solo=false) {
+    public static function registry_array($config, $registro = null, $solo = false) {
         $modeloM = ucfirst($config['modelo']);
         if ($registro == null) {
             $value = $modeloM::first();
@@ -196,8 +196,8 @@ trait CrudModels {
                             $auxcelda .='</a>';
                         }
                         $auxcelda3 .= $prefijo . $auxcelda;
-                        $auxcelda4="";
-                        $auxcelda5="";
+                        $auxcelda4 = "";
+                        $auxcelda5 = "";
                         $prefijo2 = "<ul><li>";
                         if (array_key_exists('columnas', $datos)) {
                             if (is_array($datos['columnas'])) {
@@ -215,19 +215,18 @@ trait CrudModels {
                                             }
                                             $auxcelda4 .= $prefijo2 . $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] . "</li>";
                                             $prefijo2 = "<li>";
-                                        }elseif($infoPivote['type'] == "label"){
-                                            if(isset($infoPivote['campo'])){
-                                                $auxcelda5=  \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($sub, $infoPivote['campo']);
-                                            }else{
-                                                $auxcelda5= $infoPivote['label'];
+                                        } elseif ($infoPivote['type'] == "label") {
+                                            if (isset($infoPivote['campo'])) {
+                                                $auxcelda5 = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($sub, $infoPivote['campo']);
+                                            } else {
+                                                $auxcelda5 = $infoPivote['label'];
                                             }
-                                            
                                         }
                                     }
                                 }
                             }
                         }
-                        if ($auxcelda4!=""){
+                        if ($auxcelda4 != "") {
                             $auxcelda4 .="</ul>";
                         }
                         $auxcelda3 .= $auxcelda4 . "</li>";
@@ -236,7 +235,7 @@ trait CrudModels {
                         $celda[$sub->getKey()]['value'] = $auxcelda;
                         $celda[$sub->getKey()]['label'] = $auxcelda5;
                     }
-                    if ($auxcelda3!=""){
+                    if ($auxcelda3 != "") {
                         $auxcelda3 .="</ul>";
                     }
                     $celda = [
@@ -416,12 +415,12 @@ trait CrudModels {
             }
             $row["botones"] = $celda;
         }
-        if ($solo == 'simple'){
+        if ($solo == 'simple') {
             return $rowSimple;
-        }elseif($solo == 'complete'){
+        } elseif ($solo == 'complete') {
             return $row;
-        }else{
-            return [$row,$rowSimple];
+        } else {
+            return [$row, $rowSimple];
         }
     }
 
@@ -1104,6 +1103,37 @@ trait CrudModels {
             }
         }
         return false;
+    }
+
+    /**
+     * Build the array for conditional fields using a configuration array
+     * @param array $config The ocnfiguration array
+     * @param string $action Optional the action (create, edit, etc) where the conditionals are needed
+     */
+    public static function buildConditionalArray(array $config, string $action = "-") {
+        if ($action == "") {
+            $action = substr(request()->route()->getName(), stripos(request()->route()->getName(), "::") + 2);
+        }
+        $condiciones = [];
+        $validadores = [];
+        $tabla = $config['tabla'];
+        foreach ($config['campos'] as $campo => $datos) {
+            if (\Sirgrimorum\CrudGenerator\CrudGenerator::inside_array($datos, "hide", $action) === false) {
+                if (isset($datos['conditional'])) {
+                    if (is_array($datos['conditional'])) {
+                        $validadores["{$tabla}_{$campo}"] = [];
+                        foreach ($datos['conditional'] as $conCampo => $conValor) {
+                            if (!isset($condiciones["{$tabla}_{$conCampo}"])) {
+                                $condiciones["{$tabla}_{$conCampo}"] = [];
+                            }
+                            $condiciones["{$tabla}_{$conCampo}"][] = "{$tabla}_{$campo}";
+                            $validadores["{$tabla}_{$campo}"]["{$tabla}_{$conCampo}"] = $conValor;
+                        }
+                    }
+                }
+            }
+        }
+        return [$condiciones,$validadores];
     }
 
 }

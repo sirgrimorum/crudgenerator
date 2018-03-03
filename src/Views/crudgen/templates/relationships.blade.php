@@ -1,5 +1,10 @@
 <?php
-$dato = old($columna);
+if (isset($config["extraId"])) {
+    $extraId = $config['extraId'];
+} else {
+    $extraId = $columna;
+}
+$dato = old($extraId);
 if ($dato == "") {
     try {
         $dato = [];
@@ -41,22 +46,22 @@ if (isset($datos["placeholder"])) {
 $atributos = [
     'multiple' => 'multiple',
     'class' => 'form-control ' . $config['class_input'] . ' ' . $claseError,
-    'id' => $tabla . '_' . $columna,
+    'id' => $tabla . '_' . $extraId,
     //'placeholder' => $placeholder,
     $readonly
 ];
 ?>
-<div class="form-group row">
+<div class="form-group row" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>
-        {{ Form::label($columna, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
+        {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))
-        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $columna }}_help">
+        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $extraId }}_help">
             {{ $datos['description'] }}
         </small>
         @endif
     </div>
     <div class="{{ $config['class_divinput'] }}">
-        {{ Form::select($columna . "[]", $datos["todos"], $dato, $atributos) }}
+        {{ Form::select($extraId . "[]", $datos["todos"], $dato, $atributos) }}
         @if ($error_campo)
         <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}
@@ -73,7 +78,7 @@ if ($js_section != "") {
 ?>
 <script>
     $(document).ready(function () {
-        $('#{{ $tabla . "_" . $columna }}').select2({
+        $('#{{ $tabla . "_" . $extraId }}').select2({
             minimumResultsForSearch: 8,
             width: '100%',
             language: "{{ App::getLocale()}}"

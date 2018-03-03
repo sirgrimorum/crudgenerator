@@ -1,4 +1,7 @@
 <?php
+if (!isset($action) ) {
+    $action = substr(request()->route()->getName(), stripos(request()->route()->getName(), "::") + 2);
+}
 $tabla = $config['tabla'];
 $campos = $config['campos'];
 $botones = $config['botones'];
@@ -32,9 +35,9 @@ if (!isset($config['class_offset'])) {
 if (!isset($config['class_button'])) {
     $config['class_button'] = 'btn btn-primary';
 }
-
 ?>
 @foreach ($datos['columnas'] as $columnaT)
+@if (CrudGenerator::inside_array($columnaT, "hide", $action) === false)
 <?php
 if ($columnaT['type'] == 'label') {
     $valorM = CrudGenerator::getNombreDeLista($tablaInterCampo, $datos['campo']);
@@ -75,11 +78,11 @@ $atributos = [
     'style' => "max-height:100px;",
     $readonly
 ];
-if (isset($columnaT['campo']) && $columnaT['type']!='label') {
+if (isset($columnaT['campo']) && $columnaT['type'] != 'label') {
     $atributos['class'] .= ' ' . $columna . '_' . $columnaT['campo'];
     $atributos['id'] = $columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId;
     $config['extraId'] = $columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId;
-}else{
+} else {
     $config['extraId'] = $columna . "_" . "_" . $tablaOtroId;
 }
 ?>
@@ -112,7 +115,7 @@ if (isset($columnaT['campo']) && $columnaT['type']!='label') {
                     {{ Form::label($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, ucfirst($columnaT['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
                     @if (isset($columnaT['description']))
                     <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId }}_help">
-                    {{ $columnaT['description'] }}
+                        {{ $columnaT['description'] }}
                     </small>
                     @endif
                 </div>
@@ -121,9 +124,9 @@ if (isset($columnaT['campo']) && $columnaT['type']!='label') {
                 </div>
             </div>
             @elseif (View::exists("sirgrimorum::crudgen.templates." . $columnaT['type']))
-                @include("sirgrimorum::crudgen.templates." . $columnaT['type'], ['datos'=>$columnaT,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$datos['modelo'], 'registro'=>$pivote,'errores'=>false, 'config'=>$config])
+            @include("sirgrimorum::crudgen.templates." . $columnaT['type'], ['datos'=>$columnaT,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$datos['modelo'], 'registro'=>$pivote,'errores'=>false, 'config'=>$config])
             @else
-                @include("sirgrimorum::crudgen.templates.text", ['datos'=>$columnaT,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$datos['modelo'], 'registro'=>$pivote,'errores'=>false, 'config'=>$config])
+            @include("sirgrimorum::crudgen.templates.text", ['datos'=>$columnaT,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$datos['modelo'], 'registro'=>$pivote,'errores'=>false, 'config'=>$config])
             @endif
             @endif
             @if($loop->last)
@@ -137,5 +140,6 @@ if (isset($columnaT['campo']) && $columnaT['type']!='label') {
         </div>
     </div>
 </div>
+@endif
 @endif
 @endforeach

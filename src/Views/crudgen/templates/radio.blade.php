@@ -28,7 +28,7 @@ if ($errores == true) {
     }
 }
 ?>
-<div class="form-group row">
+<div class="form-group row" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class="{{ $config['class_offset'] }} {{ $config['class_divinput'] }}">
         @if (is_array($datos['valor']))
         @foreach($datos['valor'] as $valor=>$datos2)
