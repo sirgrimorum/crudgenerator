@@ -26,7 +26,7 @@ class {Model}Request extends FormRequest {
         switch($this->route()->getName()){
             case "{model}.store":
             case "{model}.update":
-                $config = CrudGenerator::getConfig('{model}');
+                $config = CrudGenerator::getConfigWithParametros('{model}');
                 if (isset($config['rules'])){
                     return $config['rules'];
                 }else{
@@ -45,7 +45,7 @@ class {Model}Request extends FormRequest {
      * @return array
      */
     public function messages() {
-        $config = CrudGenerator::getConfig('{model}');
+        $config = CrudGenerator::getConfigWithParametros('{model}');
         $error_messages = [];
             if (isset($config['error_messages'])) {
                 if (is_array($config['error_messages'])) {
@@ -70,7 +70,7 @@ class {Model}Request extends FormRequest {
      * @return array
      */
     public function attributes() {
-        $config = CrudGenerator::getConfig('{model}');
+        $config = CrudGenerator::getConfigWithParametros('{model}');
         $customAttributes = [];
             foreach ($config['rules'] as $field => $datos) {
                 if (array_has($config, "campos." . $field . ".label")) {
