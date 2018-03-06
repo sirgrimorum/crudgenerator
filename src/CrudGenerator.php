@@ -11,7 +11,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use ReflectionClass;
 use ReflectionMethod;
-use Sirgrimorum\TransArticles\Models\Article;
 use Illuminate\Support\Facades\File;
 use Sirgrimorum\CrudGenerator\SuperClosure;
 use Sirgrimorum\CrudGenerator\Traits;
@@ -37,7 +36,7 @@ class CrudGenerator {
      * Generate create view for a model
      * @param array $config Configuration array
      * @param boolean $simple Optional True for a simple view (just the form)
-     * @return HTML Create form
+     * @return string Create form in HTML
      */
     public static function create($config, $simple = false) {
         //$config = CrudGenerator::translateConfig($config);
@@ -56,11 +55,6 @@ class CrudGenerator {
         foreach ($config['campos'] as $clave => $relacion) {
             if ($relacion['tipo'] == "relationship" || $relacion['tipo'] == "relationships" || $relacion['tipo'] == "relationshipssel") {
                 if (!is_array($config['campos'][$clave]['todos'])) {
-                    if ($relacion['tipo'] == "relationship") {
-                        //$lista = ["-" => "-"];
-                    } else {
-                        $lista = [];
-                    }
                     if ($config['campos'][$clave]['todos'] == "") {
                         $modeloM = ucfirst($relacion["modelo"]);
                         $modelosM = $modeloM::all();
@@ -148,7 +142,7 @@ class CrudGenerator {
      * @param integer $id Key of the object
      * @param boolean $simple Optional True for a simple view (just the form)
      * @param Model $registro Optional The Object
-     * @return HTML the Object
+     * @return string the Object in html
      */
     public static function show($config, $id = null, $simple = false, $registro = null) {
         //$config = CrudGenerator::translateConfig($config);

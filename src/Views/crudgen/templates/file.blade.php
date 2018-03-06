@@ -37,11 +37,6 @@ if (isset($datos["placeholder"])) {
 } else {
     $placeholder = "";
 }
-if (isset($datos["extraId"])) {
-    $extraId = $datos['extraId'];
-} else {
-    $extraId = "";
-}
 ?>
 <div class="form-group row" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>
@@ -75,7 +70,7 @@ if (isset($datos["extraId"])) {
                     @elseif($tipoFile=='other')
                     <div class="pl-3 pr-3 h-100 pt-1" style="cursor: default;"><i class="mt-2 fa fa-file-o fa-lg" aria-hidden="true"></i></div>
                     @else
-                    <a class="d-block pl-3 pr-3 h-100 pt-1 text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
+                    <a class="d-block pl-3 pr-3 h-100 pt-1 text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
                         @switch($tipoFile)
                         @case('video')
                         <i class="mt-2 fa fa-film fa-lg" aria-hidden="true"></i>
@@ -117,7 +112,7 @@ if (isset($datos["extraId"])) {
         <div class="collapse" data-id="collapseVideoCont">
             <div class="card collapse" >
                 <video class="card-img-top" controls preload="auto" height="300" >
-                    <source src="{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="video/mp4" />
+                    <source src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="video/mp4" />
                 </video>
             </div>
         </div>
@@ -125,14 +120,14 @@ if (isset($datos["extraId"])) {
         <div class="collapse" data-id="collapseAudioCont">
             <div class="card collapse" >
                 <audio class="card-img-top" controls preload="auto" >
-                    <source src="{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="audio/mpeg" />
+                    <source src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="audio/mpeg" />
                 </audio>
             </div>
         </div>
         @elseif($tipoFile =='pdf')
         <div class="collapse" data-id="collapsePdfCont">
             <div class="card collapse" >
-                <iframe class="card-img-top" height="300" src="{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" style="border: none;"></iframe>
+                <iframe class="card-img-top" height="300" src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" style="border: none;"></iframe>
             </div>
         </div>
         @endif
@@ -145,7 +140,7 @@ if (isset($datos["extraId"])) {
                 </div>
                 <div class="input-group-text rounded-left">{{trans("crudgenerator::admin.layout.labels.new_file")}}</div>
             </div>
-            {{ Form::text($extraId . "_name", $dato, ['class' => 'form-control ' . $claseError, 'placeholder'=>trans("crudgenerator::admin.layout.labels.name"), 'id'=>$tabla . "_" . $columna . "_name_nuevo",$readonly]) }}
+            {{ Form::text($extraId . "_name", $dato, ['class' => 'form-control ' . $claseError, 'placeholder'=>trans("crudgenerator::admin.layout.labels.name"), 'id'=>$tabla . "_" . $extraId . "_name_nuevo",$readonly]) }}
             <div class="custom-file">
                 {{ Form::file($extraId . "", ['class' => 'custom-file-input form-control ' . $claseError, $placeholder, $readonly,"data-toggle"=>"custom-file"]) }}
                 <label class="custom-file-label">{{trans("crudgenerator::admin.layout.labels.choose_file")}}</label>

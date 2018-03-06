@@ -10,7 +10,7 @@ namespace Sirgrimorum\CrudGenerator;
 class AudioStream {
 
     private $path = "";
-    private $stream = "";
+    private $stream;
     private $buffer = 102400;
     private $start = -1;
     private $end = -1;
@@ -25,7 +25,7 @@ class AudioStream {
      */
     private function open() {
         if (!($this->stream = fopen($this->path, 'rb'))) {
-            die('Could not open stream for reading');
+            abort(500,'Could not open stream for reading');
         }
     }
 
@@ -86,7 +86,7 @@ class AudioStream {
      */
     private function end() {
         fclose($this->stream);
-        exit;
+        return;//exit;
     }
 
     /**
@@ -110,7 +110,7 @@ class AudioStream {
     /**
      * Start streaming video content
      */
-    function start() {
+    public function start() {
         $this->open();
         $this->setHeader();
         $this->stream();

@@ -82,7 +82,7 @@ return [
         'pivot_exists_title' => 'Ya existe!',
         'pivot_exists_message' => 'Ya tiene una referencia a este item',
         'destroy_success' => '<strong>Listo!</strong> El registro ":modelName" ha sido eliminado',
-        'update_success' => '<strong>Listo!</strong> El se han guardado los cambios en el registro ":modelName"',
+        'update_success' => '<strong>Listo!</strong> Se han guardado los cambios en el registro ":modelName"',
         'store_success' => '<strong>Listo!</strong> El registro ":modelName" ha sido creado',
         '200' => 'Listo',
         '422' => 'Error de validación',

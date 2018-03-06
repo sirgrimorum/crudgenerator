@@ -83,7 +83,7 @@ if (isset($datos["placeholder"])) {
                     @elseif($tipoFile=='other')
                     <div class="pl-3 pr-3 h-100 pt-1" style="cursor: default;"><i class="mt-2 fa fa-file-o fa-lg" aria-hidden="true"></i></div>
                     @else
-                    <a class="d-block pl-3 pr-3 h-100 pt-1 text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
+                    <a class="d-block pl-3 pr-3 h-100 pt-1 text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
                     @switch($tipoFile)
                     @case('video')
                     <i class="mt-2 fa fa-film fa-lg" aria-hidden="true"></i>
@@ -124,9 +124,9 @@ if (isset($datos["placeholder"])) {
         @elseif($tipoFile =='video')
         <div class="collapse" data-id="collapseVideoCont">
             <div class="card collapse" >
-                <!--iframe class="card-img-top" src="{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" data-id="collapseVideo"></iframe-->
+                <!--iframe class="card-img-top" src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" data-id="collapseVideo"></iframe-->
                 <video class="card-img-top" controls preload="auto" height="300" >
-                    <source src="{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="video/mp4" />
+                    <source src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="video/mp4" />
                 </video>
             </div>
         </div>
@@ -134,14 +134,14 @@ if (isset($datos["placeholder"])) {
         <div class="collapse" data-id="collapseAudioCont">
             <div class="card collapse" >
                 <audio class="card-img-top" controls preload="auto" >
-                    <source src="{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="audio/mpeg" />
+                    <source src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="audio/mpeg" />
                 </audio>
             </div>
         </div>
         @elseif($tipoFile =='pdf')
         <div class="collapse" data-id="collapsePdfCont">
             <div class="card collapse" >
-                <iframe class="card-img-top" style="min-height: 500px;" src="{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" style="border: none;"></iframe>
+                <iframe class="card-img-top" style="min-height: 500px;" src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" style="border: none;"></iframe>
             </div>
         </div>
         @endif

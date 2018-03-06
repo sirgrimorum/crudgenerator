@@ -18,19 +18,16 @@ class CrudController extends BaseController {
         ValidatesRequests;
 
     public function index($modelo, Request $request) {
-        $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfig($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config));
     }
 
     public function create($modelo, Request $request) {
-        $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfig($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config));
     }
 
     public function store($modelo, Request $request) {
-        $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfigWithParametros($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config)) {
             return $this->devolver($request, $config, $permiso);
@@ -45,19 +42,16 @@ class CrudController extends BaseController {
     }
 
     public function show($modelo, $registro, Request $request) {
-        $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfig($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config, $registro), $registro);
     }
 
     public function edit($modelo, $registro, Request $request) {
-        $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfig($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config, $registro), $registro);
     }
 
     public function update($modelo, $registro, Request $request) {
-        $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfigWithParametros($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config, $registro)) {
             return $this->devolver($request, $config, $permiso, $registro);
@@ -72,7 +66,6 @@ class CrudController extends BaseController {
     }
 
     public function destroy($modelo, $registro, Request $request) {
-        $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfigWithParametros($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config, $registro)) {
             return $this->devolver($request, $config, $permiso, $registro);
@@ -87,7 +80,6 @@ class CrudController extends BaseController {
     }
 
     public function modelfile($modelo, $campo, Request $request) {
-        $modeloM = ucfirst($modelo);
         $config = CrudGenerator::getConfig($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config, 0, 'show')) {
             return $this->devolver($request, $config, $permiso, 0, "", 'show');
@@ -98,10 +90,10 @@ class CrudController extends BaseController {
                 $filename = $request->_f;
                 return $this->devolverFile($filename, $detalles);
             } else {
-                abort(500, "Error preparing no file in query '_f' for the model '$model");
+                abort(500, "Error preparing no file in query '_f' for the model '$modelo");
             }
         }
-        abort(500, "Error preparing the file '$filename' in '$path' for the model '$model");
+        abort(500, "Error preparing the file for the model '$modelo");
     }
 
     public function file(Request $request) {
@@ -148,7 +140,7 @@ class CrudController extends BaseController {
     }
 
     private function devolverValidation($validator, $modelo, Request $request, $registro = 0) {
-        $action = substr($request->route()->getName(), stripos($request->route()->getName(), "::") + 2);
+        //$action = substr($request->route()->getName(), stripos($request->route()->getName(), "::") + 2);
 
         $tipoReturn = "content";
         if ($request->has('_return')) {
@@ -362,6 +354,7 @@ class CrudController extends BaseController {
                 return $result;
             }
         } else {
+            $result=[];
             switch ($action) {
                 case "index":
                 case "create":
