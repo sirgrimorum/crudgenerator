@@ -636,6 +636,7 @@ trait CrudConfig {
                                 $prefixRules = "|";
                             } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'password')) {
                                 $configCampos[$campo]['tipo'] = "password";
+                                $configCampos[$campo]['hide'] = ["show","list","edit"];
                                 $rulesStr .=$prefixRules . 'alpha_num';
                                 $prefixRules = "|";
                             } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'file') || \Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'image')) {
