@@ -23,10 +23,23 @@ if ($dato == "") {
         $dato[$idAuxDato] = $datos["modelo"]::find($idAuxDato);
     }
 }
+if ($dato == "" && isset($datos["valor"])) {
+    $dato = [];
+    try {
+        if (is_array($datos["valor"])) {
+            foreach ($datos["valor"] as $idAuxDato) {
+                $dato[$idAuxDato] = $datos["modelo"]::find($idAuxDato);
+            }
+        } else {
+            $dato[$datos["valor"]] = $datos["modelo"]::find($datos["valor"]);
+        }
+    } catch (Exception $ex) {
+        $dato = "";
+    }
+}
 if ($dato == "") {
     $dato = [];
 }
-
 $error_campo = false;
 $claseError = '';
 if ($errores == true) {
