@@ -17,11 +17,7 @@ if (Lang::has("crudgenerator::{model}.labels.singular")) {
 <div class="container">
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        @if($localized)
-        <li class="breadcrumb-item"><a href="[[ route('home',App::getLocale()) ]]">[[trans("crudgenerator::admin.layout.labels.home")]]</a></li>
-        @else
         <li class="breadcrumb-item"><a href="[[ route('home') ]]">[[trans("crudgenerator::admin.layout.labels.home")]]</a></li>
-        @endif
         <li class="breadcrumb-item active" aria-current="page">[[ ucfirst($plurales) ]]</li>
     </ol>
 </nav>
