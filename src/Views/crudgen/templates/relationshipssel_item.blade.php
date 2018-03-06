@@ -40,7 +40,7 @@ if (!isset($config['class_button'])) {
 @if (CrudGenerator::inside_array($columnaT, "hide", $action) === false)
 <?php
 if ($columnaT['type'] == 'label') {
-    $valorM = CrudGenerator::getNombreDeLista($tablaInterCampo, $datos['campo']);
+    $valorM = CrudGenerator::getNombreDeLista($tablaInterCampo, $columnaT['campo']);
 } elseif (is_object($pivote)) {
     if ($columnaT['type'] == 'labelpivot') {
         $valorM = $pivote->{$columnaT['campo']};
