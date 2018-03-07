@@ -40,7 +40,11 @@ if (!isset($config['class_button'])) {
 @if (CrudGenerator::inside_array($columnaT, "hide", $action) === false)
 <?php
 if ($columnaT['type'] == 'label') {
-    $valorM = CrudGenerator::getNombreDeLista($tablaInterCampo, $columnaT['campo']);
+    if (isset($columnaT['campo'])){
+        $valorM = CrudGenerator::getNombreDeLista($tablaInterCampo, $columnaT['campo']);
+    }else{
+        $valorM = CrudGenerator::getNombreDeLista($tablaInterCampo, $datos['campo']);
+    }
 } elseif (is_object($pivote)) {
     if ($columnaT['type'] == 'labelpivot') {
         $valorM = $pivote->{$columnaT['campo']};
@@ -124,9 +128,9 @@ if (isset($columnaT['campo']) && $columnaT['type'] != 'label') {
                 </div>
             </div>
             @elseif (View::exists("sirgrimorum::crudgen.templates." . $columnaT['type']))
-            @include("sirgrimorum::crudgen.templates." . $columnaT['type'], ['datos'=>$columnaT,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$datos['modelo'], 'registro'=>$pivote,'errores'=>false, 'config'=>$config])
+            @include("sirgrimorum::crudgen.templates." . $columnaT['type'], ['datos'=>$columnaT,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$datos['modelo'], 'registro'=>$pivote,'errores'=>false, 'config'=>$config, 'columna'=>$columnaT['campo']])
             @else
-            @include("sirgrimorum::crudgen.templates.text", ['datos'=>$columnaT,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$datos['modelo'], 'registro'=>$pivote,'errores'=>false, 'config'=>$config])
+            @include("sirgrimorum::crudgen.templates.text", ['datos'=>$columnaT,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$datos['modelo'], 'registro'=>$pivote,'errores'=>false, 'config'=>$config, 'columna'=>$columnaT['campo']])
             @endif
             @endif
             @if($loop->last)
