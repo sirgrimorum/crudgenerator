@@ -7,7 +7,16 @@ if (isset($config["extraId"])) {
 $dato = old($extraId);
 if ($dato == "") {
     try {
-        $dato = $registro->{$columna};
+        if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($registro, $columna)) {
+            if (isset($datos['id'])) {
+                $idKeyName = $datos['id'];
+            } else {
+                $idKeyName = $registro->{$columna}->getKeyName();
+            }
+            $dato = $registro->{$columna}->{$idKeyName};
+        } else {
+            $dato = $registro->{$columna};
+        }
     } catch (Exception $ex) {
         $dato = "";
     }

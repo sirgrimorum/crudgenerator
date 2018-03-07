@@ -804,7 +804,6 @@ trait CrudModels {
                     switch ($detalles['tipo']) {
                         case 'checkbox':
                         case 'email':
-                        case 'hidden':
                         case 'html':
                         case 'number':
                         case 'password':
@@ -815,6 +814,22 @@ trait CrudModels {
                         case 'textarea':
                             if ($input->has($campo)) {
                                 $objModelo->{$campo} = $input->input($campo);
+                            } elseif (isset($detalles['valor'])) {
+                                $objModelo->{$campo} = $detalles['valor'];
+                            }
+                            break;
+                        case 'hidden':
+                            if ($input->has($campo)) {
+                                if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($objModelo, $campo) && \Sirgrimorum\CrudGenerator\CrudGenerator::isJsonString($input->input($campo))) {
+                                    if (isset($detalles['id'])) {
+                                        $idKeyName = $detalles['id'];
+                                    } else {
+                                        $idKeyName = $objModelo->{$campo}->getKeyName();
+                                    }
+                                    $objModelo->{$campo} = $input->input($campo . "." . $objModelo->{$campo}->{$idKeyName});
+                                } else {
+                                    $objModelo->{$campo} = $input->input($campo);
+                                }
                             } elseif (isset($detalles['valor'])) {
                                 $objModelo->{$campo} = $detalles['valor'];
                             }
@@ -1133,7 +1148,7 @@ trait CrudModels {
                 }
             }
         }
-        return [$condiciones,$validadores];
+        return [$condiciones, $validadores];
     }
 
 }
