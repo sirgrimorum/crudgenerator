@@ -210,9 +210,8 @@ class CrudGenerator {
         if (!CrudGenerator::checkPermission($config)) {
             return View::make('sirgrimorum::crudgen.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
         }
+        $modeloM = $config['modelo'];
         if ($registros == null) {
-            $modeloM = $config['modelo'];
-
             $registros = $modeloM::all();
             //$registros = $modeloM::all();
         }
