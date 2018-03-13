@@ -66,6 +66,11 @@ return Auth::check();
      */
     'trans_prefix' => '__trans__',
     /**
+     * trans_article function prefix for configuration file in order to know is needed to translate with the following key
+     * Requires sirgrimorum/transarticles package to be instaled
+     */
+    'transarticle_prefix' => '__transarticle__',
+    /**
      * route function prefix for configuration file in order to know is needed to translate routes with the following key
      */
     'route_prefix' => '__route__',

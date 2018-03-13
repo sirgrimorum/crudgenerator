@@ -985,6 +985,9 @@ trait CrudConfig {
                     $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, config("sirgrimorum.crudgenerator.route_prefix"), "route");
                     $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, config("sirgrimorum.crudgenerator.url_prefix"), "url");
                     $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, config("sirgrimorum.crudgenerator.trans_prefix"), "trans");
+                    if (function_exists('trans_article')) {
+                        $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, config("sirgrimorum.crudgenerator.transarticle_prefix"), "trans_article");
+                    }
                     $result[$key] = $item;
                 } else {
                     $result[$key] = $item;
