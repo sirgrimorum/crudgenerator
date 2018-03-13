@@ -122,10 +122,10 @@ trait CrudModels {
         $nombre = $config['nombre'];
 
         $row = [
-            $registro->getKeyName() => $registro->getKey()
+            $value->getKeyName() => $value->getKey()
         ];
         $rowSimple = [
-            $registro->getKeyName() => $registro->getKey()
+            $value->getKeyName() => $value->getKey()
         ];
         foreach ($campos as $columna => $datos) {
             $celda = [];

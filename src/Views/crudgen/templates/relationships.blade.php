@@ -51,7 +51,7 @@ $atributos = [
     $readonly
 ];
 ?>
-<div class="form-group row" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
+<div class="form-group row {{$config['class_formgroup']}}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>
         {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))

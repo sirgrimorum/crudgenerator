@@ -88,6 +88,7 @@ return [
         '422' => 'Error de validación',
         '404' => 'Página no encontrada',
         'na' => 'Esta solicitud no tiene sentido',
+        'no_result_query' => 'No hay resultados para "{{query}}"',
     ],
     'error_messages' => [
         'required' => 'El campo ":attribute" es obligatorio',

@@ -98,6 +98,7 @@ trait CrudConfig {
                         if ($auxConfig === false && $$fail == true) {
                             $auxConfig = $config;
                         }
+                        $auxConfig['parametros'] = $parametros;
                         return $auxConfig;
                     }
                 }
@@ -1018,6 +1019,75 @@ trait CrudConfig {
             }
         }
         return false;
+    }
+
+    
+    /**
+     * Check and load the necesary "todos" option form all fields in a configuration array
+     * @param array $config The configuration array
+     * @return array The configuration array with the "todos" option normalized
+     */
+    private static function loadTodosFromConfig($config) {
+        foreach ($config['campos'] as $clave => $relacion) {
+            if ($relacion['tipo'] == "relationship" || $relacion['tipo'] == "relationships" || $relacion['tipo'] == "relationshipssel") {
+                if (is_array($config['campos'][$clave]['todos'])) {
+                    if (\Sirgrimorum\CrudGenerator\CrudGenerator::countdim($config['campos'][$clave]['todos']) > 1) {
+                        try {
+                            $modeloM = ucfirst($relacion["modelo"]);
+                            $auxTodos = $modeloM::hydrate($config['campos'][$clave]['todos']);
+                            $config['campos'][$clave]['todos'] = $auxTodos;
+                        } catch (Exception $exc) {
+                            
+                        }
+                    }
+                }
+                if (!is_array($config['campos'][$clave]['todos'])) {
+                    if ($relacion['tipo'] == "relationship") {
+                        //$lista = array("-" => "-");
+                    }
+                    if ($config['campos'][$clave]['todos'] == "") {
+                        $modeloM = ucfirst($relacion["modelo"]);
+                        $modelosM = $modeloM::all();
+                    } else {
+                        $modelosM = $config['campos'][$clave]['todos'];
+                    }
+                    if (isset($relacion['separador'])) {
+                        $separador = $relacion['separador'];
+                    } else {
+                        $separador = "-";
+                    }
+                    if (isset($config['campos'][$clave]['groupby'])) {
+                        $groupBy = $config['campos'][$clave]['groupby'];
+                        $modelosM->sortBy(function($elemento) use($groupBy) {
+                            return \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($elemento, $groupBy, $separador);
+                        });
+                    }
+                    $lista = [];
+                    $auxlista = [];
+                    $groupId = null;
+                    foreach ($modelosM as $elemento) {
+                        if (isset($config['campos'][$clave]['groupby'])) {
+                            $nombreGroup = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($elemento, $config['campos'][$clave]['groupby'], $separador);
+                            if ($groupId === null || $groupId <> $nombreGroup) {
+                                if ($groupId !== null) {
+                                    $lista[$groupId] = $auxlista;
+                                    $auxlista = [];
+                                }
+                            }
+                            $auxlista[$elemento->getKey()] = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($elemento, $relacion['campo'], $separador);
+                            $groupId = $nombreGroup;
+                        } else {
+                            $lista[$elemento->getKey()] = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($elemento, $relacion['campo'], $separador);
+                        }
+                    }
+                    if (count($auxlista) > 0) {
+                        $lista[$groupId] = $auxlista;
+                    }
+                    $config['campos'][$clave]['todos'] = $lista;
+                }
+            }
+        }
+        return $config;
     }
 
 }

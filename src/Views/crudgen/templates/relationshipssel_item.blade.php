@@ -1,5 +1,5 @@
 <?php
-if (!isset($action) ) {
+if (!isset($action)) {
     $action = substr(request()->route()->getName(), stripos(request()->route()->getName(), "::") + 2);
 }
 $tabla = $config['tabla'];
@@ -40,9 +40,9 @@ if (!isset($config['class_button'])) {
 @if (CrudGenerator::inside_array($columnaT, "hide", $action) === false)
 <?php
 if ($columnaT['type'] == 'label') {
-    if (isset($columnaT['campo'])){
+    if (isset($columnaT['campo'])) {
         $valorM = CrudGenerator::getNombreDeLista($tablaInterCampo, $columnaT['campo']);
-    }else{
+    } else {
         $valorM = CrudGenerator::getNombreDeLista($tablaInterCampo, $datos['campo']);
     }
 } elseif (is_object($pivote)) {
@@ -94,18 +94,15 @@ if (isset($columnaT['campo']) && $columnaT['type'] != 'label') {
 <div class="card mb-1 mt-1 {{$card_class}}" id="{{$columna . "_" . $tablaOtroId}}_principal" data-pivote="principal">
     {{ Form::hidden($columna. "[" . $tablaOtroId ."]", $tablaOtroId, array('class' => 'form-control', 'id' => $columna . '_' . $tablaOtroId)) }}
     <div class="card-header text-center">
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="btn-group" role="group" aria-label="Third group">
-                    <button type="button" class="btn btn-dark" data-toggle="collapse" href="#{{ $tabla . '_' . $columna . "_" . $tablaOtroId}}_info">{{ trans("crudgenerator::admin.layout.labels.info")}}</button>
-                </div>
-                <h5 class="card-title mb-2 mt-2"><!--small>{{ $columnaT['label'] }}</small><br-->{{ $valorM }}</h5>
-                <div class="btn-group" role="group" aria-label="Third group">
-                    <button type="button" class="btn btn-danger" onclick="quitarPivote('{{$columna . "_" . $tablaOtroId}}_principal','{{ $valorM }}')" title="{{trans("crudgenerator::admin.layout.labels.remove")}}"><i class="fa fa-minus fa-lg" aria-hidden="true"></i></button>
-                </div>
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="btn-group" role="group" aria-label="Third group">
+                <button type="button" class="btn btn-dark" data-toggle="collapse" href="#{{ $tabla . '_' . $columna . "_" . $tablaOtroId}}_info" title='{{ trans("crudgenerator::admin.layout.labels.info")}}'><i class="fa fa-info-circle fa-lg" aria-hidden="true"></i></button>
+            </div>
+            <span class="card-title mb-2 mt-2 mr-1 ml-1"><!--small>{{ $columnaT['label'] }}</small><br-->{{ $valorM }}</span>
+            <div class="btn-group" role="group" aria-label="Third group">
+                <button type="button" class="btn btn-danger" onclick="quitarPivote('{{$columna . "_" . $tablaOtroId}}_principal','{{ $valorM }}')" title="{{trans("crudgenerator::admin.layout.labels.remove")}}"><i class="fa fa-minus fa-lg" aria-hidden="true"></i></button>
             </div>
         </div>
-
     </div>
     @if(!$loop->last)
     <div class="card-body">
@@ -113,6 +110,9 @@ if (isset($columnaT['campo']) && $columnaT['type'] != 'label') {
         <div class="">
             @endif
             @else
+            @if(isset($columnaT['pre_html']))
+            {!! $columnaT['pre_html'] !!}
+            @endif
             @if ($columnaT['type']=='label' || $columnaT['type']=='labelpivot')
             <div class="form-group row">
                 <div class='{{$config['class_labelcont']}}'>
@@ -131,6 +131,9 @@ if (isset($columnaT['campo']) && $columnaT['type'] != 'label') {
             @include("sirgrimorum::crudgen.templates." . $columnaT['type'], ['datos'=>$columnaT,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$datos['modelo'], 'registro'=>$pivote,'errores'=>false, 'config'=>$config, 'columna'=>$columnaT['campo']])
             @else
             @include("sirgrimorum::crudgen.templates.text", ['datos'=>$columnaT,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$datos['modelo'], 'registro'=>$pivote,'errores'=>false, 'config'=>$config, 'columna'=>$columnaT['campo']])
+            @endif
+            @if(isset($columnaT['post_html']))
+            {!! $columnaT['post_html'] !!}
             @endif
             @endif
             @if($loop->last)

@@ -52,7 +52,12 @@ $identificador = $config['id'];
     <h2 class='card-header text-center'>{{ $registro->{$nombre} }}</h2>
     <div class="card-body">
 
-        <?php foreach ($campos as $columna => $datos) { ?>
+        <?php
+        foreach ($campos as $columna => $datos) {
+            if (isset($datos['pre_html'])) {
+                echo $datos['pre_html'];
+            }
+            ?>
             <div class="form-group row {{$config['class_formgroup']}}">
                 <?php if (CrudGenerator::inside_array($datos, "hide", "show") === false) { ?>
                     <div class='{{$config['class_labelcont']}}'>
@@ -443,7 +448,12 @@ $identificador = $config['id'];
                 }
                 ?>
             </div>
-        <?php } ?>
+            <?php
+            if (isset($datos['post_html'])) {
+                echo $datos['post_html'];
+            }
+        }
+        ?>
 
     </div>
 </div>

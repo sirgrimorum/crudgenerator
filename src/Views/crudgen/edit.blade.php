@@ -51,11 +51,21 @@ if (!isset($config['class_offset'])) {
 if (!isset($config['class_button'])) {
     $config['class_button'] = 'btn btn-primary';
 }
+if (!isset($config['class_formgroup'])) {
+    $config['class_formgroup'] = '';
+}
+if (!isset($config['pre_html'])){
+    $config['pre_html']="";
+}
+if (!isset($config['post_html'])){
+    $config['post_html']="";
+}
 $action = 'edit';
 ?>
 @include("sirgrimorum::crudgen.includes")
 <?php
 echo Form::open(array('url' => $url, 'class' => $config['class_form'], 'method' => 'PUT', 'files' => $files));
+echo $config['pre_html'];
 //echo Form::model($registro, array('url' => $url, $registro->{$identificador}, array('class' => $config['class_form']), 'method' => 'PUT', 'files'=> $files))
 if (Request::has('_return')) {
     echo Form::hidden("_return", Request::get('_return'), array('id' => $tabla . '__return'));
@@ -65,17 +75,26 @@ echo Form::hidden("_registro", $registro->{$identificador}, array('id' => $tabla
 if (isset($config['parametros'])){
     echo Form::hidden("__parametros", $config['parametros'], array('id' => $tabla . '__parametros'));
 }
+foreach ($campos as $columna => $datos) {
+    if (CrudGenerator::inside_array($datos, "hide", "edit") === false) {
+        if (isset($datos['pre_html'])){
+            echo $datos['pre_html'];
+        }
+        if (View::exists("sirgrimorum::crudgen.templates." . $datos['tipo'])) {
+            ?>
+            @include("sirgrimorum::crudgen.templates." . $datos['tipo'],['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$modelo, 'action'=>$action])
+            <?php
+        } else {
+            ?>
+            @include("sirgrimorum::crudgen.templates.text",['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$modelo])
+            <?php
+        }
+        if (isset($datos['post_html'])){
+            echo $datos['post_html'];
+        }
+    }
+}
 ?>
-
-@foreach($campos as $columna => $datos)
-@if (CrudGenerator::inside_array($datos,"hide","edit")===false)
-@if (View::exists("sirgrimorum::crudgen.templates." .$datos['tipo']))
-@include("sirgrimorum::crudgen.templates." . $datos['tipo'],['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$modelo, 'action'=>$action])
-@else
-@include("sirgrimorum::crudgen.templates.text",['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$modelo])
-@endif
-@endif
-@endforeach
 
 @if (count($botones)>0)
 @if (is_array($botones))
@@ -114,4 +133,5 @@ $botones = str_replace([":modelId", ":modelName"], [$registro->{$config['id']}, 
     </div>
 </div>
 @endif
+{!! $config['post_html'] !!}
 {{ Form::close() }}

@@ -88,6 +88,7 @@ return [
         '422' => 'Validation error',
         '404' => 'Page not found',
         'na' => 'This request doesn\'t make sens',
+        'no_result_query' => 'No result for "{{query}}"',
     ],
     'error_messages' => [
         'unique_composite' => 'Already exists a row with the same combination of :fields',

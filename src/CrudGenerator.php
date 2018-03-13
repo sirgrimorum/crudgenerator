@@ -52,46 +52,7 @@ class CrudGenerator {
             return View::make('sirgrimorum::crudgen.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
         }
         $modelo = strtolower(class_basename($config["modelo"]));
-        foreach ($config['campos'] as $clave => $relacion) {
-            if ($relacion['tipo'] == "relationship" || $relacion['tipo'] == "relationships" || $relacion['tipo'] == "relationshipssel") {
-                if (!is_array($config['campos'][$clave]['todos'])) {
-                    if ($config['campos'][$clave]['todos'] == "") {
-                        $modeloM = ucfirst($relacion["modelo"]);
-                        $modelosM = $modeloM::all();
-                    } else {
-                        $modelosM = $config['campos'][$clave]['todos'];
-                    }
-                    if (isset($config['campos'][$clave]['groupby'])) {
-                        $groupBy = $config['campos'][$clave]['groupby'];
-                        $modelosM->sortBy(function($elemento) use($groupBy) {
-                            return CrudGenerator::getNombreDeLista($elemento, $groupBy);
-                        });
-                    }
-                    $lista = [];
-                    $auxlista = [];
-                    $groupId = null;
-                    foreach ($modelosM as $elemento) {
-                        if (isset($config['campos'][$clave]['groupby'])) {
-                            $nombreGroup = CrudGenerator::getNombreDeLista($elemento, $config['campos'][$clave]['groupby']);
-                            if ($groupId === null || $groupId <> $nombreGroup) {
-                                if ($groupId !== null) {
-                                    $lista[$groupId] = $auxlista;
-                                    $auxlista = [];
-                                }
-                            }
-                            $auxlista[$elemento->getKey()] = CrudGenerator::getNombreDeLista($elemento, $relacion['campo']);
-                            $groupId = $nombreGroup;
-                        } else {
-                            $lista[$elemento->getKey()] = CrudGenerator::getNombreDeLista($elemento, $relacion['campo']);
-                        }
-                    }
-                    if (count($auxlista) > 0) {
-                        $lista[$groupId] = $auxlista;
-                    }
-                    $config['campos'][$clave]['todos'] = $lista;
-                }
-            }
-        }
+        $config = CrudGenerator::loadTodosFromConfig($config);
 
         if (!$simple) {
             $js_section = config("sirgrimorum.crudgenerator.js_section");
@@ -189,49 +150,7 @@ class CrudGenerator {
     public static function edit($config, $id = null, $simple = false, $registro = null) {
         //$config = CrudGenerator::translateConfig($config);
         $modelo = strtolower(class_basename($config["modelo"]));
-        foreach ($config['campos'] as $clave => $relacion) {
-            if ($relacion['tipo'] == "relationship" || $relacion['tipo'] == "relationships" || $relacion['tipo'] == "relationshipssel") {
-                if (!is_array($config['campos'][$clave]['todos'])) {
-                    if ($relacion['tipo'] == "relationship") {
-                        //$lista = array("-" => "-");
-                    }
-                    if ($config['campos'][$clave]['todos'] == "") {
-                        $modeloM = ucfirst($relacion["modelo"]);
-                        $modelosM = $modeloM::all();
-                    } else {
-                        $modelosM = $config['campos'][$clave]['todos'];
-                    }
-                    if (isset($config['campos'][$clave]['groupby'])) {
-                        $groupBy = $config['campos'][$clave]['groupby'];
-                        $modelosM->sortBy(function($elemento) use($groupBy) {
-                            return CrudGenerator::getNombreDeLista($elemento, $groupBy);
-                        });
-                    }
-                    $lista = [];
-                    $auxlista = [];
-                    $groupId = null;
-                    foreach ($modelosM as $elemento) {
-                        if (isset($config['campos'][$clave]['groupby'])) {
-                            $nombreGroup = CrudGenerator::getNombreDeLista($elemento, $config['campos'][$clave]['groupby']);
-                            if ($groupId === null || $groupId <> $nombreGroup) {
-                                if ($groupId !== null) {
-                                    $lista[$groupId] = $auxlista;
-                                    $auxlista = [];
-                                }
-                            }
-                            $auxlista[$elemento->getKey()] = CrudGenerator::getNombreDeLista($elemento, $relacion['campo']);
-                            $groupId = $nombreGroup;
-                        } else {
-                            $lista[$elemento->getKey()] = CrudGenerator::getNombreDeLista($elemento, $relacion['campo']);
-                        }
-                    }
-                    if (count($auxlista) > 0) {
-                        $lista[$groupId] = $auxlista;
-                    }
-                    $config['campos'][$clave]['todos'] = $lista;
-                }
-            }
-        }
+        $config = CrudGenerator::loadTodosFromConfig($config);
 
         if ($registro == null) {
             $modeloM = ucfirst($config['modelo']);

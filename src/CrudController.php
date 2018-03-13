@@ -18,12 +18,12 @@ class CrudController extends BaseController {
         ValidatesRequests;
 
     public function index($modelo, Request $request) {
-        $config = CrudGenerator::getConfig($modelo);
+        $config = CrudGenerator::getConfigWithParametros($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config));
     }
 
     public function create($modelo, Request $request) {
-        $config = CrudGenerator::getConfig($modelo);
+        $config = CrudGenerator::getConfigWithParametros($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config));
     }
 
@@ -42,12 +42,12 @@ class CrudController extends BaseController {
     }
 
     public function show($modelo, $registro, Request $request) {
-        $config = CrudGenerator::getConfig($modelo);
+        $config = CrudGenerator::getConfigWithParametros($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config, $registro), $registro);
     }
 
     public function edit($modelo, $registro, Request $request) {
-        $config = CrudGenerator::getConfig($modelo);
+        $config = CrudGenerator::getConfigWithParametros($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config, $registro), $registro);
     }
 
@@ -80,7 +80,7 @@ class CrudController extends BaseController {
     }
 
     public function modelfile($modelo, $campo, Request $request) {
-        $config = CrudGenerator::getConfig($modelo);
+        $config = CrudGenerator::getConfigWithParametros($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config, 0, 'show')) {
             return $this->devolver($request, $config, $permiso, 0, "", 'show');
         }

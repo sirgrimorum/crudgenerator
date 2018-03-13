@@ -814,4 +814,18 @@ trait CrudStrings {
         return $colors;
     }
 
+    /**
+     * Get the dimension of an array
+     * @param array $array
+     * @return int
+     */
+    public static function countdim($array) {
+        if (is_array(reset($array))) {
+            $return = \Sirgrimorum\CrudGenerator\CrudGenerator::countdim(reset($array)) + 1;
+        } else {
+            $return = 1;
+        }
+
+        return $return;
+    }
 }

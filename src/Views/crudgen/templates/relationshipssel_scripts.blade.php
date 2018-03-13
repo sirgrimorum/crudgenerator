@@ -46,7 +46,7 @@ if ($js_section != "") {
         backdrop: {
             "background-color": "#fff"
         },
-        emptyTemplate: 'No result for "@{{query}}"',
+        emptyTemplate: '{{ trans("crudgenerator::admin.messages.no_result_query") }}',
         source: {
             @if (isset($datos['groupby']))
             @if($listaOpciones)

@@ -67,7 +67,7 @@ if (isset($config['render'])) {
     <thead class="thead-dark">
         <tr>
             @foreach($campos as $columna => $datos)
-            @if (!CrudGenerator::inside_array($datos,"hide","list"))
+            @if (CrudGenerator::inside_array($datos,"hide","list")===false)
             <th>{{ ucfirst($datos['label'])}}</th>
             @endif
             @endforeach

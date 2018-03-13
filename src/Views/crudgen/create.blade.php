@@ -51,11 +51,21 @@ if (!isset($config['class_offset'])) {
 if (!isset($config['class_button'])) {
     $config['class_button'] = 'btn btn-primary';
 }
+if (!isset($config['class_formgroup'])) {
+    $config['class_formgroup'] = '';
+}
+if (!isset($config['pre_html'])){
+    $config['pre_html']="";
+}
+if (!isset($config['post_html'])){
+    $config['post_html']="";
+}
 $action = 'create';
 ?>
 @include("sirgrimorum::crudgen.includes")
 <?php
 echo Form::open(array('url' => $url, 'class' => $config['class_form'], 'files' => $files));
+echo $config['pre_html'];
 if (Request::has('_return')) {
     echo Form::hidden("_return", Request::get('_return'), array('id' => $tabla . '__return'));
 }
@@ -65,7 +75,10 @@ if (isset($config['parametros'])){
 }
 
 foreach ($campos as $columna => $datos) {
-    if (!isset($datos['nodb']) && !isset($datos['readonly']) && CrudGenerator::inside_array($datos, "hide", "create") === false) {
+    if (!isset($datos['nodb']) && CrudGenerator::inside_array($datos, "hide", "create") === false) {
+        if (isset($datos['pre_html'])){
+            echo $datos['pre_html'];
+        }
         if (View::exists("sirgrimorum::crudgen.templates." . $datos['tipo'])) {
             ?>
             @include("sirgrimorum::crudgen.templates." . $datos['tipo'], ['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$modelo, 'action'=>$action])
@@ -74,6 +87,9 @@ foreach ($campos as $columna => $datos) {
             ?>
             @include("sirgrimorum::crudgen.templates.text", ['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$modelo])
             <?php
+        }
+        if (isset($datos['post_html'])){
+            echo $datos['post_html'];
         }
     }
 }/**/
@@ -109,5 +125,6 @@ if (count($botones) > 0) {
     echo '</div>';
     echo '</div>';
 }
-
+echo $config['post_html'];
 echo Form::close();
+?>

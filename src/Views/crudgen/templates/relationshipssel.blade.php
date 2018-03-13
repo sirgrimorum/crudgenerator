@@ -80,7 +80,7 @@ if (is_array($datos['campo'])) {
     $camposQuery = $datos['campo'];
 }
 ?>
-<div class="form-group row {{ $claseError }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $columna}}'>
+<div class="form-group row {{ $claseError }} {{$config['class_formgroup']}}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $columna}}'>
     <div class='{{$config['class_labelcont']}}'>
         {{ Form::label($columna, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))
