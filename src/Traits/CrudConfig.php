@@ -984,10 +984,10 @@ trait CrudConfig {
                     $item = str_replace(config("sirgrimorum.crudgenerator.locale_key"), \App::getLocale(), $item);
                     $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, config("sirgrimorum.crudgenerator.route_prefix"), "route");
                     $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, config("sirgrimorum.crudgenerator.url_prefix"), "url");
-                    $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, config("sirgrimorum.crudgenerator.trans_prefix"), "trans");
                     if (function_exists('trans_article')) {
                         $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, config("sirgrimorum.crudgenerator.transarticle_prefix"), "trans_article");
                     }
+                    $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, config("sirgrimorum.crudgenerator.trans_prefix"), "trans");
                     $result[$key] = $item;
                 } else {
                     $result[$key] = $item;
