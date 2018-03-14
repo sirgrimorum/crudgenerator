@@ -525,7 +525,7 @@ if (is_array($botones)) {
             $extend = true;
             $typeAjax = "get";
             $method = "get";
-            $data = "''";
+            $data = "{'__parametros':'" . $config['parametros'] . "'}";
             $returnStr = "simple";
             switch ($butName) {
                 case 'create':
@@ -533,7 +533,7 @@ if (is_array($botones)) {
                     break;
                 case 'remove':
                     $typeAjax = "post";
-                    $data = "{'_method':'delete','_token':'" . csrf_token() . "'}";
+                    $data = "{'_method':'delete','_token':'" . csrf_token() . "','__parametros':'" . $config['parametros'] . "'}";
                     $method = "delete";
                     $returnStr = "pureJson";
                     break;
