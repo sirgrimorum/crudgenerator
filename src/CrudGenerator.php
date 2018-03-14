@@ -83,7 +83,7 @@ class CrudGenerator {
         } else {
             $view = View::make('sirgrimorum::crudgen.create', [
                         'config' => $config,
-                        'tieneHtml' => CrudGenerator::hasTipo($config, 'html'),
+                        'tieneHtml' => CrudGenerator::hasTipo($config, ['html','article']),
                         'tieneDate' => CrudGenerator::hasTipo($config, ['date', 'datetime', 'time']),
                         'tieneSlider' => CrudGenerator::hasTipo($config, 'slider'),
                         'tieneSelect' => CrudGenerator::hasTipo($config, ['select', 'relationship', 'relationships']),
@@ -184,7 +184,7 @@ class CrudGenerator {
         $view = View::make('sirgrimorum::crudgen.edit', [
                     'config' => $config,
                     'registro' => $registro,
-                    'tieneHtml' => CrudGenerator::hasTipo($config, 'html'),
+                    'tieneHtml' => CrudGenerator::hasTipo($config, ['html','article']),
                     'tieneDate' => CrudGenerator::hasTipo($config, ['date', 'datetime', 'time']),
                     'tieneSlider' => CrudGenerator::hasTipo($config, 'slider'),
                     'tieneSelect' => CrudGenerator::hasTipo($config, ['select', 'relationship', 'relationships']),

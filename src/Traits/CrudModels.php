@@ -330,6 +330,21 @@ trait CrudModels {
                     $celda['embed'] = $value->{$columna};
                 }
                 $celda['label'] = $datos['label'];
+            } elseif ($datos['tipo'] == "article" && class_exists(config('sirgrimorum.transarticles.default_articles_model'))) {
+                $celda = [
+                    'value' => \Sirgrimorum\TransArticles::get($value->{$columna}),
+                    'label' => $datos['label'],
+                ];
+                $celda['data'] = [];
+                $modelClass = config('sirgrimorum.transarticles.default_articles_model');
+                $langColumn = config('sirgrimorum.transarticles.default_lang_column');
+                $findArticle = config('sirgrimorum.transarticles.default_findarticle_function_name');
+                foreach (config("sirgrimorum.crudgenerator.list_locales") as $localeCode) {
+                    $articles = $modelClass::{$findArticle}($scope)->where($langColumn, "=", $localeCode)->first();
+                    if (isset($articles)){
+                        $celda['data'][$localeCode] = $articles->content;
+                    }
+                }
             } elseif ($datos['tipo'] == "file") {
                 if ($value->{$columna} == "") {
                     $celda = '';
@@ -979,6 +994,43 @@ trait CrudModels {
                 foreach ($config['campos'] as $campo => $detalles) {
                     if (!isset($detalles["nodb"])) {
                         switch ($detalles['tipo']) {
+                            case 'article':
+                                if (class_exists($modelClass)) {
+                                    if ($input->has($campo)) {
+                                        $modelClass = config('sirgrimorum.transarticles.default_articles_model');
+                                        $langColumn = config('sirgrimorum.transarticles.default_lang_column');
+                                        $findArticle = config('sirgrimorum.transarticles.default_findarticle_function_name');
+                                        $nickname = $detalles['scope'] . "." . $objModelo->getKey();
+                                        $objModelo->{$campo} = $nickname;
+                                        if (is_array($input->input($campo))) {
+                                            foreach ($input->input($campo) as $localeCode => $textoArticulo) {
+                                                $article = $modelClass::{$findArticle}($nickname)->where($langColumn, "=", $localeCode)->first();
+                                                if (!isset($article)) {
+                                                    $article = new $modelClass();
+                                                    $segmentsArticle = explode(".", $nickname);
+                                                    $scopeArticle = array_shift($segmentsArticle);
+                                                    $nicknameArticle = implode(".", $segmentsArticle);
+                                                    $article->scope = $scopeArticle;
+                                                    $article->nickname = $nicknameArticle;
+                                                    $article->lang = $localeCode;
+                                                    $article->activated = true;
+                                                }
+                                                $article->user_id = \Illuminate\Support\Facades\Auth::user()->id;
+                                                $article->content = $textoArticulo;
+                                                $article->save();
+                                            }
+                                        }
+                                    } elseif (isset($detalles['valor'])) {
+                                        $objModelo->{$campo} = $detalles['valor'] . "." . $objModelo->getKey();
+                                    }
+                                } else {
+                                    if ($input->has($campo)) {
+                                        $objModelo->{$campo} = $input->input($campo);
+                                    } elseif (isset($detalles['valor'])) {
+                                        $objModelo->{$campo} = $detalles['valor'];
+                                    }
+                                }
+                                break;
                             case 'relationships':
                                 if ($input->has($campo)) {
                                     //Cuidado porque elimina y crea objetos de tipo $campo

@@ -34,7 +34,7 @@
             "post_html" => "[Html code]", // optional code to be inserted before the form tag closing
             "campos" => [ // list of fields structure. For smart merge, set the value to "notThisTime" to CrudLoader to remove this attribute or field
                 "[field/attribute name]" => [ //as apears in the model if used for db save with url "Sirgrimorum_CrudAdministrator"
-                    "tipo" => "[type of the field]", // required for all types, options are: "function", "checkbox", "date", "datetime", "time", "email", "url", "file", "files" (multiple files in a single field with Json notation, recomended, text type), "hidden", "html", "number", "password", "radio", "relationship" (belongsTo one to many), "relationships" (many to many), "relationshipssel" (many to many with pivot table), "select", "slider", "text", "textarea"
+                    "tipo" => "[type of the field]", // required for all types, options are: "function", "checkbox", "date", "datetime", "time", "email", "url", "file", "files" (multiple files in a single field with Json notation, recomended, text type), "hidden", "html", "article" (Translation from Articles table, needs sirgrimorum/transarticles package), "number", "password", "radio", "relationship" (belongsTo one to many), "relationships" (many to many), "relationshipssel" (many to many with pivot table), "select", "slider", "text", "textarea"
                     "label" => "[text of the label]", // required for all types, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.labels.name__",
                     "placeholder" => "[placeholder text]", // required for text, textarea, email, password and number types, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.placeholders.name__",
                     "description" => "[description text]", // use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.descriptions.name__",
@@ -70,6 +70,7 @@
                     "pre" => "[prefix text for file name]", // for file and files types, use '_originalName_' to use the original name as prefix, use the 'trans_prefix' value if you want localization
                     "pre" => "[prefix text for input]", // mainly for number, slider and function types, use the 'trans_prefix' value if you want localization
                     "post" => "[postfix text for the input ]", // mainly for number, slider and function types, use the 'trans_prefix' value if you want localization
+                    "scope" => "[ScopeBase for the Transarticles table, use dot notation if needed]", // for article types
                     "format" => [(number of decimals), "[decimal separator]", "[mil separator]"], // for number and function types, aplies format to the number []
                     "format" => [ // for the date, time and datetime types, carbon and moment results must be equivalents
                         "carbon" => "[carbon datetime format text]", // if not present defaults are "Y-m-d" for date or "H:i:s" for time or "Y-m-d H:i:s" for datetime

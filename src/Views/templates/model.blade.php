@@ -2,14 +2,75 @@
 
 namespace {!! $config['nameSpace'] !!};
 
+@if(strtolower($config["model"])=="user)
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+@else
 use Illuminate\Database\Eloquent\Model;
+@endif
 
 class {Model} extends Model {
 
-    public $rules = [//The validation rules
+    @if(strtolower($config["model"])=="user)
+    use Notifiable;
+    
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name', 'email', 'password',
     ];
-    public $error_messages = []; //The validation error messages
 
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+    @else
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+    @endif
+    
+    //The validation rules
+    public $rules = [
+    ];
+    
+    //The validation error messages
+    public $error_messages = [
+    ]; 
+
+    //For serialization
+    protected $with = [
+    @if (isset($config['hasmany']))
+    @foreach ($config['hasmany'] as $relacion)
+        '{{$relacion['cliente']}}',
+    @endforeach
+    @endif
+    @if (isset($config['belongsto']))
+    @foreach ($config['belongsto'] as $relacion)
+        '{{$relacion['patron_model_name_single']}}',
+    @endforeach
+    @endif
+    @if (isset($config['manytomany']))
+    @foreach ($config['manytomany'] as $relacion)
+        '{{$relacion['otro']}}',
+    @endforeach
+    @endif
+    ];
+    
     public function _construct() {
         $this->error_messages = [
         ];

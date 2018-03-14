@@ -191,6 +191,10 @@ return Auth::check();
      */
     'probable_html' => ['html','code','codigo','texto','contenido','content', 'description', 'descripcion', 'comment', 'comments', 'comentario', 'comentarios'],
     /**
+     * Probable column names of a "article" type in the model, used to autobuild config, only apply for text or string fields
+     */
+    'probable_article' => ['scope','articulo'],
+    /**
      * Probable column names of a "file" in the model, used to autobuild config, only apply for string fields
      */
     'probable_file' => ['file','archivo','pdf','doc','document','documento'],

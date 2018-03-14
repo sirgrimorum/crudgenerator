@@ -219,6 +219,8 @@ if (isset($config['render'])) {
                 @else            
                 {!! $value->{$columna}() !!}
                 @endif
+                @elseif ($datos['tipo']=="article" && class_exists(config('sirgrimorum.transarticles.default_articles_model')))
+                @transarticles($value->{$columna})
                 @elseif ($datos['tipo']=="url")
                 <a href='{{ $value->{$columna} }}' target='_blank'><i class="mt-2 fa fa-link fa-lg" aria-hidden="true"></i></a>
                 @elseif ($datos['tipo']=="file")

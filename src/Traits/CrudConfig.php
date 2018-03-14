@@ -556,6 +556,9 @@ trait CrudConfig {
                             ];
                             if (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'html')) {
                                 $configCampos[$campo]['tipo'] = "html";
+                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'article')) {
+                                $configCampos[$campo]['tipo'] = "article";
+                                $configCampos[$campo]['scope'] = "$tabla.$campo";
                             } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'file') || \Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'image')) {
                                 $configCampos[$campo]['tipo'] = "files";
                                 $configCampos[$campo]['pathImage'] = $tabla . "_" . $campo;
@@ -631,6 +634,9 @@ trait CrudConfig {
                                 $configCampos[$campo]['tipo'] = "email";
                                 $rulesStr .=$prefixRules . 'email';
                                 $prefixRules = "|";
+                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'article')) {
+                                $configCampos[$campo]['tipo'] = "article";
+                                $configCampos[$campo]['scope'] = "$tabla.$campo";
                             } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'url')) {
                                 $configCampos[$campo]['tipo'] = "url";
                                 $rulesStr .=$prefixRules . 'url';

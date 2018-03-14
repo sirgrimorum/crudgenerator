@@ -435,6 +435,8 @@ $identificador = $config['id'];
                                 } else {
                                     echo number_format($registro->{$columna});
                                 }
+                            } elseif ($datos['tipo'] == "article" && class_exists(config('sirgrimorum.transarticles.default_articles_model'))) {
+                                echo \Sirgrimorum\TransArticles::get($registro->{$columna});
                             } else {
                                 echo $registro->{$columna};
                             }
