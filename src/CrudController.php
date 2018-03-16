@@ -75,6 +75,18 @@ class CrudController extends BaseController {
             'id' => $muerto->{$config['id']},
             'nombre' => $muerto->{$config['nombre']}
         ];
+        $modelClass = config('sirgrimorum.transarticles.default_articles_model');
+        if (class_exists($modelClass)) {
+            $findArticles = config('sirgrimorum.transarticles.default_findarticles_function_name');
+            foreach ($config['campos'] as $campo => $detalles) {
+                if ($detalles['tipo'] == "article") {
+                    $segments = explode(".", $muerto->{$campo});
+                    $scope = array_shift($segments);
+                    $nickname = implode(".", $segments);
+                    $deletedArticles = $modelClass::where("scope", "=", $scope)->where("nickname", "=", $nickname)->delete();
+                }
+            }
+        }
         $muerto->delete();
         return $this->devolver($request, $config, $permiso, 0, $datos);
     }
@@ -354,7 +366,7 @@ class CrudController extends BaseController {
                 return $result;
             }
         } else {
-            $result=[];
+            $result = [];
             switch ($action) {
                 case "index":
                 case "create":

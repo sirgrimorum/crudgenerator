@@ -33,7 +33,7 @@ return [
         ],
         'labels' => [
             'home' => 'Home',
-            'en' => 'English',
+            'en' => 'Inglés',
             'es' => 'Español',
             'close' => 'Cerrar',
             'create' => 'Crear',
@@ -43,6 +43,7 @@ return [
             'data' => 'Datos',
             'yes' => 'Si',
             'no' => 'No',
+            'and' => 'y',
             'confirm_title' => '',
             'name' => 'Nombre',
             'file' => 'Archivo',
@@ -103,6 +104,7 @@ return [
         ],
         'exists' => 'El valor escogido para el campo ":attribute"  no se encuentra en la base de datos',
         'unique_composite' => 'Ya existe un registro con la misma combinación de :fields',
+        'with_articles' => 'Es obligatorio ingresar la versión en :langs del campo ":attribute"',
     ],
         ]
 ?>

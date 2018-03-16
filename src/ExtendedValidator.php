@@ -18,11 +18,79 @@ class ExtendedValidator extends Validator {
         parent::__construct($translator, $data, $rules, $messages, $customAttributes);
 
         // Set custom validation error messages
+        if (!isset($this->messages['unique_composite'])) {
+            $this->messages['unique_composite'] = $this->translator->get(
+                    "crudgenerator::admin.error_messages.unique_composite"
+            );
+        }
+        // Set custom validation error messages
+        if (!isset($this->messages['with_articles'])) {
+            $this->messages['with_articles'] = $this->translator->get(
+                    "crudgenerator::admin.error_messages.with_articles"
+            );
+        }
+        // Set custom validation error messages
         if (!isset($this->messages['unique_with'])) {
             $this->messages['unique_with'] = $this->translator->get(
                     'uniquewith-validator::validation.unique_with'
             );
         }
+    }
+
+    // Laravel uses this convention to look for validation rules, this function will be triggered 
+    // for with_articles
+    public function validateWithArticles($attribute, $value, $parameters) {
+        $this->requireParameterCount(0, $parameters, 'with_articles');
+
+        $data = $this->getData();
+
+        if (isset($data[$attribute])) {
+            if (is_array($data[$attribute])) {
+                foreach (config("sirgrimorum.crudgenerator.list_locales") as $localeCode) {
+                    if (!isset($data[$attribute][$localeCode])) {
+                        return false;
+                    }
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    public function replaceWithArticles($message, $attribute, $rule, $parameters) {
+        $langs = config("sirgrimorum.crudgenerator.list_locales");
+        $data = $this->getData();
+        if (isset($data[$attribute])) {
+            if (is_array($data[$attribute])) {
+                foreach (config("sirgrimorum.crudgenerator.list_locales") as $localeCode) {
+                    if (isset($data[$attribute][$localeCode])) {
+                        if (($key = array_search($localeCode, $langs)) !== false) {
+                            unset($langs[$key]);
+                        }
+                    }
+                }
+            }
+        }
+        $str = "";
+        $pre = "";
+        $trans = $this->getTranslator();
+        $i = 0;
+        foreach($langs as $localeCode) {
+            $lang = $trans->trans('crudgenerator::admin.layout.labels.' . $localeCode);
+            $lang = lcfirst($lang);
+            if ($i == 0) {
+                $str = $lang;
+            } elseif ($i < count($langs) - 1) {
+                $str .= ", " . $lang;
+            } else {
+                $str .= " " . $trans->trans('crudgenerator::admin.layout.labels.and') . " " . $lang;
+            }
+            $i++;
+        }
+        return str_replace(":langs", $str, $message);
     }
 
     // Laravel uses this convention to look for validation rules, this function will be triggered 
@@ -33,7 +101,7 @@ class ExtendedValidator extends Validator {
         $data = $this->getData();
         // remove first parameter and assume it is the table name
         $table = array_shift($parameters);
-        
+
         $ignore_id = null;
         $ignore_column = null;
         //Si en el input se envió el valor _registro, omitirá ese valor
@@ -65,11 +133,11 @@ class ExtendedValidator extends Validator {
         return $verifier->getCount(
                         $table, $attribute, $value, $ignore_id, $ignore_column, $fields
                 ) == 0;
-         /* 
+        /*
          */
         echo "<p>ignore_id=" . $ignore_id . ", ignore_column=" . $ignore_column . "</p>";
         // query the table with all the conditions
-        $result = \DB::table($table)->select(\DB::raw(1))->where($fields)->where($ignore_column,"<>",$ignore_id)->first();
+        $result = \DB::table($table)->select(\DB::raw(1))->where($fields)->where($ignore_column, "<>", $ignore_id)->first();
 
         return empty($result); // true if empty
     }
@@ -95,7 +163,7 @@ class ExtendedValidator extends Validator {
         }
         return str_replace(":fields", $campos, $message);
     }
-    
+
     // Laravel uses this convention to look for validation rules, this function will be triggered 
     // for unique_except
     public function validateUniqueExcept($attribute, $value, $parameters) {
@@ -104,7 +172,7 @@ class ExtendedValidator extends Validator {
         $data = $this->getData();
         // remove first parameter and assume it is the table name
         $table = array_shift($parameters);
-        
+
         $ignore_id = null;
         $ignore_column = null;
         //Si en el input se envió el valor _registro, omitirá ese valor
@@ -136,11 +204,11 @@ class ExtendedValidator extends Validator {
         return $verifier->getCount(
                         $table, $attribute, $value, $ignore_id, $ignore_column, $fields
                 ) == 0;
-         /* 
+        /*
          */
         //echo "<p>ignore_id=" . $ignore_id . ", ignore_column=" . $ignore_column . "</p>";
         // query the table with all the conditions
-        $result = \DB::table($table)->select(\DB::raw(1))->where($fields)->where($ignore_column,"<>",$ignore_id)->first();
+        $result = \DB::table($table)->select(\DB::raw(1))->where($fields)->where($ignore_column, "<>", $ignore_id)->first();
 
         return empty($result); // true if empty
     }

@@ -85,7 +85,6 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
          */
         Validator::resolver(
                 function($translator, $data, $rules, $messages, $customAttributes ) {
-            $messages["unique_composite"] = trans("crudgenerator::admin.error_messages.unique_composite");
             return new ExtendedValidator($translator, $data, $rules, $messages, $customAttributes);
         }
         );
@@ -293,13 +292,13 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
                 $bar->finish();
             }
         })->describe('Create a config file for a model');
-        
-        Artisan::command('crudgen:registermiddleware',function(){
+
+        Artisan::command('crudgen:registermiddleware', function() {
             if (CrudGenerator::registerMiddleware()) {
-                    $this->info("CrudGenerator middleware registered");
-                } else {
-                    $this->error("Something went wrong registering CrudGenerator middleware, please register ir in app/Http/Kernel.php");
-                }
+                $this->info("CrudGenerator middleware registered");
+            } else {
+                $this->error("Something went wrong registering CrudGenerator middleware, please register ir in app/Http/Kernel.php");
+            }
         })->describe('Register the CrudGenerator middleware in app/Http/Kernel.php');
 
         Artisan::command('crudgen:resources {model : The NAME of the model}', function ($model) {
@@ -361,7 +360,7 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
             }
             $confirm = $this->choice("Do you wisth to append new routes for the model (web routes)?", ['yes', 'no'], 0);
             if ($confirm == 'yes') {
-            if (CrudGenerator::registerRoutes($config, $localized)) {
+                if (CrudGenerator::registerRoutes($config, $localized)) {
                     $this->info("Routes registered");
                 } else {
                     $this->error("Something went wrong registering routes");
@@ -418,10 +417,10 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
         $this->app->singleton(CrudGenerator::class, function (\Illuminate\Foundation\Application $app) {
             return new CrudGenerator($app);
         });
-        $loader->alias('CrudGenerator',  CrudGenerator::class );
+        $loader->alias('CrudGenerator', CrudGenerator::class);
 
 
-        $this->app->alias( CrudGenerator::class,'CrudGenerator');
+        $this->app->alias(CrudGenerator::class, 'CrudGenerator');
 
         $this->mergeConfigFrom(
                 __DIR__ . '/Config/crudgenerator.php', 'sirgrimorum.crudgenerator'
@@ -430,7 +429,7 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
                 __DIR__ . '/Config/mimebyext.php', 'sirgrimorum.mimebyext'
         );
     }
-    
+
     public function provides() {
         return ['CrudGenerator'];
     }

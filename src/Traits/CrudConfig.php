@@ -559,6 +559,8 @@ trait CrudConfig {
                             } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'article')) {
                                 $configCampos[$campo]['tipo'] = "article";
                                 $configCampos[$campo]['scope'] = "$tabla.$campo";
+                                $rulesStr .=$prefixRules . 'with_articles';
+                                $prefixRules = "|";
                             } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'file') || \Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'image')) {
                                 $configCampos[$campo]['tipo'] = "files";
                                 $configCampos[$campo]['pathImage'] = $tabla . "_" . $campo;
@@ -637,6 +639,8 @@ trait CrudConfig {
                             } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'article')) {
                                 $configCampos[$campo]['tipo'] = "article";
                                 $configCampos[$campo]['scope'] = "$tabla.$campo";
+                                $rulesStr .=$prefixRules . 'with_articles';
+                                $prefixRules = "|";
                             } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'url')) {
                                 $configCampos[$campo]['tipo'] = "url";
                                 $rulesStr .=$prefixRules . 'url';
@@ -659,14 +663,14 @@ trait CrudConfig {
                                     $prefixRules = "|";
                                 }
                             }
-                            if ($datos['lenght'] > 0 && !(\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'file') || \Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'image'))) {
+                            if ($datos['lenght'] > 0  && $configCampos[$campo]['tipo'] != "article" &&  !(\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'file') || \Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'image'))) {
                                 $rulesStr .=$prefixRules . 'max:' . $datos['lenght'];
                                 $prefixRules = "|";
                             }
                             break;
                     }
                 }
-                if ($datos['notNull'] && $datos['type'] != 'boolean') {
+                if ($datos['notNull'] && $datos['type'] != 'boolean' && $configCampos[$campo]['tipo'] != "article") {
                     if ($configCampos[$campo]['tipo'] == "files" || $configCampos[$campo]['tipo'] == "file") {
                         $rulesStr .=$prefixRules . 'required_without:' . $campo . "_filereg";
                     } else {
@@ -681,7 +685,7 @@ trait CrudConfig {
                         $rulesStr .= ', ' . $columnComposite;
                     }
                     $prefixRules = "|";
-                } elseif ($datos['isUnique']) {
+                } elseif ($datos['isUnique'] && $configCampos[$campo]['tipo'] != "article") {
                     $rulesStr .=$prefixRules . 'unique_except:' . $tabla . ',' . $campo;
                     $prefixRules = "|";
                 }

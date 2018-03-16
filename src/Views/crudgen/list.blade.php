@@ -220,7 +220,7 @@ if (isset($config['render'])) {
                 {!! $value->{$columna}() !!}
                 @endif
                 @elseif ($datos['tipo']=="article" && class_exists(config('sirgrimorum.transarticles.default_articles_model')))
-                @transarticles($value->{$columna})
+                {!!TransArticles::get($value->{$columna})!!}
                 @elseif ($datos['tipo']=="url")
                 <a href='{{ $value->{$columna} }}' target='_blank'><i class="mt-2 fa fa-link fa-lg" aria-hidden="true"></i></a>
                 @elseif ($datos['tipo']=="file")
@@ -635,8 +635,8 @@ if (is_array($botones)) {
                                         @else
                                                 form_string = "<form method=\"{{strtoupper($typeAjax)}}\" action=\"" + url + "\" accept-charset=\"UTF-8\">"
                                                 var datos = {!! $data !!};
-                                        $.each({!! $data !!}, function(key, value){
-                                        form_string = form_string + "<input name=\"" + key + "\" type=\"hidden\" value=\"" + value + "\">";
+                                        $.each(datos, function(key, value){
+                                        form_string = form_string + "<input name='" + key + "' type='hidden' value='" + value + "'>";
                                         });
                                         form_string = form_string + "</form>";
                                         form = $(form_string)

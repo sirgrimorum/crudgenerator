@@ -15,30 +15,29 @@ if ($dato == "") {
         $langColumn = config('sirgrimorum.transarticles.default_lang_column');
         $findArticle = config('sirgrimorum.transarticles.default_findarticle_function_name');
         foreach (config("sirgrimorum.crudgenerator.list_locales") as $localeCode) {
-            $articles = $modelClass::{$findArticle}($scope)->where($langColumn, "=", $localeCode)->first();
+            $articles = $modelClass::{$findArticle}($datos['scope'] . "." . $registro->getKey())->where($langColumn, "=", $localeCode)->first();
             if (isset($articles)) {
                 $dato[$localeCode] = $articles->content;
-            }else{
-                if (isset($datos["valor"])){
-                    if (is_array($datos["valor"])){
-                        if (isset($datos["valor"][$localeCode])){
+            } else {
+                if (isset($datos["valor"])) {
+                    if (is_array($datos["valor"])) {
+                        if (isset($datos["valor"][$localeCode])) {
                             $dato[$localeCode] = $datos["valor"][$localeCode];
-                        }else{
+                        } else {
                             $dato[$localeCode] = "";
                         }
-                    }else{
+                    } else {
                         $dato[$localeCode] = $datos["valor"];
                     }
-                }else{
+                } else {
                     $dato[$localeCode] = "";
                 }
             }
-            $dato[$localeCode] = \Sirgrimorum\TransArticles::get($datos['scope'] . "." . $registro->getKey());
+            //$dato[$localeCode] = \Sirgrimorum\TransArticles::get($datos['scope'] . "." . $registro->getKey());
         }
     } catch (Exception $ex) {
         $dato = "";
     }
-    App::setLocale($auxLocaleCode);
 }
 if ($dato == "") {
     if (isset($datos["valor"])) {
@@ -74,19 +73,21 @@ if (isset($datos["readonly"])) {
         <ul class="nav nav-pills mb-3" id="{{$tabla . '_' . $extraId . '_nav'}}" role="tablist">
             @foreach(config("sirgrimorum.crudgenerator.list_locales") as $localeCode)
             <li class="nav-item">
-                <a class="nav-link {{ ($loop->first) ? 'active': ''}}" id="{{$tabla . '_' . $extraId . '_nav_' . $localeCode}}" data-toggle="tab" href="#{{$tabla . '_' . $extraId . '_tab_' . $localeCode}}" role="tab" aria-controls="{{localeCode}}" aria-selected="true">{{ trans('crudgenerator::admin.layout.labels.'.$localeCode) }}</a>
+                <a class="nav-link {{ ($loop->first) ? 'active': ''}}" id="{{$tabla . '_' . $extraId . '_nav_' . $localeCode}}" data-toggle="tab" href="#{{$tabla . '_' . $extraId . '_tab_' . $localeCode}}" role="tab" aria-controls="{{$localeCode}}" aria-selected="true">{{ trans('crudgenerator::admin.layout.labels.'.$localeCode) }}</a>
             </li>
-            <div class="tab-content" id="{{$tabla . '_' . $extraId . '_tabContent_' . $localeCode}}">
-                <div class="tab-pane fade {{ ($loop->first) ? 'show active': ''}}" id="{{$tabla . '_' . $extraId . '_tab_' . $localeCode}}" role="tabpanel" aria-labelledby="{{$tabla . '_' . $extraId . '_nav_' . $localeCode}}">
-                    @if(is_array($dato))
-                    {{ Form::textarea($extraId. "[" . $localeCode ."]", $dato[$localeCode], array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $extraId . "_" . $localeCode,$readonly)) }}
-                    @else
-                    {{ Form::textarea($extraId. "[" . $localeCode ."]", $dato, array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $extraId . "_" . $localeCode,$readonly)) }}
-                    @endif
-                </div>
-            </div>
             @endforeach
         </ul>
+        <div class="tab-content" id="{{$tabla . '_' . $extraId . '_tabContent_' . $localeCode}}">
+            @foreach(config("sirgrimorum.crudgenerator.list_locales") as $localeCode)
+            <div class="tab-pane fade {{ ($loop->first) ? 'show active': ''}}" id="{{$tabla . '_' . $extraId . '_tab_' . $localeCode}}" role="tabpanel" aria-labelledby="{{$tabla . '_' . $extraId . '_nav_' . $localeCode}}">
+                @if(is_array($dato))
+                {{ Form::textarea($extraId. "[" . $localeCode ."]", $dato[$localeCode], array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $extraId . "_" . $localeCode,$readonly)) }}
+                @else
+                {{ Form::textarea($extraId. "[" . $localeCode ."]", $dato, array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $extraId . "_" . $localeCode,$readonly)) }}
+                @endif
+            </div>
+            @endforeach
+        </div>
         @if ($error_campo)
         <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}

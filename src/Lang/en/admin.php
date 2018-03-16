@@ -34,7 +34,7 @@ return [
         'labels' => [
             'home' => 'Home',
             'en' => 'English',
-            'es' => 'Español',
+            'es' => 'Spanish',
             'close' => 'Close',
             'create' => 'Create',
             'remove' => 'Remove',
@@ -43,6 +43,7 @@ return [
             'data' => 'Data',
             'yes' => 'Yes',
             'no' => 'No',
+            'and' => 'and',
             'confirm_title' => '',
             'name' => 'Name',
             'file' => 'File',
@@ -92,6 +93,7 @@ return [
     ],
     'error_messages' => [
         'unique_composite' => 'Already exists a row with the same combination of :fields',
+        'with_articles' => 'Is required to set a version in :langs for the field ":attribute"',
     ],
         ]
 ?>
