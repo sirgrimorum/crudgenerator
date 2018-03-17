@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\AliasLoader;
 use Sirgrimorum\CrudGenerator\ExtendedValidator;
+use Illuminate\Support\Facades\Blade;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
 use Illuminate\Support\Facades\Artisan;
 use Pusher\Pusher;
@@ -88,6 +89,38 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
             return new ExtendedValidator($translator, $data, $rules, $messages, $customAttributes);
         }
         );
+        
+        /**
+         * Blade directives
+         */
+        Blade::directive('handleCrudMessages', function($tipo) {
+            $tipo = str_replace([' ', '"', "'"], '', $tipo);
+            $html = "";
+            switch($tipo){
+                case 'error':
+                    $html = "<?php if (session(config('sirgrimorum.crudgenerator.error_messages_key'))) : ?>".
+                        '<div class="container">'.
+                        '    <div class="alert alert-danger alert-dismissible fade show" role="alert">'.
+                        '        <button type="button" class="close" data-dismiss="alert" aria-label="{{trans("crudgenerator::admin.layout.labels.close")}}"><span aria-hidden="true">&times;</span></button>'.
+                        '        {!! session(config("sirgrimorum.crudgenerator.error_messages_key")) !!}'.
+                        '    </div>'.
+                        '</div>'.
+                        "<?php endif; ?>";
+                    break;
+                case 'status':
+                    $html = "<?php if (session(config('sirgrimorum.crudgenerator.status_messages_key'))) : ?>".
+                        '<div class="container">'.
+                        '    <div class="alert alert-success alert-dismissible fade show" role="alert">'.
+                        '        <button type="button" class="close" data-dismiss="alert" aria-label="{{trans("crudgenerator::admin.layout.labels.close")}}"><span aria-hidden="true">&times;</span></button>'.
+                        '        {!! session(config("sirgrimorum.crudgenerator.status_messages_key")) !!}'.
+                        '    </div>'.
+                        '</div>'.
+                        "<?php endif; ?>";
+                    break;
+            }
+            //echo $html;
+            return $html;
+        });
         /**
          * Console commands
          */

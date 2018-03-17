@@ -4,6 +4,12 @@
     {!! Session::pull(config("sirgrimorum.crudgenerator.status_messages_key")) !!}
 </div>
 @endif
+@if (Session::has(config("sirgrimorum.crudgenerator.error_messages_key")))
+<div class="alert alert-danger alert-dismissible fade show">
+    <button type="button" class="close" data-dismiss="alert" aria-label="{{trans('crudgenerator::admin.layout.labels.close')}}"><span aria-hidden="true">&times;</span></button>
+    {!! Session::pull(config("sirgrimorum.crudgenerator.error_messages_key")) !!}
+</div>
+@endif
 @if (count($errors->all())>0)
 <div class="alert alert-danger alert-dismissible fade show">
     <button type="button" class="close" data-dismiss="alert" aria-label="{{trans('crudgenerator::admin.layout.labels.close')}}"><span aria-hidden="true">&times;</span></button>

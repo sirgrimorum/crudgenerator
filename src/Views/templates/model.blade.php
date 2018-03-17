@@ -2,7 +2,7 @@
 
 namespace {!! $config['nameSpace'] !!};
 
-@if(strtolower($config["model"])=="user)
+@if(strtolower($config["model"])=="user")
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 @else
@@ -11,13 +11,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class {Model} extends Model {
 
-    @if(strtolower($config["model"])=="user)
+    @if(strtolower($config['model'])=='user')
     use Notifiable;
     
     /**
      * The attributes that are mass assignable.
      *
-     * @var array
+     * {{"@"}}var array
      */
     protected $fillable = [
         'name', 'email', 'password',
@@ -26,7 +26,7 @@ class {Model} extends Model {
     /**
      * The attributes that should be hidden for arrays.
      *
-     * @var array
+     * {{"@"}}var array
      */
     protected $hidden = [
         'password',
@@ -36,7 +36,7 @@ class {Model} extends Model {
     /**
      * The attributes that should be hidden for arrays.
      *
-     * @var array
+     * {{"@"}}var array
      */
     protected $hidden = [
         'created_at',
@@ -56,17 +56,17 @@ class {Model} extends Model {
     protected $with = [
     @if (isset($config['hasmany']))
     @foreach ($config['hasmany'] as $relacion)
-        '{{$relacion['cliente']}}',
+        //'{{$relacion['cliente']}}',
     @endforeach
     @endif
     @if (isset($config['belongsto']))
     @foreach ($config['belongsto'] as $relacion)
-        '{{$relacion['patron_model_name_single']}}',
+        //'{{$relacion['patron_model_name_single']}}',
     @endforeach
     @endif
     @if (isset($config['manytomany']))
     @foreach ($config['manytomany'] as $relacion)
-        '{{$relacion['otro']}}',
+        //'{{$relacion['otro']}}',
     @endforeach
     @endif
     ];
@@ -114,9 +114,9 @@ class {Model} extends Model {
     /**
      * Get the flied value using the configuration array
      * 
-     * @param string $key The field to return
-     * @param boolean $justValue Optional If return just the formated value (true) or an array with 3 elements, label, value and data (detailed data for the field)
-     * @return mixed
+     * {{"@"}}param string $key The field to return
+     * {{"@"}}param boolean $justValue Optional If return just the formated value (true) or an array with 3 elements, label, value and data (detailed data for the field)
+     * {{"@"}}return mixed
      */
     public function get($key, $justValue = true) {
         $celda = \Sirgrimorum\CrudGenerator\CrudGenerator::field_array($this, $key);
