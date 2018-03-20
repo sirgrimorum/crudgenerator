@@ -374,8 +374,14 @@ trait CrudModels {
                     $timezone = config("app.timezone");
                 }
                 $date = new \Carbon\Carbon($dato, $timezone);
-                $dato = $date->format($format);
-            }else{
+                if (stripos($format, "%") !== false) {
+                    setlocale(LC_TIME, App::getLocale());
+                    Carbon\Carbon::setUtf8(true);
+                    $dato = $date->formatLocalized($format);
+                } else {
+                    $dato = $date->format($format);
+                }
+            } else {
                 $date = $value->{$columna};
             }
             $celda['data'] = $date;

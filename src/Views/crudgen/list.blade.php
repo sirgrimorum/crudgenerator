@@ -211,7 +211,13 @@ if (isset($config['render'])) {
                         $timezone = config("app.timezone");
                     }
                     $date = new \Carbon\Carbon($dato, $timezone);
-                    $dato = $date->format($format);
+                    if (stripos($format, "%")!==false){
+                        setlocale(LC_TIME, App::getLocale());
+                        Carbon\Carbon::setUtf8(true);
+                        $dato = $date->formatLocalized($format);
+                    }else{
+                        $dato = $date->format($format);
+                    }
                 }
                 echo $dato;
                 ?>
