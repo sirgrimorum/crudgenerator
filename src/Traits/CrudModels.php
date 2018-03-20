@@ -375,8 +375,10 @@ trait CrudModels {
                 }
                 $date = new \Carbon\Carbon($dato, $timezone);
                 $dato = $date->format($format);
+            }else{
+                $date = $value->{$columna};
             }
-            $celda['data'] = $value->{$columna};
+            $celda['data'] = $date;
             $celda['label'] = $datos['label'];
             $celda['value'] = $dato;
         } elseif ($datos['tipo'] == "url") {
