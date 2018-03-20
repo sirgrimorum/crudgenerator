@@ -966,7 +966,7 @@ trait CrudModels {
                                     $timezone = config("app.timezone");
                                 }
                                 $date = new \Carbon\Carbon($input->input($campo), $timezone);
-                                $objModelo->{$campo} = $date->getTimestamp();
+                                $objModelo->{$campo} = $date->format("Y-m-d H:i:s");
                             } elseif (isset($detalles['valor'])) {
                                 if (isset($detalles["timezone"])) {
                                     $timezone = $detalles["timezone"];
@@ -974,7 +974,7 @@ trait CrudModels {
                                     $timezone = config("app.timezone");
                                 }
                                 $date = new \Carbon\Carbon($detalles['valor'], $timezone);
-                                $objModelo->{$campo} = $date->getTimestamp();
+                                $objModelo->{$campo} = $date->format("Y-m-d H:i:s");
                             }
                             break;
                         case 'file':
