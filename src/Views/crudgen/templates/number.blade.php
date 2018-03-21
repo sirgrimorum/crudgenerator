@@ -56,11 +56,11 @@ if (isset($datos['placeholder'])) {
             @if (isset($datos["post"]))
             <div class="input-group-append"><div class="input-group-text">{{ $datos["post"] }}</div></div>
             @endif
+            @if ($error_campo)
+            <div class="invalid-feedback">
+                {{ $errors->get($columna)[0] }}
+            </div>
+            @endif
         </div>
-        @if ($error_campo)
-        <div class="invalid-feedback">
-            {{ $errors->get($columna)[0] }}
-        </div>
-        @endif
     </div>
 </div>
