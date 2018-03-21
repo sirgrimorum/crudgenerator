@@ -17,6 +17,9 @@ $url = $config['url'];
 if (!isset($config['class_form'])) {
     $config['class_form'] = '';
 }
+if (!isset($config['class_formgroup'])) {
+    $config['class_formgroup'] = '';
+}
 if (!isset($config['class_labelcont'])) {
     $config['class_labelcont'] = 'col-xs-12 col-sm-3 col-md-2';
 }

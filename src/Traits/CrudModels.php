@@ -193,7 +193,7 @@ trait CrudModels {
         $celdaData = [];
         $auxcelda = "";
         if (isset($datos["pre"])) {
-            $celdaData["pre"] = $datos;
+            $celdaData["pre"] = $datos["pre"];
         }
         if ($datos['tipo'] == "relationship") {
             if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($value, $columna)) {
@@ -375,8 +375,8 @@ trait CrudModels {
                 }
                 $date = new \Carbon\Carbon($dato, $timezone);
                 if (stripos($format, "%") !== false) {
-                    setlocale(LC_TIME, App::getLocale());
-                    Carbon\Carbon::setUtf8(true);
+                    setlocale(LC_TIME, \App::getLocale());
+                    \Carbon\Carbon::setUtf8(true);
                     $dato = $date->formatLocalized($format);
                 } else {
                     $dato = $date->format($format);
@@ -505,6 +505,12 @@ trait CrudModels {
             $celda = $celdaData;
         } else {
             $celda = array_merge($celda, $celdaData);
+        }
+        if (isset($celda['pre']) && is_string($celda['value'])) {
+            $celda['value'] = $celda['pre'] . $celda['value'];
+        }
+        if (isset($celda['post']) && is_string($celda['value'])) {
+            $celda['value'] = $celda['value'] . str_start($celda['post'], " ");
         }
         return $celda;
     }

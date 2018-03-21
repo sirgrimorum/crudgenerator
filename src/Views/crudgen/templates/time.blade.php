@@ -17,9 +17,10 @@ if ($dato == "") {
         $dato = $datos["valor"];
     }
 }
-$format = "HH:mm:ss";
+$format = "H:i:s";
 if (isset($datos["format"]["carbon"])) {
     $format = $datos["format"]["carbon"];
+    $format = "H:i:s";
 } elseif (isset(trans("crudgenerator::admin.formats.carbon")["time"])) {
     $format = trans("crudgenerator::admin.formats.carbon.time");
 }
@@ -30,9 +31,15 @@ if ($dato != "") {
         $timezone = config("app.timezone");
     }
     $date = new \Carbon\Carbon($dato, $timezone);
-    $dato = $date->format($format);
+    if (stripos($format, "%")!==false){
+        setlocale(LC_TIME, App::getLocale());
+        Carbon\Carbon::setUtf8(true);
+        $dato = $date->formatLocalized($format);
+    }else{
+        $dato = $date->format($format);
+    }
 }
-$format = "YYYY-MM-DD HH:mm:ss";
+$format = "HH:mm:ss";
 if (isset($datos["format"]["moment"])) {
     $format = $datos["format"]["moment"];
 } elseif (isset(trans("crudgenerator::admin.formats.moment")["datetime"])) {
@@ -85,7 +92,8 @@ if ($js_section != "") {
             locale: '{{ App::getLocale() }}',
             format: '{{$format}}',
             inline: true,
-            sideBySide: true
+            sideBySide: true,
+            extraFormats: ["HH:mm:ss"],
         });
     });
 </script>

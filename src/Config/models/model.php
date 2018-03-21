@@ -73,7 +73,7 @@
                     "scope" => "[ScopeBase for the Transarticles table, use dot notation if needed]", // for article types
                     "format" => [(number of decimals), "[decimal separator]", "[mil separator]"], // for number and function types, aplies format to the number []
                     "format" => [ // for the date, time and datetime types, carbon and moment results must be equivalents
-                        "carbon" => "[carbon datetime format text]", // if not present defaults are "Y-m-d" for date or "H:i:s" for time or "Y-m-d H:i:s" for datetime, use % for localized format
+                        "carbon" => "[carbon datetime format text]", // if not present defaults are "Y-m-d" for date or "H:i:s" for time or "Y-m-d H:i:s" for datetime, use % for localized format using strftime ej: '%A %d %B %Y'
                         "moment" => "[moment datetime format text]", // if not present defaults are "YYYY-MM-DD" for date or "HH:mm:ss" for time or "YYYY-MM-DD HH:mm:ss" for datetime
                     ]
                     "timezone" => "[time zone text]", // for the date and datetime types, if not present default is timezone in app.php config
