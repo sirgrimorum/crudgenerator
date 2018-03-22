@@ -202,7 +202,9 @@ trait CrudConfig {
         if ($request->has("__parametros")) {
             $parametros = json_decode($request->__parametros, true);
             if (is_array($parametros)) {
-                $newConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfig($parametros["modelo"], $parametros["smartMerge"], $parametros["config"], $parametros["baseConfig"], $parametros["trans"], $parametros["fail"], $parametros["override"]);
+                if ($parametros["modelo"]==$modelo){
+                    $newConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfig($parametros["modelo"], $parametros["smartMerge"], $parametros["config"], $parametros["baseConfig"], $parametros["trans"], $parametros["fail"], $parametros["override"]);
+                }
             }
         }
         if ($newConfig == "") {
