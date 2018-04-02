@@ -93,8 +93,12 @@ foreach ($campos as $columna => $datos) {
         }
     }
 }/**/
-
-if (count($botones) > 0) {
+if (is_array($botones)){
+    if (count($botones)==0){
+        $botones = "";
+    }
+}
+if ($botones != "") {
     if (is_array($botones)) {
         echo '<div class="form-group row">';
         foreach ($botones as $boton) {
