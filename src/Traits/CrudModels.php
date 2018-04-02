@@ -375,7 +375,7 @@ trait CrudModels {
                 }
                 $date = new \Carbon\Carbon($dato, $timezone);
                 if (stripos($format, "%") !== false) {
-                    setlocale(LC_TIME, \App::getLocale());
+                    setlocale(LC_TIME, \App::getLocale(), strtoupper(\App::getLocale()), \App::getLocale() . "_" . strtoupper(\App::getLocale()));
                     \Carbon\Carbon::setUtf8(true);
                     $dato = $date->formatLocalized($format);
                 } else {
