@@ -95,6 +95,10 @@ if ($js_section != "") {
             sideBySide: true,
             extraFormats: ["YYYY-MM-DD"],
         });
+        $('#{{ $tabla . "_" . $extraId }}').closest("form").on('submit',function(e){
+            var momento = $('#{{ $tabla . "_" . $extraId }}').data("DateTimePicker").date();
+            $('#{{ $tabla . "_" . $extraId }}').val(momento.format("YYYY-MM-DD"));
+        });
     });
 </script>
 <?php
