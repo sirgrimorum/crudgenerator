@@ -10,12 +10,12 @@ CKEDITOR.editorConfig = function (config) {
     config.skin='office2013';//flat, office2013, kama, moono, minimalist, icy_orange, atlas, prestige
     //config.uiColor = '#bbbbbb';
     config.toolbarCanCollapse = true;
-
-
+    config.extraPlugins = 'ckawesome';
     //config.allowedContent = true;
     
-    config.extraAllowedContent = 'div(*)[data-href,data-target,data-toggle,aria-expanded,aria-controls,role]; p(*); h3(*); h4(*); a(*)[data-target,data-toggle,aria-expanded,aria-controls,role]; button(*)[data-target,data-toggle,aria-expanded,aria-controls,role]';
+    config.extraAllowedContent = 'div(*)[id,data-href,data-parent,data-target,data-toggle,aria-expanded,aria-controls,role,data-ride,style];ol(*); li(*)[data-target,data-slide-to,style]; p(*); h3(*); h4(*); a(*)[data-slide,data-target,data-parent,data-toggle,aria-expanded,aria-controls,role]; button(*)[data-target,data-parent,data-toggle,aria-expanded,aria-controls,role]; span(*)[aria-hidden,style];*[id]';
     config.contentsCss = urlAssetsCkEditor;
+    config.fontawesomePath = urlAssetsCkEditor;
     
     //config.extraAllowedContent = 'div(col-md-*,container*,row, panel*,well*,list*,active*,collapse*,data*,role*),p(list*),h3(list*),h4(list*),a(list*,collapse*)';
     
@@ -33,7 +33,7 @@ CKEDITOR.editorConfig = function (config) {
 		{ name: 'colors', groups: [ 'colors' ] },
 		'/',
 		{ name: 'links', groups: [ 'links' ] },
-		{ name: 'insert', groups: [ 'insert' ] },
+		{ name: 'insert', groups: [ 'insert','ckawesome'] },
 		{ name: 'tools', groups: [ 'tools' ] },
 		{ name: 'others', groups: [ 'others' ] },
 		{ name: 'about', groups: [ 'about' ] }
