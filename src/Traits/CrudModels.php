@@ -471,7 +471,7 @@ trait CrudModels {
                 foreach ($auxprevios as $datoReg) {
                     $filename = str_start($datoReg->file, str_finish($datos['path'], '\\'));
                     $tipoFile = \Sirgrimorum\CrudGenerator\CrudGenerator::filenameIs($datoReg->file, $datos);
-                    $celda['data'] = [
+                    $celda['data'][] = [
                         "name" => $datoReg->name,
                         "value" => $filename,
                         "type" => $tipoFile
