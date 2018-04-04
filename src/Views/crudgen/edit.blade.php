@@ -46,7 +46,7 @@ if (!isset($config['class_input'])) {
     $config['class_input'] = '';
 }
 if (!isset($config['class_offset'])) {
-    $config['class_offset'] = 'col-xs-offset-0 col-sm-offset-4 col-md-offset-2';
+    $config['class_offset'] = 'offset-xs-0 offset-sm-4 offset-md-2';
 }
 if (!isset($config['class_button'])) {
     $config['class_button'] = 'btn btn-primary';

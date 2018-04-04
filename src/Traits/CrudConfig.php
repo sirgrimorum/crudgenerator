@@ -626,6 +626,7 @@ trait CrudConfig {
                                 'tipo' => 'checkbox',
                                 'label' => $campo,
                                 'value' => true,
+                                'unchecked' => 0,
                             ];
                             break;
                         case 'text':

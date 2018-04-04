@@ -27,9 +27,14 @@ if ($errores == true) {
         $claseError = 'is-valid';
     }
 }
+$valor_unchecked = 0;
+if (isset($datos['unchecked'])){
+    $valor_unchecked = $datos['unchecked'];
+}
 ?>
 <div class="form-group row {{$config['class_formgroup']}}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class="{{ $config['class_offset'] }} {{ $config['class_divinput'] }}">
+        {{ Form::hidden($extraId, $valor_unchecked, array('class' => 'form-check-input ' . $claseError , 'id' => $tabla . '_' . $extraId . '_unchecked')) }}
         @if (is_array($datos['value']))
         @foreach($datos['value'] as $valor=>$datos2)
         <?php

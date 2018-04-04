@@ -40,6 +40,7 @@
                     "description" => "[description text]", // use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.descriptions.name__",
                     "valor" => "[default value of the field]", // use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
                     "value" => "[value or lists of values to be taken by de field]", // required for checkbox and radio types, mainly for the checkbox and radio use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
+                    "unchecked" => "[value to be taken by de field when unchecked]", // for checkbox and radio types, default is 0, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
                     "enlace" => "[url for link in show or lists views]", // use :modelId or :modelName to change it for de id or name of the object, use the 'trans_prefix' value if you want localization ej: url("__trans__crudgenerator::article.menu.links.usuario__", array(":modelId"),
                     "conditional" => [ // Only show if all of the conditions are fullfill. use :! for negation and :< :> := for operations and {:empty] or {:notempty}
                         'campo'=>'valor',
