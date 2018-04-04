@@ -435,6 +435,10 @@ trait CrudModels {
                     }
                 }
             }
+        } elseif ($datos['tipo'] == "json") {
+            $celda['data'] = json_decode($value->{$columna});
+            $celda['label'] = $datos['label'];
+            $celda['value'] = $value->{$columna};
         } elseif ($datos['tipo'] == "file") {
             if ($value->{$columna} == "") {
                 $celda = '';
@@ -903,6 +907,7 @@ trait CrudModels {
                         case 'text':
                         case 'url':
                         case 'textarea':
+                        case 'json':
                             if ($input->has($campo)) {
                                 $objModelo->{$campo} = $input->input($campo);
                             } elseif (isset($detalles['valor'])) {

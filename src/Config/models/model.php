@@ -34,7 +34,7 @@
             "post_html" => "[Html code]", // optional code to be inserted before the form tag closing
             "campos" => [ // list of fields structure. For smart merge, set the value to "notThisTime" to CrudLoader to remove this attribute or field
                 "[field/attribute name]" => [ //as apears in the model if used for db save with url "Sirgrimorum_CrudAdministrator"
-                    "tipo" => "[type of the field]", // required for all types, options are: "function", "checkbox", "date", "datetime", "time", "email", "url", "file", "files" (multiple files in a single field with Json notation, recomended, text type), "hidden", "html", "article" (Translation from Articles table, needs sirgrimorum/transarticles package), "number", "password", "radio", "relationship" (belongsTo one to many), "relationships" (many to many), "relationshipssel" (many to many with pivot table), "select", "slider", "text", "textarea"
+                    "tipo" => "[type of the field]", // required for all types, options are: "function", "checkbox", "date", "datetime", "time", "email", "url", "file", "files" (multiple files in a single field with Json notation, recomended, text type), "hidden", "html", "article" (Translation from Articles table, needs sirgrimorum/transarticles package), "number", "password", "radio", "relationship" (belongsTo one to many), "relationships" (many to many), "relationshipssel" (many to many with pivot table), "select", "slider", "text", "textarea", "json"
                     "label" => "[text of the label]", // required for all types, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.labels.name__",
                     "placeholder" => "[placeholder text]", // required for text, textarea, email, password and number types, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.placeholders.name__",
                     "description" => "[description text]", // use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.descriptions.name__",
@@ -94,6 +94,7 @@
                    "nodb" => "nodb", // for all types, if set means is not a field to use to update the model (just for show) when url is "Sirgrimorum_CrudAdministrator" and hide the field in create
                    "pre_html" => "[Html code]", // for all types, code to be inserted before the <div class="form-group row"> tag opening for this field
                    "post_html" => "[Html code]", // for all types, code to be inserted after the <div class="form-group row"> tag closing for this field
+                   "es_html" => true, // for article types, if use a wysig editor or not
                 ],
             ],
             "rules" => [ //the array contining the validation rules. If not here, it whill search for them in the model, public property with the same name

@@ -2,6 +2,9 @@
 @include("sirgrimorum::crudgen.templates.html", ['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$modelo, 'action'=>$action])
 @else
 <?php
+if (!isset($datos['es_html'])){
+    $datos['es_html']==true;
+}
 if (isset($config["extraId"])) {
     $extraId = $config['extraId'];
 } else {
@@ -95,6 +98,7 @@ if (isset($datos["readonly"])) {
         @endif
     </div>
 </div>
+@if ($datos['es_html']==true)
 <?php
 if ($js_section != "") {
     ?>
@@ -116,4 +120,5 @@ if ($js_section != "") {
     <?php
 }
 ?>
+@endif
 @endif

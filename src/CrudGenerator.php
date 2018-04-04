@@ -89,6 +89,7 @@ class CrudGenerator {
                         'tieneSelect' => CrudGenerator::hasTipo($config, ['select', 'relationship', 'relationships']),
                         'tieneSearch' => CrudGenerator::hasTipo($config, [ 'relationshipssel']),
                         'tieneFile' => CrudGenerator::hasTipo($config, [ 'file', 'files']),
+                        'tieneJson' => CrudGenerator::hasTipo($config, [ 'json']),
                         'js_section' => $js_section,
                         'css_section' => $css_section,
                         'modelo' => $modelo
@@ -190,6 +191,7 @@ class CrudGenerator {
                     'tieneSelect' => CrudGenerator::hasTipo($config, ['select', 'relationship', 'relationships']),
                     'tieneSearch' => CrudGenerator::hasTipo($config, [ 'relationshipssel']),
                     'tieneFile' => CrudGenerator::hasTipo($config, [ 'file', 'files']),
+                    'tieneJson' => CrudGenerator::hasTipo($config, [ 'json']),
                     'js_section' => $js_section,
                     'css_section' => $css_section,
                     'modelo' => $modelo

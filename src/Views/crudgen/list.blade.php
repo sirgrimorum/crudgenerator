@@ -233,6 +233,8 @@ if (isset($config['render'])) {
                 @endif
                 @elseif ($datos['tipo']=="article" && class_exists(config('sirgrimorum.transarticles.default_articles_model')))
                 {!!TransArticles::get($value->{$columna})!!}
+                @elseif ($datos['tipo']=="json")
+                <pre>{!!print_r($value->{$columna},true)!!}</pre>
                 @elseif ($datos['tipo']=="url")
                 <a href='{{ $value->{$columna} }}' target='_blank'><i class="mt-2 fa fa-link fa-lg" aria-hidden="true"></i></a>
                 @elseif ($datos['tipo']=="file")

@@ -45,10 +45,12 @@ return [
             'no' => 'No',
             'and' => 'y',
             'confirm_title' => '',
+            'error_json_title' => 'Error de sintaxis en el Json',
             'name' => 'Nombre',
             'file' => 'Archivo',
             'new_file' => 'Nuevo Archivo',
             'choose_file' => 'Seleccione un archivo',
+            'pretty_print' => 'Dar formato',
         ],
     ],
     'privado' => [
@@ -77,6 +79,7 @@ return [
     ],
     'messages' => [
         'permission' => 'No tiene permiso para ejecutar esta acción',
+        'error_json' => '',
         'confirm_destroy' => '¿Está seguro que desea eliminar el registro ":modelName"?',
         'confirm_removepivot' => '¿Está seguro que desea quitar la referencia al registro ":modelName"?',
         'confirm_removefile' => '¿Está seguro que desea quitar y eliminar el archivo ":modelName"?',

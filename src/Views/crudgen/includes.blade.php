@@ -1,20 +1,22 @@
 <?php
-if ($tieneSlider || $tieneDate || $tieneSelect || $tieneSearch || $tieneFile) {
+if ($tieneSlider || $tieneDate || $tieneSelect || $tieneSearch || $tieneFile || $tieneJson) {
     if ($css_section != "") {
         ?>
         @push($css_section)
         <?php
+    }
+    if ($tieneJson || $tieneSearch || $tieneFile) {
+        if (str_contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
+            echo '<link href="' . config("sirgrimorum.crudgenerator.confirm_path") . '" rel="stylesheet" type="text/css">';
+        } else {
+            echo '<link href="' . asset(config("sirgrimorum.crudgenerator.confirm_path") . "/css/jquery-confirm.min.css") . '" rel="stylesheet" type="text/css">';
+        }
     }
     if ($tieneSearch) {
         if (str_contains(config("sirgrimorum.crudgenerator.typeahead_path"), ['http', '://'])) {
             echo '<link href="' . config("sirgrimorum.crudgenerator.typeahead_path") . '/jquery.typeahead.min.css" rel="stylesheet" type="text/css">';
         } else {
             echo '<link href="' . asset(config("sirgrimorum.crudgenerator.typeahead_path") . '/jquery.typeahead.min.css') . '" rel="stylesheet">';
-        }
-        if (str_contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
-            echo '<link href="' . config("sirgrimorum.crudgenerator.confirm_path") . '" rel="stylesheet" type="text/css">';
-        } else {
-            echo '<link href="' . asset(config("sirgrimorum.crudgenerator.confirm_path") . "/css/jquery-confirm.min.css") . '" rel="stylesheet" type="text/css">';
         }
     }
     if ($tieneSelect) {
@@ -91,7 +93,7 @@ if ($tieneSlider || $tieneDate || $tieneSelect || $tieneSearch || $tieneFile) {
 }
 list($condiciones,$validadores)= Sirgrimorum\CrudGenerator\CrudGenerator::buildConditionalArray($config,$action);
 //echo "<p>Condiciones</p><pre>" . print_r([$condiciones,$validadores], true) . "</pre>";
-if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || $tieneFile || count($condiciones)>0) {
+if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || $tieneFile || $tieneJson || count($condiciones)>0) {
     if ($js_section != "") {
         ?>
         @push($js_section)
@@ -103,6 +105,8 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
         } else {
             echo '<script src="' . asset(config("sirgrimorum.crudgenerator.typeahead_path") . '/jquery.typeahead.min.js') . '"></script>';
         }
+    }
+    if ($tieneSearch || $tieneFile || $tieneJson) {
         if (str_contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
             echo '<script src="' . config("sirgrimorum.crudgenerator.confirm_path") . '"></script>';
             echo '<script src="' . asset("vendor/sirgrimorum/confirm/js/rails.js") . '"></script>';
@@ -295,6 +299,28 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
                     });
                 }else{
                     $(objeto).parents(".input-group").remove();
+                }
+            }
+        </script>
+        <?php
+    }
+    if ($tieneJson) {
+        ?>
+        <script>
+            function prettyPrint(idElement) {
+                try {
+                    var ugly = document.getElementById(idElement).value;
+                    var obj = JSON.parse(ugly);
+                    var pretty = JSON.stringify(obj, undefined, 4);
+                    document.getElementById(idElement).value = pretty;
+                }catch(err) {
+                    confirmTitle = '{{trans('crudgenerator::admin.layout.labels.error_json_title')}}';
+                    confirmContent = '{!!trans('crudgenerator::admin.messages.error_json')!!}<br>' + err.message;
+                    $.alert({
+                        theme: '{{config('sirgrimorum.crudgenerator.confirm_theme')}}',
+                        title: confirmTitle,
+                        content: confirmContent,
+                    });
                 }
             }
         </script>

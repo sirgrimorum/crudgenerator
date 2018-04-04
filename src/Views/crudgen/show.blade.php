@@ -443,6 +443,8 @@ $identificador = $config['id'];
                                 }
                             } elseif ($datos['tipo'] == "article" && class_exists(config('sirgrimorum.transarticles.default_articles_model'))) {
                                 echo TransArticles::get($registro->{$columna});
+                            } elseif ($datos['tipo'] == "json") {
+                                echo '<pre>' . print_r($registro->{$columna},true) . '</pre>';
                             } else {
                                 echo $registro->{$columna};
                             }

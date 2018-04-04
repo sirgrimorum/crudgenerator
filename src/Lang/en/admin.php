@@ -45,10 +45,12 @@ return [
             'no' => 'No',
             'and' => 'and',
             'confirm_title' => '',
+            'error_json_title' => 'Syntax error in the Json',
             'name' => 'Name',
             'file' => 'File',
             'new_file' => 'New File',
             'choose_file' => 'Choose File',
+            'pretty_print' => 'Pretty Print',
         ],
     ],
     'privado' => [
@@ -77,6 +79,7 @@ return [
     ],
     'messages'=>[
         'permission' => "You don't have permission to execute this action",
+        'error_json' => '',
         'confirm_destroy' => 'Are you sure to delete ":modelName"?',
         'destroy_success' => '<strong>Great!</strong> ":modelName" has been deleted',
         'confirm_removepivot' => 'Are you sure to remove the reference to ":modelName"?',

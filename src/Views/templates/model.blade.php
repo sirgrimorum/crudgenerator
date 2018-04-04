@@ -5,10 +5,15 @@ namespace {!! $config['nameSpace'] !!};
 @if(strtolower($config["model"])=="user")
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-@endif
+@else
 use Illuminate\Database\Eloquent\Model;
+@endif
 
+@if(strtolower($config["model"])=="user")
+class {Model} extends Authenticatable {
+@else
 class {Model} extends Model {
+@endif
 
     @if(strtolower($config['model'])=='user')
     use Notifiable;
