@@ -3,7 +3,7 @@
 @else
 <?php
 if (!isset($datos['es_html'])){
-    $datos['es_html']==true;
+    $datos['es_html']=true;
 }
 if (isset($config["extraId"])) {
     $extraId = $config['extraId'];
