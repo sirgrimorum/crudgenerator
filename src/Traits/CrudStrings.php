@@ -338,14 +338,14 @@ trait CrudStrings {
                         if (!class_exists($modeloClass)) {
                             $modeloClass = "Sirgrimorum\\TransArticles\\Models\\" . $modelo;
                             if (!class_exists($modeloClass)) {
-                                if (strtolower($modelo) == "paymentpass"){
+                                if (strtolower($modelo) == "paymentpass") {
                                     $modeloClass = "Sirgrimorum\\PaymentPass\\Models\\PaymentPass";
                                     if (!class_exists($modeloClass)) {
                                         //return 'There is no Model class for the model name "' . $modelo . '" ind the \Sirgrimorum\CrudGenerator\CrudGenerator::getConfig(String $modelo)';
                                         return false;
                                     }
-                                }else{
-                                     return false;
+                                } else {
+                                    return false;
                                 }
                             }
                         }
@@ -668,6 +668,19 @@ trait CrudStrings {
         }
         //$route = $app->translator->trans('crudgenerator::admin.routes.' . $route);
         return $base . $transroute;
+    }
+
+    /**
+     * Translate a route (for use in routes definition)
+     * @param string $route The route
+     * @return string
+     */
+    public static function transRouteExternal($route) {
+        $app = app();
+        $locale = \Sirgrimorum\CrudGenerator\CrudGenerator::setLocale();
+        //$locale = $app->getLocale();
+        $transroute = $app->translator->trans($route, [], $locale);
+        return $transroute;
     }
 
     /**
