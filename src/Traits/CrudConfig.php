@@ -252,7 +252,7 @@ trait CrudConfig {
         $columns["belongsto"] = $auxArr;
         foreach ($columns["belongsto"] as $indice => $relacion) {
             //$singular = substr($relacion['patron'], 0, strlen($relacion['patron']) - 1);
-            $singular = str_sincular($relacion['patron']);
+            $singular = str_singular($relacion['patron']);
             $columns["belongsto"][$indice]['patron_model_name_single'] = $singular;
             if (!$columns["belongsto"][$indice]['patron_model'] = \Sirgrimorum\CrudGenerator\CrudGenerator::getModel($singular, "App\\" . ucfirst($singular))) {
                 unset($columns["belongsto"][$indice]);
