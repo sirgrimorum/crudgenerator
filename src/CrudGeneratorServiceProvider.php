@@ -184,7 +184,8 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
             $this->line("Preparing model attributes");
             $bar = $this->output->createProgressBar(4);
             $options = $this->options('path');
-            $modelName = $singular = substr($table, 0, strlen($table) - 1);
+            //$modelName = $singular = substr($table, 0, strlen($table) - 1);
+            $modelName = $singular = str_singular($table);
             if ($options['path'] != "") {
                 $path = $options['path'];
             } else {

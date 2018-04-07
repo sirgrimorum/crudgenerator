@@ -204,7 +204,8 @@ class CrudController extends BaseController {
             $action = substr($request->route()->getName(), stripos($request->route()->getName(), "::") + 2);
         }
         $modelo = strtolower(class_basename($config["modelo"]));
-        $plural = $modelo . 's';
+        //$plural = $modelo . 's';
+        $plural = str_plural($modelo);
         $modeloM = ucfirst($modelo);
         $mensajes = [];
         if (is_array(trans("crudgenerator::admin.messages"))) {
