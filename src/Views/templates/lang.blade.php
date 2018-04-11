@@ -3,7 +3,7 @@
 return [
     "labels" => [
         "{model}" => "{Model}",
-        "{{str_plural($modelo)}}" => "{{ucfirst(strstr_plural($modelo))}}",
+        "{{str_plural($modelo)}}" => "{{ucfirst(str_plural($modelo))}}",
         "plural" => "{{ucfirst(str_plural($modelo))}}",
         "singular" => "{Model}",
         @foreach($config['campos'] as $campo=>$datos)
