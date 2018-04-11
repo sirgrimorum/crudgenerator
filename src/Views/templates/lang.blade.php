@@ -38,9 +38,12 @@ return [
     ],
     "messages" => [
         'confirm_destroy' => 'Are you sure to delete the {Model} ":modelName"?',
-        'destroy_success' => '{!!"<strong>"!!}Great!{!!"</strong>"!!} the {Model} ":modelName" has been deleted',
+        'destroy_success' => '{!!"<strong>"!!}Great!{!!"</strong>"!!} The {Model} ":modelName" has been deleted',
+        'destroy_error' => '{!!"<strong>"!!}Sorry!{!!"</strong>"!!} The {Model} ":modelName" was not deleted',
         'update_success' => '{!!"<strong>"!!}Great!{!!"</strong>"!!} All changes in the {Model} ":modelName" has been saved',
+        'update_error' => '{!!"<strong>"!!}Sorry!{!!"</strong>"!!} The changes in the {Model} ":modelName" were not saved',
         'store_success' => '{!!"<strong>"!!}Great!{!!"</strong>"!!} The {Model} ":modelName" has been created',
+        'store_error' => '{!!"<strong>"!!}Sorry!{!!"</strong>"!!} The {Model} ":modelName" was not created',
     ],
         ];
 

@@ -38,9 +38,12 @@ return [
     ],
     "messages" => [
         'confirm_destroy' => '¿Está seguro que quiere eliminar el {Model} ":modelName"?',
-        'destroy_success' => '{!!"<strong>"!!}Listo!{!!"</strong>"!!} el {Model} ":modelName" ha sido eliminado',
+        'destroy_success' => '{!!"<strong>"!!}Listo!{!!"</strong>"!!} El {Model} ":modelName" ha sido eliminado',
+        'destroy_error' => '{!!"<strong>"!!}Lo sentimos!{!!"</strong>"!!} El {Model} ":modelName" NO ha sido eliminado',
         'update_success' => '{!!"<strong>"!!}Listo!{!!"</strong>"!!} Todos los cambios en el {Model} ":modelName" han sido guardados',
+        'update_error' => '{!!"<strong>"!!}Lo sentimos!{!!"</strong>"!!} Los cambios en el {Model} ":modelName" NO han sido guardados',
         'store_success' => '{!!"<strong>"!!}Listo!{!!"</strong>"!!} El {Model} ":modelName" ha sido creado',
+        'store_error' => '{!!"<strong>"!!}Lo sentimos!{!!"</strong>"!!} El {Model} ":modelName" NO ha sido creado',
     ],
         ];
 
