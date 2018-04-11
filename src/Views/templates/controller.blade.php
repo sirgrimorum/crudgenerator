@@ -151,7 +151,7 @@ class {Model}Controller extends Controller {
             $mensaje = str_replace([":modelName", ":modelId"], [$objeto->{$this->config['nombre']}, $objeto->{$this->config['id']}], $mensajes["update_success"]);
             return redirect(route('{model}.index'))->with(config("sirgrimorum.crudgenerator.status_messages_key"), $mensaje);
         }else{
-            $mensaje = str_replace([":modelName", ":modelId"], [$request->get({$this->config['nombre']},"-"), 0], $mensajes["update_error"]);
+            $mensaje = str_replace([":modelName", ":modelId"], [$objeto->{$this->config['nombre']}, $objeto->{$this->config['id']}], $mensajes["update_error"]);
             return redirect(route('{model}.index'))->with(config("sirgrimorum.crudgenerator.error_messages_key"), $mensaje);
         }
     }
@@ -176,10 +176,10 @@ class {Model}Controller extends Controller {
             $mensajes = array_merge($mensajes, trans("crudgenerator::{model}.messages"));
         }
         if (${model}->delete()){
-            $mensaje = str_replace([":modelName", ":modelId"], [$objeto->{$this->config['nombre']}, $objeto->{$this->config['id']}], $mensajes["destroy_success"]);
+            $mensaje = str_replace([":modelName", ":modelId"], [$datos['nombre'], $datos['id']], $mensajes["destroy_success"]);
             return redirect(route('{model}.index'))->with(config("sirgrimorum.crudgenerator.status_messages_key"), $mensaje);
         }else{
-            $mensaje = str_replace([":modelName", ":modelId"], [$request->get({$this->config['nombre']},"-"), 0], $mensajes["destroy_error"]);
+            $mensaje = str_replace([":modelName", ":modelId"], [$datos['nombre'], $datos['id']], $mensajes["destroy_error"]);
             return redirect(route('{model}.index'))->with(config("sirgrimorum.crudgenerator.error_messages_key"), $mensaje);
         }
     }
