@@ -16,7 +16,7 @@ class {Model}Controller extends Controller {
      *
      * @var {Model}Repository
      */
-    protected ${model}s;
+    protected ${{str_plural($modelo)}};
     
     /**
      * The {model} name.
@@ -37,9 +37,9 @@ class {Model}Controller extends Controller {
      *
      * @return void
      */
-    public function __construct({Model}Repository ${model}s) {
+    public function __construct({Model}Repository ${{str_plural($modelo)}}) {
         $this->middleware('auth');
-        $this->{model}s = ${model}s;
+        $this->{{str_plural($modelo)}} = ${{str_plural($modelo)}};
         $this->config = CrudGenerator::getConfig($this->modelName);
     }
 

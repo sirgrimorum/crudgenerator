@@ -233,7 +233,7 @@ trait CrudFiles {
         $modelo = strtolower($modeloM);
         $searchArr = ["{?php}", "{php?}", "[[", "]]", "[!!", "!!]", "{modelo}", "{Modelo}", "{model}", "{Model}", "*extends", "*section", "*stop", "*stack", "*push", "*if", "*else", "*foreach", "*end", "{ " . $modelo . " }"];
         $replaceArr = ["<?php", "?>", "{{", "}}", "{!!", "!!}", $modelo, $modeloM, $modelo, $modeloM, "@extends", "@section", "@stop", "@stack", "@push", "@if", "@else", "@foreach", "@end", "{" . $modelo . "}"];
-        $contenido = view($view, ["config" => $config, "localized" => $localized])->render();
+        $contenido = view($view, ["config" => $config, "localized" => $localized, "modelo"=>$modelo])->render();
         $contenido = str_replace($searchArr, $replaceArr, $contenido);
 
         if (substr($path, strlen($path) - 1) == "/" || substr($path, strlen($path) - 1) == "\\") {

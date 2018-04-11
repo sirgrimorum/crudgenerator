@@ -3,9 +3,9 @@
 return [
     "labels" => [
         "{model}" => "{Model}",
-        "{model}s" => "{Model}s",
-        "plural" => "{Model}s",
-        "singular" => "{Model}s",
+        "{{str_plural($modelo)}}" => "{{ucfirst(strstr_plural($modelo))}}",
+        "plural" => "{{ucfirst(str_plural($modelo))}}",
+        "singular" => "{Model}",
         @foreach($config['campos'] as $campo=>$datos)
         "{{ $campo }}" => "{{ str_replace(["_"],[" "],ucfirst($campo)) }}",
         @endforeach
@@ -31,7 +31,7 @@ return [
         ],
     ],
     "titulos" => [
-        "index" => "{Model}s",
+        "index" => "{{ucfirst(str_plural($modelo))}}",
         "create" => "Create {model}",
         "edit" => "Edit {model}",
         "show" => "View {model}",
