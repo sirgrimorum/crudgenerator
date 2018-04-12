@@ -83,7 +83,9 @@ class SuperClosure {
         $used_vars = array();
         foreach ($vars as $var) {
             $var = trim($var, ' $&amp;');
-            $used_vars[$var] = $static_vars[$var];
+            if (isset($static_vars[$var])){
+                $used_vars[$var] = $static_vars[$var];
+            }
         }
 
         return $used_vars;
