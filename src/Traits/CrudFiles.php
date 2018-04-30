@@ -499,7 +499,7 @@ trait CrudFiles {
      */
     public static function fileMime(string $filename, array $detalles = []) {
         if (isset($detalles['path'])) {
-            $path = str_start($filename, str_finish($detalles['path'], '\\'));
+            $path = str_start($filename, str_finish($detalles['path'], '/'));
         } else {
             $path = $filename;
         }
