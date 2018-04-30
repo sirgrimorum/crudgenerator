@@ -102,7 +102,7 @@ $identificador = $config['id'];
                                                     if ($tipoFile == 'image') {
                                                         ?>
                                                         <div class="card text-center">
-                                                            <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
+                                                            <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
                                                                 <img class="card-img-top" src="{{asset($filename)}}">
                                                             </a>
                                                             <div class="card-body" >
@@ -114,7 +114,7 @@ $identificador = $config['id'];
                                                         ?>
                                                         <div class="card text-center" >
                                                             <video class="card-img-top" controls preload="auto" height="300" >
-                                                                <source src="{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="video/mp4" />
+                                                                <source src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="video/mp4" />
                                                             </video>
                                                             <div class="card-body" >
                                                                 <h5 class="card-title">{{$datoReg->name}}</h5>
@@ -125,7 +125,7 @@ $identificador = $config['id'];
                                                         ?>
                                                         <div class="card text-center" >
                                                             <audio class="card-img-top" controls preload="auto" >
-                                                                <source src="{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="audio/mpeg" />
+                                                                <source src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="audio/mpeg" />
                                                             </audio>
                                                             <div class="card-body" >
                                                                 <h5 class="card-title">{{$datoReg->name}}</h5>
@@ -135,7 +135,7 @@ $identificador = $config['id'];
                                                     } elseif ($tipoFile == 'pdf') {
                                                         ?>
                                                         <div class="card text-center" >
-                                                            <iframe class="card-img-top" height="300" src="{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" style="border: none;"></iframe>
+                                                            <iframe class="card-img-top" height="300" src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" style="border: none;"></iframe>
                                                             <div clas="card-body" >
                                                                 <h5 class="card-title">{{$datoReg->name}}</h5>
                                                             </div>
@@ -164,7 +164,7 @@ $identificador = $config['id'];
                                                             </div>
                                                             <div clas="card-body" >
                                                                 <h5 class="card-title">
-                                                                    <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
+                                                                    <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
                                                                         {{$datoReg->name}}
                                                                     </a>
                                                                 </h5>
@@ -386,7 +386,7 @@ $identificador = $config['id'];
                                     <?php } elseif ($tipoFile == 'video') { ?>
                                         <div class="card text-center" >
                                             <video class="card-img-top" controls preload="auto" height="300" >
-                                                <source src="{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="video/mp4" />
+                                                <source src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="video/mp4" />
                                             </video>
                                             <div class="card-body" >
                                                 <h5 class="card-title">{{$auxprevioName}}</h5>
@@ -395,7 +395,7 @@ $identificador = $config['id'];
                                     <?php } elseif ($tipoFile == 'audio') { ?>
                                         <div class="card text-center" >
                                             <audio class="card-img-top" controls preload="auto" >
-                                                <source src="{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="audio/mpeg" />
+                                                <source src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="audio/mpeg" />
                                             </audio>
                                             <div class="card-body" >
                                                 <h5 class="card-title">{{$auxprevioName}}</h5>
@@ -403,7 +403,7 @@ $identificador = $config['id'];
                                         </div>
                                     <?php } elseif ($tipoFile == 'pdf') { ?>
                                         <div class="card text-center" >
-                                            <iframe class="card-img-top" height="300" src="{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" style="border: none;"></iframe>
+                                            <iframe class="card-img-top" height="300" src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" style="border: none;"></iframe>
                                             <div clas="card-body" >
                                                 <h5 class="card-title">{{$auxprevioName}}</h5>
                                             </div>
@@ -427,7 +427,7 @@ $identificador = $config['id'];
                                                         break;
                                                 }
                                                 ?>
-                                                <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['localecode'=>App::getLocale(),'modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
+                                                <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
                                                     {{$auxprevioName}}
                                                 </a>
                                             </li>

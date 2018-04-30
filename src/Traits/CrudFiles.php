@@ -28,13 +28,13 @@ trait CrudFiles {
             $fin = -1;
             $encontrado = -1;
             foreach ($contents as $index => $line) {
-                if (strpos($line, '$policies = [') !==false) {
+                if (strpos($line, '$policies = [') !== false) {
                     $inicio = $index;
                 }
-                if (strpos($line, $config['modelo']) !==false && $inicio >= 0 && $fin == -1) {
+                if (strpos($line, $config['modelo']) !== false && $inicio >= 0 && $fin == -1) {
                     $encontrado = $index;
                 }
-                if (strpos($line, "];") !==false && $inicio >= 0 && $fin == -1) {
+                if (strpos($line, "];") !== false && $inicio >= 0 && $fin == -1) {
                     $fin = $index;
                 }
             }
@@ -76,13 +76,13 @@ trait CrudFiles {
                 $fin = -1;
                 $encontrado = -1;
                 foreach ($contents as $index => $line) {
-                    if (strpos($line, '"routes" => [') !==false || strpos($line, '"routes"=>[') !==false ) {
+                    if (strpos($line, '"routes" => [') !== false || strpos($line, '"routes"=>[') !== false) {
                         $inicio = $index;
                     }
-                    if (strpos($line, "'{$modelo}s'") !==false && $inicio >= 0 && $fin == -1) {
+                    if (strpos($line, "'{$modelo}s'") !== false && $inicio >= 0 && $fin == -1) {
                         $encontrado = $index;
                     }
-                    if (strpos($line, "],") !==false && $inicio >= 0 && $fin == -1) {
+                    if (strpos($line, "],") !== false && $inicio >= 0 && $fin == -1) {
                         $fin = $index;
                     }
                 }
@@ -184,13 +184,13 @@ trait CrudFiles {
             $fin = -1;
             $encontrado = -1;
             foreach ($contents as $index => $line) {
-                if (strpos($line, '$routeMiddleware = [') !==false) {
+                if (strpos($line, '$routeMiddleware = [') !== false) {
                     $inicio = $index;
                 }
-                if (strpos($line, $middlewareClass)!==false && $inicio >= 0 && $fin == -1) {
+                if (strpos($line, $middlewareClass) !== false && $inicio >= 0 && $fin == -1) {
                     $encontrado = $index;
                 }
-                if (strpos($line, "];") !==false && $inicio >= 0 && $fin == -1) {
+                if (strpos($line, "];") !== false && $inicio >= 0 && $fin == -1) {
                     $fin = $index;
                 }
             }
@@ -233,7 +233,7 @@ trait CrudFiles {
         $modelo = strtolower($modeloM);
         $searchArr = ["{?php}", "{php?}", "[[", "]]", "[!!", "!!]", "{modelo}", "{Modelo}", "{model}", "{Model}", "*extends", "*section", "*stop", "*stack", "*push", "*if", "*else", "*foreach", "*end", "{ " . $modelo . " }"];
         $replaceArr = ["<?php", "?>", "{{", "}}", "{!!", "!!}", $modelo, $modeloM, $modelo, $modeloM, "@extends", "@section", "@stop", "@stack", "@push", "@if", "@else", "@foreach", "@end", "{" . $modelo . "}"];
-        $contenido = view($view, ["config" => $config, "localized" => $localized, "modelo"=>$modelo])->render();
+        $contenido = view($view, ["config" => $config, "localized" => $localized, "modelo" => $modelo])->render();
         $contenido = str_replace($searchArr, $replaceArr, $contenido);
 
         if (substr($path, strlen($path) - 1) == "/" || substr($path, strlen($path) - 1) == "\\") {
@@ -499,7 +499,7 @@ trait CrudFiles {
      */
     public static function fileMime(string $filename, array $detalles = []) {
         if (isset($detalles['path'])) {
-            $path = str_start($filename, str_finish($detalles['path'], '/'));
+            $path = str_start($filename, str_finish(str_replace("\\", "/", $detalles['path']), '/'));
         } else {
             $path = $filename;
         }

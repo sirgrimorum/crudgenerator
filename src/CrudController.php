@@ -119,7 +119,7 @@ class CrudController extends BaseController {
     private function devolverFile($filename, $detalles = []) {
         $tipo = CrudGenerator::filenameIs($filename, $detalles);
         if (isset($detalles['path'])) {
-            $path = str_start($filename, str_finish($detalles['path'], '/'));
+            $path = str_start($filename, str_finish(str_replace("\\", "/", $detalles['path']), '/'));
         } else {
             $path = $filename;
         }
