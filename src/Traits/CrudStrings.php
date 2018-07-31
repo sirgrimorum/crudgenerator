@@ -521,6 +521,9 @@ trait CrudStrings {
      * @return boolean
      */
     public static function isJsonString($json_string) {
+        if (strpos($json_string,"{")===false){
+            return false;
+        }
         return !preg_match('/[^,:{}\\[\\]0-9.\\-+Eaeflnr-u \\n\\r\\t]/', preg_replace('/"(\\.|[^"\\\\])*"/', '', $json_string));
     }
 
