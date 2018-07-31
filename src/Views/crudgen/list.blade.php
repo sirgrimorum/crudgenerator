@@ -68,6 +68,13 @@ if (isset($config['render'])) {
         }
     }
 }
+$siOld = false;
+if (old("__parametros","") != ""){
+    $parametrosOld = json_decode(old("__parametros"), true);
+    if (strtolower(class_basename($parametrosOld["modelo"])) == $modelo){
+        $siOld = true;
+    }
+}
 ?>
 <table class="table table-striped table-bordered" id='list_{{ $tablaid }}'>
     <thead class="thead-dark">
@@ -398,7 +405,7 @@ if (isset($config['render'])) {
         </div>
     </div>
 </div>
-@if(old("_action")=="create" || old("_action")=="edit")
+@if((old("_action")=="create" || old("_action")=="edit") && $siOld)
 <!-- Modal for old input -->
 @include('sirgrimorum::admin.' . old("_action") . ".modal", ["modelo" => $modeloUCF,"base_url" => $base_url, "plural" => $plural,"config" => $config,"registro"=>old("_registro")])
 @endif
@@ -447,7 +454,7 @@ if (str_contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://
 ?>
 <script>
     $(document).ready(function() {
-    @if (old("_action") == "create" || old("_action") == "edit")
+    @if ((old("_action")=="create" || old("_action")=="edit") && $siOld)
             $("#{{$modeloUCF}}_{{old('_action')}}_modal").modal("show");
     @endif
             var lista_{{ $tabla }} = $('#list_{{ $tablaid }}').DataTable({
