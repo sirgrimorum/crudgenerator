@@ -132,15 +132,14 @@ trait CrudModels {
             $row[$columna] = $celda;
             $rowSimple[$columna] = $celda['value'];
         }
-        if (count($botones) > 0) {
+        if (is_array($botones)) {
             $celda = "";
-            if (is_array($botones)) {
-                foreach ($botones as $boton) {
-                    $celda .= str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $boton));
-                }
-            } else {
-                $celda = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $botones));
+            foreach ($botones as $boton) {
+                $celda .= str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $boton));
             }
+            $row["botones"] = $celda;
+        } else {
+            $celda = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $botones));
             $row["botones"] = $celda;
         }
         if ($solo == 'simple') {
