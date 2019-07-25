@@ -4,13 +4,14 @@ namespace {!! $config['nameSpace'] !!};
 
 @if(strtolower($config["model"])=="user")
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 @else
 use Illuminate\Database\Eloquent\Model;
 @endif
 
 @if(strtolower($config["model"])=="user")
-class {Model} extends Authenticatable {
+class {Model} extends Authenticatable implements MustVerifyEmail{
 @else
 class {Model} extends Model {
 @endif
