@@ -13,7 +13,7 @@ CKEDITOR.editorConfig = function (config) {
     config.extraPlugins = 'ckawesome';
     //config.allowedContent = true;
     
-    config.extraAllowedContent = 'div(*)[id,data-href,data-parent,data-target,data-toggle,aria-expanded,aria-controls,role,data-ride,style];ol(*); li(*)[data-target,data-slide-to,style]; p(*); h3(*); h4(*); a(*)[data-slide,data-target,data-parent,data-toggle,aria-expanded,aria-controls,role]; button(*)[data-target,data-parent,data-toggle,aria-expanded,aria-controls,role]; span(*)[aria-hidden,style];*[id]';
+    config.extraAllowedContent = 'div(*)[id,data-href,data-parent,data-target,data-toggle,aria-expanded,aria-controls,role,data-ride,style]; ol(*); ul(*)[class]; li(*)[data-target,data-slide-to,style]; p(*); h3(*); h4(*); a(*)[data-slide,data-target,data-parent,data-toggle,aria-expanded,aria-controls,role]; button(*)[data-target,data-parent,data-toggle,aria-expanded,aria-controls,role]; span(*)[aria-hidden,style];*[id,class]';
     config.contentsCss = urlAssetsCkEditor;
     config.fontawesomePath = urlAssetsCkEditor;
     
