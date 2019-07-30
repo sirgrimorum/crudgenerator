@@ -363,7 +363,11 @@ if (old("__parametros","") != ""){
                     @else
                     {{ number_format($value->{$columna}) }}
                     @endif
-                    @else            
+                    @elseif($datos['tipo']=="html")
+                    <div style="max-height:200px;overflow-y:scroll;">
+                        {!! $value->{$columna} !!}
+                    </div>
+                    @else
                     {!! $value->{$columna} !!}
                     @endif
                     @if(array_key_exists('enlace',$datos))

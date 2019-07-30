@@ -1087,6 +1087,7 @@ trait CrudModels {
                 }
             }
             $objModelo->save();
+            
             if ($objModelo) {
                 foreach ($config['campos'] as $campo => $detalles) {
                     if (!isset($detalles["nodb"])) {
@@ -1165,6 +1166,9 @@ trait CrudModels {
                         }
                     }
                 }
+            }
+            if ($config['tabla']=="articles"){
+                \Illuminate\Support\Facades\Artisan::call('view:clear');
             }
             return $objModelo;
         } else {
