@@ -49,7 +49,8 @@
         </style>
         <!-- Campo definido para incluir estilos especificos en las vistas que lo requieran -->
         <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-        @jsmodel(Auth::user(),currentUser)
+        {!! JSLocalization::put(Auth::user(),"currentUser") !!}
+        {!! JSLocalization::put(config("sirgrimorum.crudgenerator"),"crudgenConfig") !!}
         @if (config("sirgrimorum.crudgenerator.css_section") != "")
             @stack(config("sirgrimorum.crudgenerator.css_section"))
         @endif
