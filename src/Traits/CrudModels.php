@@ -386,13 +386,13 @@ trait CrudModels {
             $celda['data'] = $date;
             $celda['label'] = $datos['label'];
             $celda['value'] = $dato;
-        } elseif ($datos['tipo'] == "url") {
+        } elseif ($datos['tipo'] == "url" || ($datos['tipo'] == "file" && \Illuminate\Support\Str::startsWith (strtolower($value->{$columna}), ["http:","https:"]))) {
             $celda = [
                 'value' => $value->{$columna},
                 'data' => $value->{$columna},
             ];
-            if (\Sirgrimorum\CrudGenerator\CrudGenerator::urlType($registro->{$columna}) == "youtube") {
-                $youtubeId = \Sirgrimorum\CrudGenerator\CrudGenerator::getYoutubeId($registro->{$columna});
+            if (\Sirgrimorum\CrudGenerator\CrudGenerator::urlType($value->{$columna}) == "youtube") {
+                $youtubeId = \Sirgrimorum\CrudGenerator\CrudGenerator::getYoutubeId($value->{$columna});
                 $celda['embed'] = "https://www.youtube.com/embed/" . $youtubeId;
             } else {
                 $celda['embed'] = $value->{$columna};
