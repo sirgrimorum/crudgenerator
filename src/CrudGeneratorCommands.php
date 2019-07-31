@@ -135,7 +135,7 @@ class CrudGeneratorCommands {
      */
     public function createlang($model) {
         $this->console->line("Preparing model attributes");
-        $bar = $this->console->output->createProgressBar(5);
+        $bar = $this->console->output->createProgressBar((count(config("sirgrimorum.crudgenerator.list_locales"))+3));
         $options = $this->console->options('path');
         if ($options['path'] != "") {
             $path = $options['path'];
@@ -158,17 +158,24 @@ class CrudGeneratorCommands {
             $this->console->error("Something went wrong and the model lang file could not be saved");
         }
         $bar->advance();
-        $confirm = $this->console->choice("Do you wisth to create a Lang File for the model in es?", ['yes', 'no'], 0);
-        if ($confirm == 'yes') {
-            $path = "lang/vendor/crudgenerator/es";
-            $filename = str_finish(strtolower($model), ".php");
-            $this->console->line("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
-            if (CrudGenerator::saveResource("sirgrimorum::templates.langes", false, resource_path($path), $filename, $config)) {
-                $this->console->info("Model Lang file saved!");
-                $bar->finish();
-            } else {
-                $this->console->error("Something went wrong and the model lang file could not be saved");
-                $bar->finish();
+        foreach (config("sirgrimorum.crudgenerator.list_locales") as $local){
+            $this->console->line("for {$local}'");
+            if (is_string($local)){
+                if ($local != config("app.locale")){
+                    $confirm = $this->console->choice("Do you wisth to create a Lang File for the model in {$local}?", ['yes', 'no'], 0);
+                    if ($confirm == 'yes') {
+                        $path = "lang/vendor/crudgenerator/{$local}";
+                        $filename = str_finish(strtolower($model), ".php");
+                        $this->console->line("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
+                        if (CrudGenerator::saveResource("sirgrimorum::templates.langes", false, resource_path($path), $filename, $config)) {
+                            $this->console->info("Model Lang file saved!");
+                            $bar->advance();
+                        } else {
+                            $this->console->error("Something went wrong and the model lang file '{$filename}' could not be saved");
+                            $bar->advance();
+                        }
+                    }
+                }
             }
         }
         $bar->finish();
