@@ -23,16 +23,16 @@ Route::group(['prefix' => Sirgrimorum\CrudGenerator\CrudGenerator::setLocale() .
         return view('sirgrimorum::admin/templates/html');
     })->name('sirgrimorum_home');
     Route::group(['prefix' => "{modelo}s/", 'as' => "sirgrimorum_modelos::"], function() {
-        Route::get('', '\Sirgrimorum\CrudGenerator\CrudController@index')->name('index');
-        Route::get('/create', '\Sirgrimorum\CrudGenerator\CrudController@create')->name('create');
+        Route::any('', '\Sirgrimorum\CrudGenerator\CrudController@index')->name('index');
+        Route::any('/create', '\Sirgrimorum\CrudGenerator\CrudController@create')->name('create');
     });
     Route::group(['prefix' => "{modelo}/", 'as' => "sirgrimorum_modelo::"], function() {
         Route::post('/store', '\Sirgrimorum\CrudGenerator\CrudController@store')->name('store');
-        Route::get('/{registro}', '\Sirgrimorum\CrudGenerator\CrudController@show')->name('show');
-        Route::get('/{registro}/edit', '\Sirgrimorum\CrudGenerator\CrudController@edit')->name('edit');
+        Route::any('/{registro}', '\Sirgrimorum\CrudGenerator\CrudController@show')->name('show');
+        Route::any('/{registro}/edit', '\Sirgrimorum\CrudGenerator\CrudController@edit')->name('edit');
         Route::put('/{registro}/update', '\Sirgrimorum\CrudGenerator\CrudController@update')->name('update');
         Route::delete('/{registro}/destroy', '\Sirgrimorum\CrudGenerator\CrudController@destroy')->name('destroy');
-        Route::get('/file/{campo}', '\Sirgrimorum\CrudGenerator\CrudController@modelfile')->name('modelfile');
+        Route::any('/file/{campo}', '\Sirgrimorum\CrudGenerator\CrudController@modelfile')->name('modelfile');
     });
-    Route::get('/file', '\Sirgrimorum\CrudGenerator\CrudController@file')->name('sirgrimorum_file');
+    Route::any('/file', '\Sirgrimorum\CrudGenerator\CrudController@file')->name('sirgrimorum_file');
 });
