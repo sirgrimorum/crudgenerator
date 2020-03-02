@@ -78,7 +78,7 @@ class CrudGeneratorCommands {
         $bar = $this->console->output->createProgressBar(4);
         $options = $this->console->options('path');
         //$modelName = $singular = substr($table, 0, strlen($table) - 1);
-        $modelName = $singular = str_singular($table);
+        $modelName = $singular = \Illuminate\Support\Str::singular($table);
         if ($options['path'] != "") {
             $path = $options['path'];
         } else {

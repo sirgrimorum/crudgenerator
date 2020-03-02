@@ -604,7 +604,7 @@ trait CrudStrings {
             if (!file_exists(resource_path("lang/vendor/crudgenerator/" . $currentLocale . "/" . $modeloClass . ".php"))) {
                 if (!file_exists(resource_path("lang/vendor/crudgenerator/" . $defaultLocale . "/" . $modeloClass . ".php"))) {
                     //$modeloClass = substr($modelo, 0, strlen($modelo) - 1);
-                    $modeloClass = str_singular($modelo);
+                    $modeloClass = \Illuminate\Support\Str::singular($modelo);
                     if (!file_exists(resource_path("lang/vendor/crudgenerator/" . $currentLocale . "/" . $modeloClass . ".php"))) {
                         if (!file_exists(resource_path("lang/vendor/crudgenerator/" . $defaultLocale . "/" . $modeloClass . ".php"))) {
                             $modeloClass = $modelo;
@@ -612,7 +612,7 @@ trait CrudStrings {
                             if (!file_exists(resource_path("lang/" . $currentLocale . "/" . $modeloClass . ".php"))) {
                                 if (!file_exists(resource_path("lang/" . $defaultLocale . "/" . $modeloClass . ".php"))) {
                                     //$modeloClass = substr($modelo, 0, strlen($modelo) - 1);
-                                    $modeloClass = str_singular($modelo);
+                                    $modeloClass = \Illuminate\Support\Str::singular($modelo);
                                     if (!file_exists(resource_path("lang/" . $currentLocale . "/" . $modeloClass . ".php"))) {
                                         if (!file_exists(resource_path("lang/" . $defaultLocale . "/" . $modeloClass . ".php"))) {
                                             $modeloClass = false;

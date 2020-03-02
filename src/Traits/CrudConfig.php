@@ -252,7 +252,7 @@ trait CrudConfig {
         $columns["belongsto"] = $auxArr;
         foreach ($columns["belongsto"] as $indice => $relacion) {
             //$singular = substr($relacion['patron'], 0, strlen($relacion['patron']) - 1);
-            $singular = str_singular($relacion['patron']);
+            $singular = \Illuminate\Support\Str::singular($relacion['patron']);
             $columns["belongsto"][$indice]['patron_model_name_single'] = $singular;
             if (!$columns["belongsto"][$indice]['patron_model'] = \Sirgrimorum\CrudGenerator\CrudGenerator::getModel($singular, "App\\" . ucfirst($singular))) {
                 unset($columns["belongsto"][$indice]);
@@ -273,7 +273,7 @@ trait CrudConfig {
                     $otro = $table_describes[1];
                 }
                 //$singular = substr($otro->otro, 0, strlen($otro->otro) - 1);
-                $singular = str_singular($otro->otro);
+                $singular = \Illuminate\Support\Str::singular($otro->otro);
                 if ($otroModel = \Sirgrimorum\CrudGenerator\CrudGenerator::getModel($singular, "App\\" . ucfirst($singular))) {
                     if ($relacion['cliente'] != $otro->otro && $relacion['key'] != $otro->key) {
                         $pivotColumns = [];
@@ -331,7 +331,7 @@ trait CrudConfig {
 
         foreach ($columns["hasmany"] as $indice => $relacion) {
             //$singular = substr($relacion['cliente'], 0, strlen($relacion['cliente']) - 1);
-            $singular = str_singular($relacion['cliente']);
+            $singular = \Illuminate\Support\Str::singular($relacion['cliente']);
             $columns["hasmany"][$indice]['cliente_model_name_single'] = $singular;
             if (!$columns["hasmany"][$indice]['cliente_model'] = \Sirgrimorum\CrudGenerator\CrudGenerator::getModel($singular, "App\\" . ucfirst($singular))) {
                 unset($columns["hasmany"][$indice]);
