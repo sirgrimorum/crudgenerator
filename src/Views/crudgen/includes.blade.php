@@ -6,21 +6,21 @@ if ($tieneSlider || $tieneDate || $tieneSelect || $tieneSearch || $tieneFile || 
         <?php
     }
     if ($tieneJson || $tieneSearch || $tieneFile) {
-        if (str_contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
+        if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
             echo '<link href="' . config("sirgrimorum.crudgenerator.confirm_path") . '" rel="stylesheet" type="text/css">';
         } else {
             echo '<link href="' . asset(config("sirgrimorum.crudgenerator.confirm_path") . "/css/jquery-confirm.min.css") . '" rel="stylesheet" type="text/css">';
         }
     }
     if ($tieneSearch) {
-        if (str_contains(config("sirgrimorum.crudgenerator.typeahead_path"), ['http', '://'])) {
+        if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.typeahead_path"), ['http', '://'])) {
             echo '<link href="' . config("sirgrimorum.crudgenerator.typeahead_path") . '/jquery.typeahead.min.css" rel="stylesheet" type="text/css">';
         } else {
             echo '<link href="' . asset(config("sirgrimorum.crudgenerator.typeahead_path") . '/jquery.typeahead.min.css') . '" rel="stylesheet">';
         }
     }
     if ($tieneSelect) {
-        if (str_contains(config("sirgrimorum.crudgenerator.select2_path"), ['http', '://'])) {
+        if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.select2_path"), ['http', '://'])) {
             echo '<link href="' . config("sirgrimorum.crudgenerator.select2_path") . '/css/select2.min.css" rel="stylesheet" type="text/css">';
         } else {
             echo '<link href="' . asset(config("sirgrimorum.crudgenerator.select2_path") . '/css/select2.min.css') . '" rel="stylesheet">';
@@ -53,14 +53,14 @@ if ($tieneSlider || $tieneDate || $tieneSelect || $tieneSearch || $tieneFile || 
         <?php
     }
     if ($tieneSlider) {
-        if (str_contains(config("sirgrimorum.crudgenerator.slider_path"), ['http', '://'])) {
+        if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.slider_path"), ['http', '://'])) {
             echo '<link href="' . config("sirgrimorum.crudgenerator.slider_path") . '" rel="stylesheet" type="text/css">';
         } else {
             echo '<link href="' . asset(config("sirgrimorum.crudgenerator.slider_path") . '/css/bootstrap-slider.css') . '" rel="stylesheet">';
         }
     }
     if ($tieneDate) {
-        if (str_contains(config("sirgrimorum.crudgenerator.datetimepicker_path"), ['http', '://'])) {
+        if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.datetimepicker_path"), ['http', '://'])) {
             echo '<link href="' . config("sirgrimorum.crudgenerator.datetimepicker_path") . '" rel="stylesheet" type="text/css">';
         } else {
             echo '<link href="' . asset(config("sirgrimorum.crudgenerator.datetimepicker_path") . '/css/bootstrap-datetimepicker.min.css') . '" rel="stylesheet">';
@@ -100,14 +100,14 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
         <?php
     }
     if ($tieneSearch) {
-        if (str_contains(config("sirgrimorum.crudgenerator.typeahead_path"), ['http', '://'])) {
+        if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.typeahead_path"), ['http', '://'])) {
             echo '<script src="' . config("sirgrimorum.crudgenerator.typeahead_path") . '/jquery.typeahead.min.js"></script>';
         } else {
             echo '<script src="' . asset(config("sirgrimorum.crudgenerator.typeahead_path") . '/jquery.typeahead.min.js') . '"></script>';
         }
     }
     if ($tieneSearch || $tieneFile || $tieneJson) {
-        if (str_contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
+        if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
             echo '<script src="' . config("sirgrimorum.crudgenerator.confirm_path") . '"></script>';
             echo '<script src="' . asset("vendor/sirgrimorum/confirm/js/rails.js") . '"></script>';
         } else {
@@ -116,21 +116,21 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
         }
     }
     if ($tieneSelect) {
-        if (str_contains(config("sirgrimorum.crudgenerator.select2_path"), ['http', '://'])) {
+        if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.select2_path"), ['http', '://'])) {
             echo '<script src="' . config("sirgrimorum.crudgenerator.select2_path") . '/js/select2.min.js"></script>';
         } else {
             echo '<script src="' . asset(config("sirgrimorum.crudgenerator.select2_path") . '/js/select2.min.js') . '"></script>';
         }
     }
     if ($tieneSlider) {
-        if (str_contains(config("sirgrimorum.crudgenerator.slider_path"), ['http', '://'])) {
+        if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.slider_path"), ['http', '://'])) {
             //echo '<script src="' . config("sirgrimorum.crudgenerator.slider_path") . '"></script>';
         } else {
             echo '<script src="' . asset(config("sirgrimorum.crudgenerator.slider_path") . '/js/bootstrap-slider.js') . '"></script>';
         }
     }
     if ($tieneDate) {
-        if (str_contains(config("sirgrimorum.crudgenerator.datetimepicker_path"), ['http', '://'])) {
+        if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.datetimepicker_path"), ['http', '://'])) {
             //echo '<script src="' . config("sirgrimorum.crudgenerator.datetimepicker_path") . '"></script>';
         } else {
             echo '<script src="' . asset(config("sirgrimorum.crudgenerator.datetimepicker_path") . '/js/moment-with-locales.min.js') . '"></script>';
@@ -149,7 +149,7 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
             }
         }
         echo "<script>var urlAssetsCkEditor = [" . $csss . "];</script>";
-        if (str_contains(config("sirgrimorum.crudgenerator.ckeditor_path"), ['http', '://'])) {
+        if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.ckeditor_path"), ['http', '://'])) {
             echo '<script src="' . config("sirgrimorum.crudgenerator.ckeditor_path") . '"></script>';
         } else {
             echo '<script src="' . asset(config("sirgrimorum.crudgenerator.ckeditor_path")) . '"></script>';

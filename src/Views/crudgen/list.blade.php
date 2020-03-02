@@ -36,7 +36,7 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
     $singulares = ucfirst($modelo);
 }
 $tabla = $config['tabla'];
-$tablaid = $tabla . "_" . str_random(5);
+$tablaid = $tabla . "_" . \Illuminate\Support\Str::random(5);
 $campos = $config['campos'];
 if (isset($config['botones'])) {
     if ($config['botones'] != "") {
@@ -250,7 +250,7 @@ if (old("__parametros","") != ""){
                 @else
                 <?php
                 $auxprevio = $value->{$columna};
-                $filename = str_start($auxprevio, str_finish($datos['path'], '\\'));
+                $filename = \Illuminate\Support\Str::start($auxprevio, \Illuminate\Support\Str::finish($datos['path'], '\\'));
                 $tipoFile = CrudGenerator::filenameIs($auxprevio, $datos);
                 $auxprevioName = substr($auxprevio, stripos($auxprevio, '__') + 2, stripos($auxprevio, '.', stripos($auxprevio, '__')) - (stripos($auxprevio, '__') + 2));
                 ?>
@@ -315,7 +315,7 @@ if (old("__parametros","") != ""){
                 @foreach($auxprevios as $datoReg)
                 @if(is_object($datoReg))
                 <?php
-                $filename = str_start($datoReg->file, str_finish($datos['path'], '\\'));
+                $filename = \Illuminate\Support\Str::start($datoReg->file, \Illuminate\Support\Str::finish($datos['path'], '\\'));
                 $tipoFile =CrudGenerator::filenameIs($datoReg->file,$datos);
                 ?>
                     <li class="pl-2">
@@ -422,12 +422,12 @@ if (old("__parametros","") != ""){
 
     <?php
 }
-if (str_contains(config("sirgrimorum.crudgenerator.jquerytables_path"), ['http', '://'])) {
+if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.jquerytables_path"), ['http', '://'])) {
     echo '<link href="' . config("sirgrimorum.crudgenerator.jquerytables_path") . '" rel="stylesheet" type="text/css">';
 } else {
     echo '<link href="' . asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/datatables.min.css") . '" rel="stylesheet" type="text/css">';
 }
-if (str_contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
+if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
     echo '<link href="' . config("sirgrimorum.crudgenerator.confirm_path") . '" rel="stylesheet" type="text/css">';
 } else {
     echo '<link href="' . asset(config("sirgrimorum.crudgenerator.confirm_path") . "/css/jquery-confirm.min.css") . '" rel="stylesheet" type="text/css">';
@@ -443,12 +443,12 @@ if ($js_section != "") {
 
     <?php
 }
-if (str_contains(config("sirgrimorum.crudgenerator.jquerytables_path"), ['http', '://'])) {
+if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.jquerytables_path"), ['http', '://'])) {
     //echo '<script src="' . config("sirgrimorum.crudgenerator.jquerytables_path") . '"></script>';
 } else {
     echo '<script src="' . asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/datatables.min.js") . '"></script>';
 }
-if (str_contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
+if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
     echo '<script src="' . config("sirgrimorum.crudgenerator.confirm_path") . '"></script>';
     echo '<script src="' . asset("vendor/sirgrimorum/confirm/js/rails.js") . '"></script>';
 } else {

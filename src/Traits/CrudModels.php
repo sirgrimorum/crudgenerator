@@ -120,7 +120,7 @@ trait CrudModels
             $botones = [];
         }
         $tabla = $config['tabla'];
-        $tablaid = $tabla . "_" . str_random(5);
+        $tablaid = $tabla . "_" . \Illuminate\Support\Str::random(5);
         if (isset($config['relaciones'])) {
             $relaciones = $config['relaciones'];
         }
@@ -449,7 +449,7 @@ trait CrudModels
             if ($value->{$columna} == "") {
                 $celda = '';
             } else {
-                $filename = Storage::disk(array_get($datos,"disk","local"))->url(str_start($value->{$columna}, str_finish($datos['path'], '\\'))) ;
+                $filename = Storage::disk(array_get($datos,"disk","local"))->url(\Illuminate\Support\Str::start($value->{$columna}, \Illuminate\Support\Str::finish($datos['path'], '\\'))) ;
                 $tipoFile = \Sirgrimorum\CrudGenerator\CrudGenerator::filenameIs($value->{$columna}, $datos);
                 $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
                 $celda = [
@@ -475,7 +475,7 @@ trait CrudModels
                 $celda['label'] = $datos['label'];
                 $celda['value'] = $value->{$columna};
                 foreach ($auxprevios as $datoReg) {
-                    $filename =  Storage::disk(array_get($datos,"disk","local"))->url(str_start($datoReg->file, str_finish($datos['path'], '\\')));
+                    $filename =  Storage::disk(array_get($datos,"disk","local"))->url(\Illuminate\Support\Str::start($datoReg->file, \Illuminate\Support\Str::finish($datos['path'], '\\')));
                     $tipoFile = \Sirgrimorum\CrudGenerator\CrudGenerator::filenameIs($datoReg->file, $datos);
                     $celda['data'][] = [
                         "name" => $datoReg->name,
@@ -520,7 +520,7 @@ trait CrudModels
             $celda['value'] = $celda['pre'] . $celda['value'];
         }
         if (isset($celda['post']) && is_string($celda['value'])) {
-            $celda['value'] = $celda['value'] . str_start($celda['post'], " ");
+            $celda['value'] = $celda['value'] . \Illuminate\Support\Str::start($celda['post'], " ");
         }
         return $celda;
     }
@@ -1015,7 +1015,7 @@ trait CrudModels
                                 if ($filename !== false) {
                                     $objModelo->{$campo} = $filename;
                                     if ($existFile != "") {
-                                        \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(str_start($existFile, str_finish($detalles['path'], '\\')), array_get($detalles, "disk", "local"));
+                                        \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile, \Illuminate\Support\Str::finish($detalles['path'], '\\')), array_get($detalles, "disk", "local"));
                                     }
                                 } else {
                                     $filename = "";
@@ -1023,7 +1023,7 @@ trait CrudModels
                                 }
                             } else {
                                 if (!$input->has($campo . "_filereg") && $existFile != "") {
-                                    \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(str_start($existFile, str_finish($detalles['path'], '\\')), array_get($detalles, "disk", "local"));
+                                    \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile, \Illuminate\Support\Str::finish($detalles['path'], '\\')), array_get($detalles, "disk", "local"));
                                 } elseif ($input->has($campo . "_filereg") && $existFile != "") {
                                     $filename = $existFile;
                                 }
@@ -1074,7 +1074,7 @@ trait CrudModels
                                         }
                                     }
                                     if (!$esta) {
-                                        \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(str_start($existFile['file'], str_finish($detalles['path'], '\\')), array_get($detalles, "disk", "local"));
+                                        \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile['file'], \Illuminate\Support\Str::finish($detalles['path'], '\\')), array_get($detalles, "disk", "local"));
                                     }
                                 }
                                 $finalFiles = array_merge($finalFiles, $masFiles);
@@ -1210,7 +1210,7 @@ trait CrudModels
                 } catch (Error $err) {
                     $esImagen = false;
                 }
-                $destinationPath = str_finish(public_path($detalles['path']), '/');
+                $destinationPath = \Illuminate\Support\Str::finish(public_path($detalles['path']), '/');
                 $filename = "";
                 if (isset($detalles['pre'])) {
                     if ($detalles['pre'] == '_originalName_') {
@@ -1237,7 +1237,7 @@ trait CrudModels
                     $new_name = "__" . $new_name;
                 }
 
-                $filename .= str_random($numRand) . $new_name;
+                $filename .= \Illuminate\Support\Str::random($numRand) . $new_name;
                 $disk = array_get($detalles, "disk", "local");
                 $path = $file->store($destinationPath . $filename, $disk);
                 $filename .= "." . $file->getClientOriginalExtension();
@@ -1263,7 +1263,7 @@ trait CrudModels
                                     $image_resize->resize($width, $height);
                                 }
                             }
-                            $destinationPath = str_finish(public_path($resize['path']), '/');
+                            $destinationPath = \Illuminate\Support\Str::finish(public_path($resize['path']), '/');
                             $quality = 100;
                             if (isset($resize['quality'])) {
                                 $quality = $resize['quality'];
@@ -1276,7 +1276,7 @@ trait CrudModels
                     $newFilename = $filename;
                     if (isset($detalles['saveCompletePath'])) {
                         if ($detalles['saveCompletePath']) {
-                            $newFilename = str_finish(str_replace("/", "\\", $detalles['path']), "\\") . $filename;
+                            $newFilename = \Illuminate\Support\Str::finish(str_replace("/", "\\", $detalles['path']), "\\") . $filename;
                             //$newFilename = str_replace("\\","/",$detalles['path']) . $filename;
                         }
                     }

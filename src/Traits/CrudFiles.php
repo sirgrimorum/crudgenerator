@@ -19,9 +19,9 @@ trait CrudFiles {
         $modeloM = ucfirst(basename($config['modelo']));
         $modelo = strtolower($modeloM);
         $policyName = $modeloM . 'Policy';
-        $path = str_finish(str_replace([ "/"], [ "\\"], app_path('Providers/AuthServiceProvider.php')), '.php');
-        $policyPath = app_path('Policies/' . str_finish($policyName, ".php"));
-        $policyPath = str_finish(str_replace([ "/"], [ "\\"], $policyPath), '.php');
+        $path = \Illuminate\Support\Str::finish(str_replace([ "/"], [ "\\"], app_path('Providers/AuthServiceProvider.php')), '.php');
+        $policyPath = app_path('Policies/' . \Illuminate\Support\Str::finish($policyName, ".php"));
+        $policyPath = \Illuminate\Support\Str::finish(str_replace([ "/"], [ "\\"], $policyPath), '.php');
         if (file_exists($path) && file_exists($policyPath)) {
             $modeloM = basename($config['modelo']);
             $contents = file($path);
@@ -69,7 +69,7 @@ trait CrudFiles {
         $policyName = $modeloM . 'Policy';
         foreach (config("sirgrimorum.crudgenerator.list_locales") as $locale) {
             echo "<p>copiando a-" . $locale . "-</p>";
-            $path = str_finish(str_replace([ "/"], [ "\\"], resource_path("lang/$locale/routes.php")), '.php');
+            $path = \Illuminate\Support\Str::finish(str_replace([ "/"], [ "\\"], resource_path("lang/$locale/routes.php")), '.php');
             if (file_exists($path)) {
                 $modeloM = basename($config['modelo']);
                 $contents = file($path);
@@ -121,7 +121,7 @@ trait CrudFiles {
 
         $modeloM = ucfirst(basename($config['modelo']));
         $modelo = strtolower($modeloM);
-        $path = str_finish(str_replace([ "/"], [ "\\"], base_path('routes/web.php')), '.php');
+        $path = \Illuminate\Support\Str::finish(str_replace([ "/"], [ "\\"], base_path('routes/web.php')), '.php');
         if (file_exists($path)) {
             $modeloM = basename($config['modelo']);
             $contents = file($path);
@@ -162,7 +162,7 @@ trait CrudFiles {
                 }
                 $contents = $newContent;
             }
-            //$path = str_finish(str_replace([ "/"], [ "\\"], $path . str_start("web.php", "/")), '.php');
+            //$path = \Illuminate\Support\Str::finish(str_replace([ "/"], [ "\\"], $path . \Illuminate\Support\Str::start("web.php", "/")), '.php');
             $contents = file_put_contents($path, $contents);
         } else {
             $contents = false;
@@ -177,7 +177,7 @@ trait CrudFiles {
      * @return boolean If the middleware was registered or not
      */
     public static function registerMiddleware() {
-        $path = str_finish(str_replace([ "/"], [ "\\"], app_path('Http/Kernel.php')), '.php');
+        $path = \Illuminate\Support\Str::finish(str_replace([ "/"], [ "\\"], app_path('Http/Kernel.php')), '.php');
         $middlewareClass = "\\Sirgrimorum\\CrudGenerator\\Middleware\\CrudGeneratorLocaleRedirect";
         if (file_exists($path)) {
             $contents = file($path);
@@ -228,7 +228,7 @@ trait CrudFiles {
      * @return mix Same as file_put_contents return for the file
      */
     public static function saveResource($view, $localized, $path, $filename, $config, $pathPermissions = 0764, $flags = "") {
-        $view = str_start($view, "sirgrimorum::templates.");
+        $view = \Illuminate\Support\Str::start($view, "sirgrimorum::templates.");
         $modeloClass = $config['modelo'];
         $modeloM = ucfirst(basename($config['modelo']));
         $modelo = strtolower($modeloM);
@@ -243,7 +243,7 @@ trait CrudFiles {
         if (!file_exists($path)) {
             mkdir($path, $pathPermissions, true);
         }
-        $path = str_finish(str_replace([ "/"], [ "\\"], $path . str_start($filename, "/")), '.php');
+        $path = \Illuminate\Support\Str::finish(str_replace([ "/"], [ "\\"], $path . \Illuminate\Support\Str::start($filename, "/")), '.php');
         //echo "<pre>" . print_r([$path,$contenido], true) . "</pre>";
         if ($flags == "append") {
             return file_put_contents($path, $contenido, FILE_APPEND);
@@ -339,11 +339,11 @@ trait CrudFiles {
      */
     public static function registerConfig($config, $path, $config_path = "") {
         $inPath = $path;
-        $path = str_finish(str_replace([".", "/"], ["\\", "\\"], $path), '.php');
+        $path = \Illuminate\Support\Str::finish(str_replace([".", "/"], ["\\", "\\"], $path), '.php');
         if ($config_path == "") {
             $config_path = config_path($path);
         } else {
-            $config_path = base_path($config_path . str_start($path, "/"));
+            $config_path = base_path($config_path . \Illuminate\Support\Str::start($path, "/"));
         }
         $path = $config_path;
         $crudgenConfig = config_path("sirgrimorum\\crudgenerator.php");
@@ -398,11 +398,11 @@ trait CrudFiles {
         } else {
             $parametros = "";
         }
-        $path = str_finish(str_replace([".", "/"], ["\\", "\\"], $path), '.php');
+        $path = \Illuminate\Support\Str::finish(str_replace([".", "/"], ["\\", "\\"], $path), '.php');
         if ($config_path == "") {
             $config_path = config_path($path);
         } else {
-            $config_path = base_path($config_path . str_start($path, "/"));
+            $config_path = base_path($config_path . \Illuminate\Support\Str::start($path, "/"));
         }
         $path = $config_path;
         $strConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::arrayToFile($config);
@@ -495,7 +495,7 @@ trait CrudFiles {
      */
     public static function fileMime(string $filename, array $detalles = []) {
         if (isset($detalles['path'])) {
-            $path = str_start(str_replace("\\", "/", $filename), str_finish(str_replace("\\", "/", $detalles['path']), '/'));
+            $path = \Illuminate\Support\Str::start(str_replace("\\", "/", $filename), \Illuminate\Support\Str::finish(str_replace("\\", "/", $detalles['path']), '/'));
         } else {
             $path = $filename;
         }

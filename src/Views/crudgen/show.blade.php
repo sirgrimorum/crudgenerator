@@ -97,7 +97,7 @@ $identificador = $config['id'];
                                                 ?>
                                                 <div class="col-md-6 col-sm-12 col-xs-12">
                                                     <?php
-                                                    $filename = str_start($datoReg->file, str_finish($datos['path'], '\\'));
+                                                    $filename = \Illuminate\Support\Str::start($datoReg->file, \Illuminate\Support\Str::finish($datos['path'], '\\'));
                                                     $tipoFile = CrudGenerator::filenameIs($datoReg->file, $datos);
                                                     if ($tipoFile == 'image') {
                                                         ?>
@@ -372,7 +372,7 @@ $identificador = $config['id'];
                                     echo '-';
                                 } else {
                                     $auxprevio = $registro->{$columna};
-                                    $filename = str_start($auxprevio, str_finish($datos['path'], '\\'));
+                                    $filename = \Illuminate\Support\Str::start($auxprevio, \Illuminate\Support\Str::finish($datos['path'], '\\'));
                                     $tipoFile = CrudGenerator::filenameIs($auxprevio, $datos);
                                     $auxprevioName = substr($auxprevio, stripos($auxprevio, '__') + 2, stripos($auxprevio, '.', stripos($auxprevio, '__')) - (stripos($auxprevio, '__') + 2));
                                     if ($tipoFile == 'image') {

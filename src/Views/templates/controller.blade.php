@@ -16,7 +16,7 @@ class {Model}Controller extends Controller {
      *
      * @var {Model}[]
      */
-    protected ${{str_plural($modelo)}};
+    protected ${{\Illuminate\Support\Str::plural($modelo)}};
     
     /**
      * The {model} name.
@@ -37,9 +37,9 @@ class {Model}Controller extends Controller {
      *
      * @return void
      */
-    public function __construct({Model}Repository ${{str_plural($modelo)}}) {
+    public function __construct({Model}Repository ${{\Illuminate\Support\Str::plural($modelo)}}) {
         $this->middleware('auth');
-        $this->{{str_plural($modelo)}} = ${{str_plural($modelo)}};
+        $this->{{\Illuminate\Support\Str::plural($modelo)}} = ${{\Illuminate\Support\Str::plural($modelo)}};
         $this->config = CrudGenerator::getConfig($this->modelName);
     }
 

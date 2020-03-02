@@ -30,14 +30,14 @@ foreach($config['campos'] as $campo => $datos){
             $otromodelo = strtolower($otroModelo);
 ?>
     /**
-     * Get all of the {{str_plural($modelo)}} for a given user.
+     * Get all of the {{\Illuminate\Support\Str::plural($modelo)}} for a given user.
      *
      * @param  {{$otroModelo}}  ${{$otromodelo}}
      * @return Collection
      */
     public function for{{$otroModelo}}({{$otroModelo}} ${{$otromodelo}})
     {
-        return ${{$otromodelo}}->{{str_plural($modelo)}}()
+        return ${{$otromodelo}}->{{\Illuminate\Support\Str::plural($modelo)}}()
                     ->orderBy('created_at', 'asc')
                     ->get();
     }

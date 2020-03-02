@@ -64,7 +64,7 @@ if (isset($datos["placeholder"])) {
         @foreach($auxprevios as $datoReg)
         @if(is_object($datoReg))
         <?php
-        $filename = str_start($datoReg->file, str_finish($datos['path'], '\\'));
+        $filename = \Illuminate\Support\Str::start($datoReg->file, \Illuminate\Support\Str::finish($datos['path'], '\\'));
         $tipoFile =CrudGenerator::filenameIs($datoReg->file,$datos);
         $error_campo = false;
         $claseError = '';

@@ -119,7 +119,7 @@ class CrudController extends BaseController {
     private function devolverFile($filename, $detalles = []) {
         $tipo = CrudGenerator::filenameIs($filename, $detalles);
         if (isset($detalles['path'])) {
-            $path = str_start(str_replace("\\", "/", $filename), str_finish(str_replace("\\", "/", $detalles['path']), '/'));
+            $path = \Illuminate\Support\Str::start(str_replace("\\", "/", $filename), \Illuminate\Support\Str::finish(str_replace("\\", "/", $detalles['path']), '/'));
         } else {
             $path = $filename;
         }
@@ -205,7 +205,7 @@ class CrudController extends BaseController {
         }
         $modelo = strtolower(class_basename($config["modelo"]));
         //$plural = $modelo . 's';
-        $plural = str_plural($modelo);
+        $plural = \Illuminate\Support\Str::plural($modelo);
         $modeloM = ucfirst($modelo);
         $mensajes = [];
         if (is_array(trans("crudgenerator::admin.messages"))) {
