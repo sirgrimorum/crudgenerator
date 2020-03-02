@@ -61,6 +61,7 @@
                     "todos" => "", // required for the relationship, relationships and the relationshipssel types, array of option models, leave blank if you want all of them
                     "path" => "[name of the path in assets]/", // required for the file and files type, used to save the file, when url is "Sirgrimorum_CrudAdministrator"
                     "saveCompletePath" => true, // for the file and files type, if true, save the new filename including "path", when url is "Sirgrimorum_CrudAdministrator"
+                    "disk" => 'local', // for the file and files type, the disk to use for saving the files, remember to create symbolic link for public php artisan storage:link
                     "length" => [number of characters in the random file name], // for file and files types, default 20 when url is "Sirgrimorum_CrudAdministrator"
                     "resize" => [ // for file and files types when file is an image, save additional copies resized when url is "Sirgrimorum_CrudAdministrator", requieres Intervention/Image plugin (composer require intervention/image , $providers Intervention\Image\ImageServiceProvider::class , $aliases 'Image' => Intervention\Image\Facades\Image::class
                         "width" => [width of the new image in pixels], // if 0 or not present, it will take the height and preserve aspect ratio, if height and width equals to 0 or not present, it will just save a copy of the image

@@ -28,7 +28,7 @@ if ($tieneSlider || $tieneDate || $tieneSelect || $tieneSearch || $tieneFile || 
         ?>
         <style>
             .select2-selection{
-                height: 37px !important;
+                min-height: 37px !important;
             }
             span.select2-selection__rendered{
                 line-height: 37px !important;

@@ -14,21 +14,21 @@ class {Model}Controller extends Controller {
     /**
      * The {model} repository instance.
      *
-     * @var {Model}Repository
+     * @var {Model}[]
      */
     protected ${{str_plural($modelo)}};
     
     /**
      * The {model} name.
      *
-     * @var {Model}Repository
+     * @var string
      */
     protected $modelName = '{model}';
     
     /**
      * The {model} config array.
      *
-     * @var {Model}Repository
+     * @var array
      */
     protected $config;
 
@@ -46,6 +46,7 @@ class {Model}Controller extends Controller {
     /**
      * Display a listing of the resource.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request) {
@@ -59,6 +60,7 @@ class {Model}Controller extends Controller {
     /**
      * Show the form for creating a new resource.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function create(Request $request) {
@@ -75,7 +77,7 @@ class {Model}Controller extends Controller {
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\{Model}Request  $request
      * @return \Illuminate\Http\Response
      */
     public function store({Model}Request $request) {
@@ -101,6 +103,7 @@ class {Model}Controller extends Controller {
      * Display the specified resource.
      *
      * @param  \App\{Model}  ${model}
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function show({Model} ${model}, Request $request) {
@@ -116,6 +119,7 @@ class {Model}Controller extends Controller {
      * Show the form for editing the specified resource.
      *
      * @param  \App\{Model}  ${model}
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function edit({Model} ${model}, Request $request) {
@@ -133,7 +137,7 @@ class {Model}Controller extends Controller {
      /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\{Model}Request  $request
      * @param  \App\{Model}  ${model}
      * @return \Illuminate\Http\Response
      */
@@ -160,6 +164,7 @@ class {Model}Controller extends Controller {
      * Remove the specified resource from storage.
      *
      * @param  \App\{Model}  ${model}
+     * @param  \App\Http\Requests\{Model}Request  $request
      * @return \Illuminate\Http\Response
      */
     public function destroy({Model} ${model}, {Model}Request $request){

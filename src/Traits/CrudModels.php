@@ -2,7 +2,10 @@
 
 namespace Sirgrimorum\CrudGenerator\Traits;
 
-trait CrudModels {
+use Illuminate\Support\Facades\Storage;
+
+trait CrudModels
+{
 
     /**
      * Evaluate the "permissions" callbacks in the configuration array
@@ -11,7 +14,8 @@ trait CrudModels {
      * @param string $action Optional The actual action
      * @return boolean if the user has or not permission
      */
-    public static function checkPermission(array $config, $registro = 0, $action = "") {
+    public static function checkPermission(array $config, $registro = 0, $action = "")
+    {
         if ($action == "") {
             $action = substr(request()->route()->getName(), stripos(request()->route()->getName(), "::") + 2);
         }
@@ -56,7 +60,8 @@ trait CrudModels {
      * @param boolean|string $solo Optional if false, will return the complete an simple array, if 'simple' only the simple one, if 'complete' only the complete one
      * @return array with the objects in the config format
      */
-    public static function lists_array($config, $registros = null, $solo = 'complete') {
+    public static function lists_array($config, $registros = null, $solo = 'complete')
+    {
         //$config = \Sirgrimorum\CrudGenerator\CrudGenerator::translateConfig($config);
         if ($registros == null) {
             $modeloM = ucfirst($config['modelo']);
@@ -91,7 +96,8 @@ trait CrudModels {
      * @param boolean|string $solo Optional if false, will return the complete an simple array, if 'simple' only the simple one, if 'complete' only the complete one
      * @return array with the attributes in the config format
      */
-    public static function registry_array($config, $registro = null, $solo = false) {
+    public static function registry_array($config, $registro = null, $solo = false)
+    {
         $modeloM = ucfirst($config['modelo']);
         if ($registro == null) {
             $value = $modeloM::first();
@@ -164,7 +170,8 @@ trait CrudModels {
      * @param array $config Optional The configuration array for the field
      * @return array with the values in the config format
      */
-    public static function field_array($value, $columna, $datos = "") {
+    public static function field_array($value, $columna, $datos = "")
+    {
         if ($datos == "") {
             $modelo = strtolower(class_basename(get_class($value)));
             $config = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfigWithParametros($modelo);
@@ -217,21 +224,21 @@ trait CrudModels {
                 foreach ($value->{$columna}()->get() as $sub) {
                     $auxcelda = "";
                     if (array_key_exists('enlace', $datos)) {
-                        $auxcelda2 .= $prefijo . '<a href = "' . str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre'] }], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}], $datos['enlace'])) . '">';
+                        $auxcelda2 .= $prefijo . '<a href = "' . str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre']}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}], $datos['enlace'])) . '">';
                     } else {
                         $auxcelda2 .= $prefijo;
                     }
                     $auxcelda = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($sub, $datos['campo']);
                     $auxcelda2 .= $auxcelda;
                     if (array_key_exists('enlace', $datos)) {
-                        $auxcelda2 .='</a>';
+                        $auxcelda2 .= '</a>';
                     }
-                    $auxcelda2.="</li>";
+                    $auxcelda2 .= "</li>";
                     $prefijo = "<li>";
                     $celda[$sub->getKey()] = $auxcelda;
                 }
                 if ($auxcelda2 != "") {
-                    $auxcelda2.="</ul>";
+                    $auxcelda2 .= "</ul>";
                 }
                 $celda = [
                     "data" => $celda,
@@ -248,12 +255,12 @@ trait CrudModels {
                     $celda[$sub->getKey()] = [];
                     $auxcelda = "";
                     if (array_key_exists('enlace', $datos)) {
-                        $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre'] }], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}], $datos['enlace'])) . '">';
+                        $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre']}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}], $datos['enlace'])) . '">';
                     }
                     $auxcelda2 = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($sub, $datos['campo']);
-                    $auxcelda.=$auxcelda2;
+                    $auxcelda .= $auxcelda2;
                     if (array_key_exists('enlace', $datos)) {
-                        $auxcelda .='</a>';
+                        $auxcelda .= '</a>';
                     }
                     $auxcelda3 .= $prefijo . $auxcelda;
                     $auxcelda4 = "";
@@ -287,7 +294,7 @@ trait CrudModels {
                         }
                     }
                     if ($auxcelda4 != "") {
-                        $auxcelda4 .="</ul>";
+                        $auxcelda4 .= "</ul>";
                     }
                     $auxcelda3 .= $auxcelda4 . "</li>";
                     $prefijo = "<li>";
@@ -296,7 +303,7 @@ trait CrudModels {
                     $celda[$sub->getKey()]['label'] = $auxcelda5;
                 }
                 if ($auxcelda3 != "") {
-                    $auxcelda3 .="</ul>";
+                    $auxcelda3 .= "</ul>";
                 }
                 $celda = [
                     "data" => $celda,
@@ -386,7 +393,7 @@ trait CrudModels {
             $celda['data'] = $date;
             $celda['label'] = $datos['label'];
             $celda['value'] = $dato;
-        } elseif ($datos['tipo'] == "url" || ($datos['tipo'] == "file" && \Illuminate\Support\Str::startsWith (strtolower($value->{$columna}), ["http:","https:"]))) {
+        } elseif ($datos['tipo'] == "url" || ($datos['tipo'] == "file" && \Illuminate\Support\Str::startsWith(strtolower($value->{$columna}), ["http:", "https:"]))) {
             $celda = [
                 'value' => $value->{$columna},
                 'data' => $value->{$columna},
@@ -442,7 +449,7 @@ trait CrudModels {
             if ($value->{$columna} == "") {
                 $celda = '';
             } else {
-                $filename = str_start($value->{$columna}, str_finish($datos['path'], '\\'));
+                $filename = Storage::disk(array_get($datos,"disk","local"))->url(str_start($value->{$columna}, str_finish($datos['path'], '\\'))) ;
                 $tipoFile = \Sirgrimorum\CrudGenerator\CrudGenerator::filenameIs($value->{$columna}, $datos);
                 $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
                 $celda = [
@@ -468,7 +475,7 @@ trait CrudModels {
                 $celda['label'] = $datos['label'];
                 $celda['value'] = $value->{$columna};
                 foreach ($auxprevios as $datoReg) {
-                    $filename = str_start($datoReg->file, str_finish($datos['path'], '\\'));
+                    $filename =  Storage::disk(array_get($datos,"disk","local"))->url(str_start($datoReg->file, str_finish($datos['path'], '\\')));
                     $tipoFile = \Sirgrimorum\CrudGenerator\CrudGenerator::filenameIs($datoReg->file, $datos);
                     $celda['data'][] = [
                         "name" => $datoReg->name,
@@ -485,7 +492,7 @@ trait CrudModels {
                 if (is_array($datos['format'])) {
                     $auxcelda .= number_format($value->{$columna}, $datos['format'][0], $datos['format'][1], $datos['format'][2]);
                 } else {
-                    $auxcelda .=number_format($value->{$columna});
+                    $auxcelda .= number_format($value->{$columna});
                 }
             } else {
                 $auxcelda .= $value->{$columna};
@@ -536,7 +543,8 @@ trait CrudModels {
      * @param string $attri The attribute to compare
      * @return boolean
      */
-    private static function evaluateFilterWithSingleQuery($registro, $query, $attri) {
+    private static function evaluateFilterWithSingleQuery($registro, $query, $attri)
+    {
         //echo "<p>evaluando {$registro->name}</p><pre>" . print_r([$query, $attri], true) . "</pre>";
         $contiene = false;
         if (stripos($query, "*%") !== false) {
@@ -594,7 +602,8 @@ trait CrudModels {
      * @param boolean $fbf Optional, default false. If the query and attributes arrays must be evaluated one by one (ej: $query[0] vs $attribute[0] AND $query[1] vs $attribute[1], ...) The size of $attri and $query must be the same
      * @return boolean
      */
-    private static function evaluateFilter($registro, $query, $attri, $orOperation = true, $fbf = false) {
+    private static function evaluateFilter($registro, $query, $attri, $orOperation = true, $fbf = false)
+    {
         if ($fbf && isset($attri) == isset($query)) {
             if (!count($attri) == count($query)) {
                 $fbf = false;
@@ -742,7 +751,8 @@ trait CrudModels {
      * @param string $aByAStr Optional the key of the value indicating if the $query and $attribute must be evaluated one by one (ej: $query[0] vs $attribute[0] AND $query[1] vs $attribute[1], ...)
      * @return array Collection filtered
      */
-    private static function filterWithQuery($registros, $config, $datos = [], $orOperation = "_or", $queryStr = "_q", $attriStr = "_a", $aByAStr = "_aByA") {
+    private static function filterWithQuery($registros, $config, $datos = [], $orOperation = "_or", $queryStr = "_q", $attriStr = "_a", $aByAStr = "_aByA")
+    {
         if (count($datos) == 0) {
             $datos = request()->all();
         }
@@ -772,7 +782,7 @@ trait CrudModels {
                 $attri = $config['nombre'];
             }
             $fbf = isset($datos[$aByAStr]);
-            $registros = $registros->filter(function($registro) use($query, $attri, $fbf, $orOperation) {
+            $registros = $registros->filter(function ($registro) use ($query, $attri, $fbf, $orOperation) {
                 return \Sirgrimorum\CrudGenerator\CrudGenerator::evaluateFilter($registro, $query, $attri, $orOperation, $fbf);
             });
         }
@@ -786,26 +796,26 @@ trait CrudModels {
      * @param array $children_items An array with the models to sync with
      * @param array $config The configuration array of the model
      */
-    public static function syncHasMany($model, $campo, $children_items, $config) {
+    public static function syncHasMany($model, $campo, $children_items, $config)
+    {
         $children = $model->{$campo};
         $children_items = collect($children_items);
         $deleted_ids = $children->filter(
-                        function ($child) use ($children_items) {
-                    return empty(
-                            $children_items->where($config[$campo]['id'], $child->$config[$campo]['id'])->first()
-                    );
-                }
-                )->map(function ($child) {
-            $id = $child->id;
-            $child->delete();
-            return $id;
-        }
+            function ($child) use ($children_items) {
+                return empty($children_items->where($config[$campo]['id'], $child->$config[$campo]['id'])->first());
+            }
+        )->map(
+            function ($child) {
+                $id = $child->id;
+                $child->delete();
+                return $id;
+            }
         );
         $attachments = $children_items->filter(
-                        function ($children_item) {
-                    return empty($children_item->$config[$campo]['id']);
-                }
-                )->map(function ($children_item) use ($deleted_ids) {
+            function ($children_item) {
+                return empty($children_item->$config[$campo]['id']);
+            }
+        )->map(function ($children_item) use ($deleted_ids) {
             $children_item->$config[$campo]['id'] = $deleted_ids->pop();
             return new $config[$campo]['modelo']($children_item);
         });
@@ -818,7 +828,8 @@ trait CrudModels {
      * @param Request $request Optional the request. If null, it will use request() function
      * @return mix Retuns the validator or false if there are no rules
      */
-    public static function validateModel(array $config, \Illuminate\Http\Request $request = null) {
+    public static function validateModel(array $config, \Illuminate\Http\Request $request = null)
+    {
         if (is_null($request)) {
             $request = request();
         }
@@ -840,9 +851,9 @@ trait CrudModels {
         }
         $auxIdCambio = $request->get($config["id"]);
 
-        $rules = \Sirgrimorum\CrudGenerator\CrudGenerator::translateArray($rules, ":model", function($string) use ($auxIdCambio) {
-                    return $auxIdCambio;
-                }, "Id");
+        $rules = \Sirgrimorum\CrudGenerator\CrudGenerator::translateArray($rules, ":model", function ($string) use ($auxIdCambio) {
+            return $auxIdCambio;
+        }, "Id");
         if (count($rules) > 0) {
             $customAttributes = [];
             foreach ($rules as $field => $datos) {
@@ -878,7 +889,8 @@ trait CrudModels {
      * @param type $obj Optional, the object to save or edit. If null, it would look for one using its $config['id'] value in the $input, or create a new one if not found
      * @return boolean True or an erro response in case of error with uploaded files
      */
-    public static function saveObjeto(array $config, \Illuminate\Http\Request $input = null, $obj = null) {
+    public static function saveObjeto(array $config, \Illuminate\Http\Request $input = null, $obj = null)
+    {
         if (is_null($input)) {
             $input = request();
         }
@@ -1003,7 +1015,7 @@ trait CrudModels {
                                 if ($filename !== false) {
                                     $objModelo->{$campo} = $filename;
                                     if ($existFile != "") {
-                                        \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(str_start($existFile, str_finish($detalles['path'], '\\')));
+                                        \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(str_start($existFile, str_finish($detalles['path'], '\\')), array_get($detalles, "disk", "local"));
                                     }
                                 } else {
                                     $filename = "";
@@ -1011,7 +1023,7 @@ trait CrudModels {
                                 }
                             } else {
                                 if (!$input->has($campo . "_filereg") && $existFile != "") {
-                                    \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(str_start($existFile, str_finish($detalles['path'], '\\')));
+                                    \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(str_start($existFile, str_finish($detalles['path'], '\\')), array_get($detalles, "disk", "local"));
                                 } elseif ($input->has($campo . "_filereg") && $existFile != "") {
                                     $filename = $existFile;
                                 }
@@ -1062,7 +1074,7 @@ trait CrudModels {
                                         }
                                     }
                                     if (!$esta) {
-                                        \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(str_start($existFile['file'], str_finish($detalles['path'], '\\')));
+                                        \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(str_start($existFile['file'], str_finish($detalles['path'], '\\')), array_get($detalles, "disk", "local"));
                                     }
                                 }
                                 $finalFiles = array_merge($finalFiles, $masFiles);
@@ -1087,7 +1099,7 @@ trait CrudModels {
                 }
             }
             $objModelo->save();
-            
+
             if ($objModelo) {
                 foreach ($config['campos'] as $campo => $detalles) {
                     if (!isset($detalles["nodb"])) {
@@ -1167,7 +1179,7 @@ trait CrudModels {
                     }
                 }
             }
-            if ($config['tabla']=="articles"){
+            if ($config['tabla'] == "articles") {
                 \Illuminate\Support\Facades\Artisan::call('view:clear');
             }
             return $objModelo;
@@ -1184,7 +1196,8 @@ trait CrudModels {
      * @param boolean $addNewName Optional, if true, will add the new field name to the filename (assumed in $campo . "_name" in input)
      * @return boolean|string The name of the faile to save in the bd or false if something went wrong
      */
-    private static function saveFileFromRequest(\Illuminate\Http\Request $input, $campo, array $detalles, $addNewName = true) {
+    private static function saveFileFromRequest(\Illuminate\Http\Request $input, $campo, array $detalles, $addNewName = true)
+    {
         if ($input->hasFile($campo)) {
             $file = $input->file($campo);
             if ($file) {
@@ -1224,8 +1237,11 @@ trait CrudModels {
                     $new_name = "__" . $new_name;
                 }
 
-                $filename .= str_random($numRand) . $new_name . "." . $file->getClientOriginalExtension();
-                $upload_success = $file->move($destinationPath, $filename);
+                $filename .= str_random($numRand) . $new_name;
+                $disk = array_get($detalles, "disk", "local");
+                $path = $file->store($destinationPath . $filename, $disk);
+                $filename .= "." . $file->getClientOriginalExtension();
+                $upload_success = $path !== false;
                 if ($upload_success) {
                     if ($esImagen && isset($detalles['resize'])) {
                         foreach ($detalles['resize'] as $resize) {
@@ -1279,7 +1295,8 @@ trait CrudModels {
      * @param array $config The ocnfiguration array
      * @param string $action Optional the action (create, edit, etc) where the conditionals are needed
      */
-    public static function buildConditionalArray(array $config, string $action = "-") {
+    public static function buildConditionalArray(array $config, string $action = "-")
+    {
         if ($action == "") {
             $action = substr(request()->route()->getName(), stripos(request()->route()->getName(), "::") + 2);
         }
@@ -1304,5 +1321,4 @@ trait CrudModels {
         }
         return [$condiciones, $validadores];
     }
-
 }

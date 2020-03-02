@@ -2,6 +2,7 @@
 
 namespace Sirgrimorum\CrudGenerator\Traits;
 
+use Illuminate\Support\Facades\Storage;
 use Sirgrimorum\CrudGenerator\SuperClosure;
 
 trait CrudFiles {
@@ -254,17 +255,12 @@ trait CrudFiles {
     /**
      * Remove a file if exists
      * @param string $filename The file name relative to the base_path()
-     * @param boolean $public Optional True, indicates the file name is relative to public_path() else is relative to base_path()
+     * @param string $disk Optional 'public', the disk to use
      * @return boolean
      */
-    public static function removeFile($filename, $public = true) {
-        if ($public) {
-            $path = public_path($filename);
-        } else {
-            $path = base_path($filename);
-        }
-        if (file_exists($path)) {
-            unlink($path);
+    public static function removeFile($filename, $disk = true) {
+        if (Storage::disk($disk)->exist($filename)) {
+            Storage::disk($disk)->delete($filename);
         } else {
             return false;
         }
