@@ -57,9 +57,9 @@ trait CrudConfig {
         /**
          * Get initial config and model name
          */
-        if (!array_has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
+        if (!\Illuminate\Support\Arr::has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
             $modelo = ucfirst($modelo);
-            if (!array_has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
+            if (!\Illuminate\Support\Arr::has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
                 //$modelo = strtolower($modelo);
             }
         }
@@ -67,7 +67,7 @@ trait CrudConfig {
             if ($config == '') {
                 $config = 'render';
                 //return config(config("sirgrimorum.crudgenerator.admin_routes." . $modelo));
-                if (array_has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
+                if (\Illuminate\Support\Arr::has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
                     $config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modelo));
                 }
             } elseif (is_string($config)) {
@@ -414,7 +414,7 @@ trait CrudConfig {
                         $tipoRelacion = class_basename(get_class($modeloE->{$method->name}()));
                         switch ($tipoRelacion) {
                             case 'BelongsToMany':
-                                $deTabla = array_where($columns['manytomany'], function($value, $key) use ($datosQueryAux) {
+                                $deTabla = \Illuminate\Support\Arr::where($columns['manytomany'], function($value, $key) use ($datosQueryAux) {
                                     return ($value['intermedia'] == $datosQueryAux[1]);
                                 });
                                 if (count($deTabla) > 0) {
@@ -444,7 +444,7 @@ trait CrudConfig {
                                 break;
                             case 'BelongsTo':
                                 $foreign = $modeloE->{$method->name}()->getForeignKey();
-                                $deTabla = array_where($columns['belongsto'], function($value, $key) use ($foreign, $datosQueryAux) {
+                                $deTabla = \Illuminate\Support\Arr::where($columns['belongsto'], function($value, $key) use ($foreign, $datosQueryAux) {
                                     return ($value['cliente_col'] == $foreign && $value['patron_col'] == $datosQueryAux[2]);
                                 });
                                 if (count($deTabla) > 0) {
@@ -463,7 +463,7 @@ trait CrudConfig {
                                 unset($columns['campos'][$datosQuery['modelRelatedId']]);
                                 break;
                             case 'HasMany':
-                                $deTabla = array_where($columns['hasmany'], function($value, $key) use ($related) {
+                                $deTabla = \Illuminate\Support\Arr::where($columns['hasmany'], function($value, $key) use ($related) {
                                     return $value['cliente'] == $related->getTable();
                                 });
                                 if (count($deTabla) > 0) {
@@ -916,7 +916,7 @@ trait CrudConfig {
             }
             if (is_array($config)) {
                 foreach ($preConfig as $key => $value) {
-                    if (!array_has($config, $key)) {
+                    if (!\Illuminate\Support\Arr::has($config, $key)) {
                         if (is_array($value)) {
                             if ($auxValue = \Sirgrimorum\CrudGenerator\CrudGenerator::smartMergeConfig("", $value)) {
                                 $config[$key] = $auxValue;

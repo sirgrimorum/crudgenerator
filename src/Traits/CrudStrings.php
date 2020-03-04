@@ -145,8 +145,8 @@ trait CrudStrings {
      * return mix the index in the key if present, false if not present or key not available
      */
     public static function inside_array($array, $key, $needle) {
-        if (array_has($array, $key)) {
-            foreach (array_get($array, $key) as $index => $value) {
+        if (\Illuminate\Support\Arr::has($array, $key)) {
+            foreach (\Illuminate\Support\Arr::get($array, $key) as $index => $value) {
                 if ($value == $needle) {
                     return $index;
                 }

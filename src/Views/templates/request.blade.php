@@ -73,8 +73,8 @@ class {Model}Request extends FormRequest {
         $config = CrudGenerator::getConfigWithParametros('{model}');
         $customAttributes = [];
             foreach ($config['rules'] as $field => $datos) {
-                if (array_has($config, "campos." . $field . ".label")) {
-                    $customAttributes[$field] = array_get($config, "campos." . $field . ".label");
+                if (\Illuminate\Support\Arr::has($config, "campos." . $field . ".label")) {
+                    $customAttributes[$field] = \Illuminate\Support\Arr::get($config, "campos." . $field . ".label");
                 }
             }
         return $customAttributes;

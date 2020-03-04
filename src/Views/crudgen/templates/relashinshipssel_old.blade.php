@@ -91,7 +91,7 @@ if (is_array($datos['campo'])){
             <tbody>
                 @foreach($datos["todos"] as $tablaInterId => $tablaInterCampo)
                 <?php
-                $pivote = array_get($dato, $tablaInterId, false);
+                $pivote = \Illuminate\Support\Arr::get($dato, $tablaInterId, false);
                 if (is_object($pivote)) {
                     $checked = true;
                     if ($readonly == "") {
