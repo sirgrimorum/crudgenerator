@@ -437,13 +437,13 @@ trait CrudConfig {
                                         'relatedId' => $datosQueryAux[3],
                                         'intermediaModelId' => $datosQueryAux[7],
                                         'modelId' => substr($modeloE->{$method->name}()->getQualifiedParentKeyName(), stripos($modeloE->{$method->name}()->getQualifiedParentKeyName(), ".") + 1),
-                                        'foreignId' => $modeloE->{$method->name}()->getForeignKey(),
+                                        'foreignId' => $modeloE->{$method->name}()->getForeignKeyName(),
                                             //'ownerId' => $modeloE->{$method->name}()->getQualifiedRelatedPivotKeyName(),
                                     ];
                                 }
                                 break;
                             case 'BelongsTo':
-                                $foreign = $modeloE->{$method->name}()->getForeignKey();
+                                $foreign = $modeloE->{$method->name}()->getForeignKeyName();
                                 $deTabla = \Illuminate\Support\Arr::where($columns['belongsto'], function($value, $key) use ($foreign, $datosQueryAux) {
                                     return ($value['cliente_col'] == $foreign && $value['patron_col'] == $datosQueryAux[2]);
                                 });

@@ -149,7 +149,7 @@ trait CrudFiles {
                 $newContent = array_slice($contents, 0, $fin);
                 $searchArr = ["{?php}", "{php?}", "[[", "]]", "[!!", "!!]", "{modelo}", "{Modelo}", "{model}", "{Model}", "*extends", "*section", "*stop", "*stack", "*push", "*if", "*else", "*foreach", "*end", "{ " . $modelo . " }"];
                 $replaceArr = ["<?php", "?>", "{{", "}}", "{!!", "!!}", $modelo, $modeloM, $modelo, $modeloM, "@extends", "@section", "@stop", "@stack", "@push", "@if", "@else", "@foreach", "@end", "{" . $modelo . "}"];
-                $contenido = view("sirgrimorum::templates.routes", ["config" => $config, "localized" => false])->render();
+                $contenido = view("sirgrimorum::templates.routes", ["config" => $config, "localized" => false, "modelo" => $modelo])->render();
                 $contenido = str_replace($searchArr, $replaceArr, $contenido);
                 $data = explode(chr(13) . chr(10), $contenido);
                 $newContent[] = chr(13) . chr(10);
