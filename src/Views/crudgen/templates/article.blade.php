@@ -107,7 +107,7 @@ if ($js_section != "") {
 }
 ?>
 <script>
-    (function () {
+    $(document).ready(function () {
     @foreach(config("sirgrimorum.crudgenerator.list_locales") as $localeCode)
             CKEDITOR.replace('{{ $tabla . "_" . $extraId . "_" . $localeCode }}');
     @endforeach
