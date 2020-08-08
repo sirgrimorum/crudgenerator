@@ -14,6 +14,8 @@ use ReflectionMethod;
 use Illuminate\Support\Facades\File;
 use Sirgrimorum\CrudGenerator\SuperClosure;
 use Sirgrimorum\CrudGenerator\Traits;
+use App;
+use Illuminate\Support\Facades\Lang;
 
 class CrudGenerator {
 
@@ -63,7 +65,7 @@ class CrudGenerator {
         }
         if ($config['url'] == "Sirgrimorum_CrudAdministrator") {
             $config['url'] = route("sirgrimorum_modelo::store", ["modelo" => $modelo]);
-            if (\Lang::has('crudgenerator::' . $modelo . '.labels.create')) {
+            if (Lang::has('crudgenerator::' . $modelo . '.labels.create')) {
                 $config['botones'] = trans("crudgenerator::$modelo.labels.create");
             } else {
                 $config['botones'] = trans("crudgenerator::admin.layout.crear");
@@ -169,7 +171,7 @@ class CrudGenerator {
         }
         if ($config['url'] == "Sirgrimorum_CrudAdministrator") {
             $config['url'] = route("sirgrimorum_modelo::update", ["modelo" => $modelo, "registro" => $registro->id]);
-            if (\Lang::has('crudgenerator::' . $modelo . '.labels.edit')) {
+            if (Lang::has('crudgenerator::' . $modelo . '.labels.edit')) {
                 $config['botones'] = trans("crudgenerator::$modelo.labels.edit");
             } else {
                 $config['botones'] = trans("crudgenerator::admin.layout.editar");
