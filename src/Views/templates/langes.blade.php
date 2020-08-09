@@ -7,7 +7,27 @@ return [
         "plural" => "{{ucfirst(\Illuminate\Support\Str::plural($modelo))}}",
         "singular" => "{Model}",
         @foreach($config['campos'] as $campo=>$datos)
-        "{{ $campo }}" => "{{ str_replace(["_"],[" "],ucfirst($campo)) }}",
+        @if ($campo == "created_at")
+        "{{ $campo }}" => "Creado el",
+        @elseif($campo == "updated_at")
+        "{{ $campo }}" => "Actualizado el",
+        @elseif($campo == "first_name")
+        "{{ $campo }}" => "Nombre",
+        @elseif($campo == "articles")
+        "{{ $campo }}" => "Artículos",
+        @elseif($campo == "users")
+        "{{ $campo }}" => "Usuarios",
+        @elseif($campo == "phone")
+        "{{ $campo }}" => "Teléfono",
+        @elseif($campo == "last_name")
+        "{{ $campo }}" => "Apellido",
+        @elseif($campo == "password")
+        "{{ $campo }}" => "Clave",
+        @elseif($campo == "remember_token")
+        "{{ $campo }}" => "Token de clave",
+        @else
+        "{{ $campo }}" => "{{ ucfirst(str_replace(["_","tion","image","file", "name", "title", "text", "code", "content", "comment", "document", "picture", "type", "state", "order"],[" ","ción","imagen", "archivo", "nombre", "título", "texto", "código", "contenido", "comentario", "documento","foto", "tipo", "estado", "orden"],$campo)) }}",
+        @endif
         @endforeach
         "edit" => "Guardar cambios",
         "create" => "Crear {model}",
@@ -16,12 +36,52 @@ return [
     ],
     "placeholders" => [
         @foreach($config['campos'] as $campo=>$datos)
-        "{{ $campo }}" => "{{ str_replace(["_"],[" "],ucfirst($campo)) }}",
+        @if ($campo == "created_at")
+        "{{ $campo }}" => "Creado el",
+        @elseif($campo == "updated_at")
+        "{{ $campo }}" => "Actualizado el",
+        @elseif($campo == "first_name")
+        "{{ $campo }}" => "Nombre",
+        @elseif($campo == "articles")
+        "{{ $campo }}" => "Artículos",
+        @elseif($campo == "users")
+        "{{ $campo }}" => "Usuarios",
+        @elseif($campo == "phone")
+        "{{ $campo }}" => "Teléfono",
+        @elseif($campo == "last_name")
+        "{{ $campo }}" => "Apellido",
+        @elseif($campo == "password")
+        "{{ $campo }}" => "Clave",
+        @elseif($campo == "remember_token")
+        "{{ $campo }}" => "Token de clave",
+        @else
+        "{{ $campo }}" => "{{ ucfirst(str_replace(["_","tion","image","file", "name", "title", "text", "code", "content", "comment", "document", "picture", "type", "state", "order"],[" ","ción","imagen", "archivo", "nombre", "título", "texto", "código", "contenido", "comentario", "documento","foto", "tipo", "estado", "orden"],$campo)) }}",
+        @endif
         @endforeach
     ],
     "descriptions" => [
         @foreach($config['campos'] as $campo=>$datos)
-        "{{ $campo }}" => "{{ str_replace(["_"],[" "],ucfirst($campo)) }}",
+        @if ($campo == "created_at")
+        "{{ $campo }}" => "Creado el",
+        @elseif($campo == "updated_at")
+        "{{ $campo }}" => "Actualizado el",
+        @elseif($campo == "first_name")
+        "{{ $campo }}" => "Nombre",
+        @elseif($campo == "articles")
+        "{{ $campo }}" => "Artículos",
+        @elseif($campo == "users")
+        "{{ $campo }}" => "Usuarios",
+        @elseif($campo == "phone")
+        "{{ $campo }}" => "Teléfono",
+        @elseif($campo == "last_name")
+        "{{ $campo }}" => "Apellido",
+        @elseif($campo == "password")
+        "{{ $campo }}" => "Clave",
+        @elseif($campo == "remember_token")
+        "{{ $campo }}" => "Token de clave",
+        @else
+        "{{ $campo }}" => "{{ ucfirst(str_replace(["_","tion","image","file", "name", "title", "text", "code", "content", "comment", "document", "picture", "type", "state", "order"],[" ","ción","imagen", "archivo", "nombre", "título", "texto", "código", "contenido", "comentario", "documento","foto", "tipo", "estado", "orden"],$campo)) }}",
+        @endif
         @endforeach
     ],
     "selects" => [
