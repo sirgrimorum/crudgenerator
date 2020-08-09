@@ -53,7 +53,7 @@ class SendAlert extends Command
                 $data = [];
                 $data['message'] = $message;
                 /* $result = $pusher->trigger('my-channel', 'my-event', $data, null, true);
-                      $this->line(print_r($result, true)); */
+                      $this->info(print_r($result, true)); */
                 $tiempo = $this->ask("Send in? (Just a number,next you will select seconds, minutes, etc.)");
                 if (!is_int((int) $tiempo)) {
                     $tiempo = $this->ask("Send in? HAS TO BE AN INTEGER NUMBER");

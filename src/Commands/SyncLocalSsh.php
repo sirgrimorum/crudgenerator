@@ -6,8 +6,10 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use phpseclib\Net\SSH2;
 use phpseclib\Net\SFTP;
+use Symfony\Component\Process\Process;
 
 class SyncLocalSsh extends Command
 {
@@ -49,23 +51,61 @@ class SyncLocalSsh extends Command
         $ssh_user = env('SYNC_DB_REMOTE_SSH_USERNAME');
         $ssh_pass = env('SYNC_DB_REMOTE_SSH_PASSWORD');
         $dump_remote_dir = env('SYNC_DB_REMOTE_DUMP_DIR');
+        $local_db = env('DB_DATABASE');
+        $local_db_user = env('DB_USERNAME');
+        $local_db_pass = env('DB_PASSWORD');
+        $local_mysql_path = env('SYNC_DB_LOCAL_MYSQL_PATH');
 
         // Checking to make sure this isn't production.
         if (App::environment('production')) {
             $this->error("Please don't try and run this in production... will not end well.");
             return;
         }
-        if (!$dump_remote_dir || !$remote_db_user || !$remote_db_pass || !$remote_url || !$remote_db || !$ssh_user || !$ssh_pass) {
-            $this->error('You need to add environment variables! (SYNC_DB_REMOTE_URL, SYNC_DB_REMOTE_DB_NAME, SYNC_DB_REMOTE_DB_USER, SYNC_DB_REMOTE_DB_PASS, SYNC_DB_REMOTE_SSH_USERNAME, SYNC_DB_REMOTE_SSH_PASSWORD, SYNC_DB_REMOTE_DUMP_DIR)');
+        if (!$local_db_user) {
+            $this->error('You need to add environment variables! (DB_USERNAME)');
+            return;
+        }
+        if (!$dump_remote_dir) {
+            $this->error('You need to add environment variables! (SYNC_DB_REMOTE_DUMP_DIR)');
+            return;
+        }
+        if (!$ssh_user) {
+            $this->error('You need to add environment variables! (SYNC_DB_REMOTE_SSH_USERNAME)');
+            return;
+        }
+        if (!$ssh_pass) {
+            $this->error('You need to add environment variables! (SYNC_DB_REMOTE_SSH_PASSWORD)');
+            return;
+        }
+        if (!$remote_db_user) {
+            $this->error('You need to add environment variables! (SYNC_DB_REMOTE_DB_USER)');
+            return;
+        }
+        if (!$remote_url) {
+            $this->error('You need to add environment variables! (SYNC_DB_REMOTE_URL)');
+            return;
+        }
+        if (!$remote_db) {
+            $this->error('You need to add environment variables! (SYNC_DB_REMOTE_DB_NAME)');
+            return;
+        }
+        if (!$local_db) {
+            $this->error('You need to add environment variables! (DB_DATABASE)');
+            return;
+        }
+        if (!$local_mysql_path) {
+            $this->error('You need to add environment variables! (SYNC_DB_LOCAL_MYSQL_PATH)');
             return;
         }
         $dump_remote_dir = \Illuminate\Support\Str::finish($dump_remote_dir, "/");
+        $local_mysql_path = \Illuminate\Support\Str::finish($local_mysql_path, "/");
 
-        $bar = $this->output->createProgressBar(7);
+        $bar = $this->output->createProgressBar(9);
+        $bar->start();
 
         $confirm = $this->choice("Are you sure? This will erase all data in local BD", ['yes', 'no'], 1);
         if ($confirm == 'yes') {
-            $this->line("Connecting to remote ssh...");
+            $this->info("Connecting to remote ssh...");
             $bar->advance();
             // Connect via ssh to dump the db on the remote server.
             $ssh = new SSH2($remote_url);
@@ -74,17 +114,63 @@ class SyncLocalSsh extends Command
                 $bar->finish();
                 return;
             }
-            $this->line("Generating backup in remote...");
-            $bar->advance();
-            $ssh->exec('sudo mysqldump -v -h localhost -u ' . $remote_db_user . '  -p' . $remote_db_pass . ' ' . $remote_db . ' > ' . $dump_remote_dir . 'sync_dump.sql');
+            $generarCopia = true;
+            if (Storage::exists('sync_dump.sql')) {
+                $confirm = $this->choice("There is a copy of the DB sync_dump.sql. Do you wish to keep it or replace it?", ['keep', 'replace'], 1);
+                if ($confirm == 'replace') {
+                    $this->info("Remove backup...");
+                    $ssh->exec('rm sync_dump.sql -f');
+                    File::delete(storage_path('sync_dump.sql'));
+                } else {
+                    $generarCopia = false;
+                }
+            }
+            if ($generarCopia) {
+                $this->info("Generating backup in remote...");
+                $ssh->exec('rm sync_dump.sql -f');
+                $bar->advance();
+                if (!$remote_db_pass) {
+                    $ssh->exec('sudo mysqldump -v -h localhost -u ' . $remote_db_user . ' ' . $remote_db . ' > ' . $dump_remote_dir . 'sync_dump.sql');
+                } else {
+                    $ssh->exec('sudo mysqldump -v -h localhost -u ' . $remote_db_user . '  -p' . $remote_db_pass . ' ' . $remote_db . ' > ' . $dump_remote_dir . 'sync_dump.sql');
+                }
 
-            $this->line("Downloading backup from remote...");
-            $bar->advance();
-            // Connect via sftp to d/l the dump
-            $sftp = new SFTP($remote_url);
+                $this->info("Downloading backup from remote...");
+                $bar->advance();
+                // Connect via sftp to d/l the dump
+                $sftp = new SFTP($remote_url);
 
-            if (!$sftp->login($ssh_user, $ssh_pass)) {
-                $this->error('Login in sftp failed make sure your SSH username and password is set in your env file.');
+                if (!$sftp->login($ssh_user, $ssh_pass)) {
+                    $this->error('Login in sftp failed make sure your SSH username and password is set in your env file.');
+                    return;
+                }
+            } else {
+                $bar->advance();
+                $bar->advance();
+            }
+
+            $this->info("Delete local DB...");
+            $bar->advance();
+            if (!$local_db_pass) {
+                $process = new Process("{$local_mysql_path}mysqladmin -h localhost -u $local_db_user drop $local_db -f || true");
+            } else {
+                $process = new Process("{$local_mysql_path}mysqladmin -h localhost -u $local_db_user -p$local_db_pass drop $local_db -f || true");
+            }
+            $process->run();
+            if (!$process->isSuccessful()) {
+                $bar->finish();
+                return;
+            }
+            $this->info("Create local DB...");
+            $bar->advance();
+            if (!$local_db_pass) {
+                $process = new Process("{$local_mysql_path}mysqladmin -h localhost -u $local_db_user create $local_db");
+            } else {
+                $process = new Process("{$local_mysql_path}mysqladmin -h localhost -u $local_db_user -p$local_db_pass create $local_db");
+            }
+            $process->run();
+            if (!$process->isSuccessful()) {
+                $bar->finish();
                 return;
             }
 
@@ -92,21 +178,26 @@ class SyncLocalSsh extends Command
             ini_set('memory_limit', '-1');
             $sftp->get($dump_remote_dir . 'sync_dump.sql', storage_path('sync_dump.sql'));
 
-            $this->line("Importing data to local...");
+            $this->info("Importing data to local...");
             $bar->advance();
 
             DB::unprepared(File::get(storage_path('sync_dump.sql')));
 
-            $this->line('Migrating...');
+            $this->info('Migrating...');
             $bar->advance();
             $this->call('migrate');
 
-            $this->line('Removing back up files.');
-            $bar->advance();
-            $ssh->exec('rm sync_dump.sql');
-            File::delete(storage_path('sync_dump.sql'));
+            $confirm = $this->choice("Do you wish to remove the backup or keep it?", ['remove', 'keep'], 0);
+            if ($confirm == 'remove') {
+                $this->info('Removing back up files.');
+                $bar->advance();
+                $ssh->exec('rm sync_dump.sql -f');
+                File::delete(storage_path('sync_dump.sql'));
+            } else {
+                $bar->advance();
+            }
 
-            $this->line('Complete! You are synced with the remote DB.');
+            $this->info('Complete! You are synced with the remote DB.');
             $bar->finish();
         } else {
             $bar->finish();

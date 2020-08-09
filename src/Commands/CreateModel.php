@@ -38,8 +38,10 @@ class CreateModel extends Command
      */
     public function handle()
     {
-        $this->line("Preparing model attributes");
+        $this->info("Preparing model attributes");
         $bar = $this->output->createProgressBar(4);
+        $bar->start();
+        
         $table = $this->argument('table');
         $options = $this->options();
         //$modelName = $singular = substr($table, 0, strlen($table) - 1);
@@ -71,17 +73,17 @@ class CreateModel extends Command
         }
         $path = \Illuminate\Support\Str::finish($path, ".php");
         $bar->advance();
-        $this->line("Loading details from {$table} table");
+        $this->info("Loading details from {$table} table");
         $config = CrudGenerator::getModelDetailsFromDb($table);
         $config["modelo"] = $config["model"] = $modelName;
         $config["nameSpace"] = $nameSpace;
         $bar->advance();
         $this->info("Details loaded!");
-        //$this->line(print_r($config, true));
+        //$this->info(print_r($config, true));
         $bar->advance();
         $confirm = $this->choice("Do you wisth to continue and save the model to '{$path}' with the className '{$className}'?", ['yes', 'no'], 0);
         if ($confirm == 'yes') {
-            $this->line("Saving Model for {$modelName} in {$path} with className '{$className}'");
+            $this->info("Saving Model for {$modelName} in {$path} with className '{$className}'");
             if (CrudGenerator::saveResource("sirgrimorum::templates.model", false, base_path($justPath), $fileName, $config)) {
                 $this->info("Model file saved!");
                 $bar->finish();

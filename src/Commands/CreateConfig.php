@@ -39,14 +39,16 @@ class CreateConfig extends Command
     public function handle()
     {
         $model = $this->argument('model');
-        $this->line("Generating Config for {$model}");
+        $this->info("Generating Config for {$model}");
         $bar = $this->output->createProgressBar(4);
+        $bar->start();
+        
         $options = $this->options();
         if ($options['merge']) {
-            $this->line("mergin");
+            $this->info("mergin");
             $config = CrudGenerator::getConfig($model, true, '', '', false);
         } else {
-            $this->line("not mergin");
+            $this->info("not mergin");
             $config = CrudGenerator::getConfig($model, false, '', '', false, true, true);
         }
 
@@ -58,17 +60,17 @@ class CreateConfig extends Command
             $path = "sirgrimorum.models." . strtolower($model);
         }
         $this->info("Config generated!");
-        //$this->line(print_r($config, true));
+        //$this->info(print_r($config, true));
         $bar->advance();
         $confirm = $this->choice("Do you wisth to continue and save config to '{$path}'?", ['yes', 'no'], 0);
         if ($confirm == 'yes') {
-            $this->line("Saving Config for {$model} in {$path}");
+            $this->info("Saving Config for {$model} in {$path}");
             if (CrudGenerator::saveConfig($config, $path)) {
                 $this->info("Config file saved!");
                 $bar->advance();
                 $confirm = $this->choice("Do you wisth to register the new config to the crudgenerator configuration file?", ['yes', 'no'], 0);
                 if ($confirm == 'yes') {
-                    $this->line("Registering Config for {$model} in crudgenerator configuration file");
+                    $this->info("Registering Config for {$model} in crudgenerator configuration file");
                     if (CrudGenerator::registerConfig($config, $path)) {
                         $this->info("Config registered!");
                         $bar->finish();

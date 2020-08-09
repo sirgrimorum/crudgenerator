@@ -40,6 +40,8 @@ class Resources extends Command
     {
         $model = $this->argument('model');
         $bar = $this->output->createProgressBar(12);
+        $bar->start();
+        
         $confirm = $this->choice("Do you wisth to generate the files with Localized Routes?", ['yes', 'no'], 0);
         if ($confirm == "yes") {
             $localized = true;
@@ -117,7 +119,7 @@ class Resources extends Command
         if ($confirm == 'yes') {
             $path = "lang/vendor/crudgenerator/" . config("app.locale");
             $filename = \Illuminate\Support\Str::finish(strtolower($model), ".php");
-            $this->line("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
+            $this->info("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
             if (CrudGenerator::saveResource("sirgrimorum::templates.lang", $localized, resource_path($path), $filename, $config)) {
                 $this->info("Model Lang file saved!");
             } else {
@@ -129,7 +131,7 @@ class Resources extends Command
         if ($confirm == 'yes') {
             $path = "lang/vendor/crudgenerator/es";
             $filename = \Illuminate\Support\Str::finish(strtolower($model), ".php");
-            $this->line("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
+            $this->info("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
             if (CrudGenerator::saveResource("sirgrimorum::templates.langes", $localized, resource_path($path), $filename, $config)) {
                 $this->info("Model Lang file saved!");
                 $bar->finish();
