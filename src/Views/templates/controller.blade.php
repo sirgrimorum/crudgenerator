@@ -155,7 +155,7 @@ class {Model}Controller extends Controller {
             $mensaje = str_replace([":modelName", ":modelId"], [$objeto->{$this->config['nombre']}, $objeto->{$this->config['id']}], $mensajes["update_success"]);
             return redirect(route('{model}.index'))->with(config("sirgrimorum.crudgenerator.status_messages_key"), $mensaje);
         }else{
-            $mensaje = str_replace([":modelName", ":modelId"], [$objeto->{$this->config['nombre']}, $objeto->{$this->config['id']}], $mensajes["update_error"]);
+            $mensaje = str_replace([":modelName", ":modelId"], [${model}->{$this->config['nombre']}, ${model}->{$this->config['id']}], $mensajes["update_error"]);
             return redirect(route('{model}.index'))->with(config("sirgrimorum.crudgenerator.error_messages_key"), $mensaje);
         }
     }

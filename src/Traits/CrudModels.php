@@ -887,7 +887,7 @@ trait CrudModels
      * @param array $config The configuration array
      * @param Request $input Optional the request. If null, it will use request() function
      * @param type $obj Optional, the object to save or edit. If null, it would look for one using its $config['id'] value in the $input, or create a new one if not found
-     * @return boolean True or an erro response in case of error with uploaded files
+     * @return Object|boolean The saved object or false in case of error with uploaded files
      */
     public static function saveObjeto(array $config, \Illuminate\Http\Request $input = null, $obj = null)
     {
