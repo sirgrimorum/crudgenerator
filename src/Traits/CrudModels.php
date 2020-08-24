@@ -2,6 +2,10 @@
 
 namespace Sirgrimorum\CrudGenerator\Traits;
 
+use Error;
+use Exception;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 
 trait CrudModels
@@ -54,7 +58,7 @@ trait CrudModels
      * Could returns an array with 2 arrays in it:
      * Complete, with value, label and data for each field in position 0
      * and Simple, only with value per field at position 1
-     * 
+     *
      * @param array $config Configuration array
      * @param Model() $registros Optional Array of objects to show
      * @param boolean|string $solo Optional if false, will return the complete an simple array, if 'simple' only the simple one, if 'complete' only the complete one
@@ -90,7 +94,7 @@ trait CrudModels
      * Returns an array with 2 arrays in it:
      * Complete, with value, label and data for each field in position 0
      * and Simple, only with value per field at position 1
-     * 
+     *
      * @param array $config Configuration array
      * @param Model() $registro Optional object to show
      * @param boolean|string $solo Optional if false, will return the complete an simple array, if 'simple' only the simple one, if 'complete' only the complete one
@@ -163,7 +167,7 @@ trait CrudModels
      *      data: with the detailed value
      *      label: with the translated label of the field
      *      value: with the formated value of the field
-     * 
+     *
      * @param array $config Configuration array
      * @param Model() $value The object
      * @param string $columna The field to show
@@ -172,6 +176,7 @@ trait CrudModels
      */
     public static function field_array($value, $columna, $datos = "")
     {
+        $config = [];
         if ($datos == "") {
             $modelo = strtolower(class_basename(get_class($value)));
             $config = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfigWithParametros($modelo);
@@ -182,7 +187,7 @@ trait CrudModels
                     $celda = [
                         "data" => $value->{$columna},
                         "label" => $columna,
-                        "value" => $value->{$columna}
+                        "value" =>\Sirgrimorum\CrudGenerator\CrudGenerator::translateDato($value->{$columna})
                     ];
                     return $celda;
                 }
@@ -190,7 +195,7 @@ trait CrudModels
                 $celda = [
                     "data" => $value->{$columna},
                     "label" => $columna,
-                    "value" => $value->{$columna}
+                    "value" => \Sirgrimorum\CrudGenerator\CrudGenerator::translateDato($value->{$columna})
                 ];
                 return $celda;
             }
@@ -381,7 +386,7 @@ trait CrudModels
                 }
                 $date = new \Carbon\Carbon($dato, $timezone);
                 if (stripos($format, "%") !== false) {
-                    setlocale(LC_TIME, \App::getLocale(), strtoupper(\App::getLocale()), \App::getLocale() . "_" . strtoupper(\App::getLocale()));
+                    setlocale(LC_TIME, App::getLocale(), strtoupper(App::getLocale()), App::getLocale() . "_" . strtoupper(App::getLocale()));
                     \Carbon\Carbon::setUtf8(true);
                     $dato = $date->formatLocalized($format);
                 } else {
@@ -409,7 +414,7 @@ trait CrudModels
             $modelClass = config('sirgrimorum.transarticles.default_articles_model');
             $langColumn = config('sirgrimorum.transarticles.default_lang_column');
             $findArticle = config('sirgrimorum.transarticles.default_findarticle_function_name');
-            $article = $modelClass::{$findArticle}($value->{$columna})->where($langColumn, "=", \App::getLocale())->first();
+            $article = $modelClass::{$findArticle}($value->{$columna})->where($langColumn, "=", App::getLocale())->first();
             if (isset($article)) {
                 $strArticle = $article->content;
             } else {
@@ -449,14 +454,20 @@ trait CrudModels
             if ($value->{$columna} == "") {
                 $celda = '';
             } else {
-                $filename = Storage::disk(\Illuminate\Support\Arr::get($datos,"disk","local"))->url(\Illuminate\Support\Str::start($value->{$columna}, \Illuminate\Support\Str::finish($datos['path'], '\\'))) ;
+                $filename = \Illuminate\Support\Str::start($value->{$columna}, \Illuminate\Support\Str::finish($datos['path'], '\\'));
                 $tipoFile = \Sirgrimorum\CrudGenerator\CrudGenerator::filenameIs($value->{$columna}, $datos);
                 $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
+                $urlFile = route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
+                $tipoMime = \Sirgrimorum\CrudGenerator\CrudGenerator::fileMime(strtolower($filename), $datos);
+                $fileHtml = \Sirgrimorum\CrudGenerator\CrudGenerator::getHtmlParaFile($tipoFile, $urlFile, $auxprevioName, $tipoMime);
                 $celda = [
                     "name" => $auxprevioName,
                     "value" => $filename,
+                    "url_public" => Storage::disk(\Illuminate\Support\Arr::get($datos, "disk", "local"))->url($filename),
+                    "url" => $urlFile,
                     "label" => $datos['label'],
-                    "type" => $tipoFile
+                    "type" => $tipoFile,
+                    "html" => $fileHtml,
                 ];
             }
         } elseif ($datos['tipo'] == "files") {
@@ -475,17 +486,30 @@ trait CrudModels
                 $celda['label'] = $datos['label'];
                 $celda['value'] = $value->{$columna};
                 foreach ($auxprevios as $datoReg) {
-                    $filename =  Storage::disk(\Illuminate\Support\Arr::get($datos,"disk","local"))->url(\Illuminate\Support\Str::start($datoReg->file, \Illuminate\Support\Str::finish($datos['path'], '\\')));
+                    $filename =  \Illuminate\Support\Str::start($datoReg->file, \Illuminate\Support\Str::finish($datos['path'], '\\'));
                     $tipoFile = \Sirgrimorum\CrudGenerator\CrudGenerator::filenameIs($datoReg->file, $datos);
+                    $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
+                    $urlFile = route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
+                    $tipoMime = \Sirgrimorum\CrudGenerator\CrudGenerator::fileMime(strtolower($filename), $datos);
+                    $fileHtml = \Sirgrimorum\CrudGenerator\CrudGenerator::getHtmlParaFile($tipoFile, $urlFile, $auxprevioName, $tipoMime);
                     $celda['data'][] = [
                         "name" => $datoReg->name,
                         "value" => $filename,
-                        "type" => $tipoFile
+                        "url_public" => Storage::disk(\Illuminate\Support\Arr::get($datos, "disk", "local"))->url($filename),
+                        "url" => $urlFile,
+                        "type" => $tipoFile,
+                        "html" => $fileHtml,
                     ];
                 }
             }
         } else {
             if (array_key_exists('enlace', $datos)) {
+                if (count($config) <= 0) {
+                    $modelo = strtolower(class_basename(get_class($value)));
+                    $config = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfigWithParametros($modelo);
+                    $identificador = array_get($config, 'id', 'id');
+                    $nombre = array_get($config, 'nombre', 'id');
+                }
                 $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $datos['enlace'])) . '">';
             }
             if ($datos['tipo'] == "number" && isset($datos['format'])) {
@@ -522,28 +546,29 @@ trait CrudModels
         if (isset($celda['post']) && is_string($celda['value'])) {
             $celda['value'] = $celda['value'] . \Illuminate\Support\Str::start($celda['post'], " ");
         }
+        $celda['value'] = \Sirgrimorum\CrudGenerator\CrudGenerator::translateDato($celda['value']);
         return $celda;
     }
 
     /**
      * Filter an object of a model with a single query. It will use AND operation.
-     * 
-     * If $attri is a method or function fo the object it will try to evaluate it with 
+     *
+     * If $attri is a method or function fo the object it will try to evaluate it with
      * $query as parametter. Use a Json string to pass more than one parametter.
-     * If the returned value is not a boolean or null, will use the $query or the las value of 
+     * If the returned value is not a boolean or null, will use the $query or the las value of
      * the $query array to comare.
-     * 
+     *
      * If $attri is only an attribute, it will compare against $query as it is.
-     * 
-     * if $query contains "*%" it will erase them and evaluate if $query is contained in the attribute value. 
+     *
+     * if $query contains "*%" it will erase them and evaluate if $query is contained in the attribute value.
      * Not aplicable for function or methods returns
-     * 
+     *
      * @param object $registro The model object
      * @param string $query The query to evaluate
      * @param string $attri The attribute to compare
      * @return boolean
      */
-    private static function evaluateFilterWithSingleQuery($registro, $query, $attri)
+    public static function evaluateFilterWithSingleQuery($registro, $query, $attri)
     {
         //echo "<p>evaluando {$registro->name}</p><pre>" . print_r([$query, $attri], true) . "</pre>";
         $contiene = false;
@@ -589,12 +614,12 @@ trait CrudModels
 
     /**
      * Filter an object of a model with a query comparing against an attribute value.
-     * 
+     *
      * If $query and/or $attri ar arrays. It will use AND operation.
-     * 
-     * If $query contains "*%" it will erase them and evaluate if $query is contained in the attribute value. 
+     *
+     * If $query contains "*%" it will erase them and evaluate if $query is contained in the attribute value.
      * Not aplicable for function or methods returns
-     * 
+     *
      * @param object $registro The model object
      * @param string|array $query The query or querys to compare
      * @param string|array $attri The attribute or attributes to compare with. Could evaluate methods and functions.
@@ -602,7 +627,7 @@ trait CrudModels
      * @param boolean $fbf Optional, default false. If the query and attributes arrays must be evaluated one by one (ej: $query[0] vs $attribute[0] AND $query[1] vs $attribute[1], ...) The size of $attri and $query must be the same
      * @return boolean
      */
-    private static function evaluateFilter($registro, $query, $attri, $orOperation = true, $fbf = false)
+    public static function evaluateFilter($registro, $query, $attri, $orOperation = true, $fbf = false)
     {
         if ($fbf && isset($attri) == isset($query)) {
             if (!count($attri) == count($query)) {
@@ -734,14 +759,14 @@ trait CrudModels
 
     /**
      * Filter a collection of object models using a query an attribute sets in an array.
-     * 
+     *
      * The values in the $datos object must be strings, if using arrays, use json notation or separate the values with an |.
-     * 
+     *
      * If not attribute is given, it will compare against the $config('nombre'] attribute
-     * 
-     * If $query contains "*%" it will erase them and evaluate if $query is contained in the attribute value. 
+     *
+     * If $query contains "*%" it will erase them and evaluate if $query is contained in the attribute value.
      * Not aplicable for function or methods returns
-     * 
+     *
      * @param object $registros Collection of elocuent model objects
      * @param array $config Configuration array for the Model
      * @param boolean|string $orOperation Optional boolean or the key of the or value in $datos. if True: use or operation (just one query must be true), false will use and operation (all the querys must be true).
@@ -751,7 +776,7 @@ trait CrudModels
      * @param string $aByAStr Optional the key of the value indicating if the $query and $attribute must be evaluated one by one (ej: $query[0] vs $attribute[0] AND $query[1] vs $attribute[1], ...)
      * @return array Collection filtered
      */
-    private static function filterWithQuery($registros, $config, $datos = [], $orOperation = "_or", $queryStr = "_q", $attriStr = "_a", $aByAStr = "_aByA")
+    public static function filterWithQuery($registros, $config, $datos = [], $orOperation = "_or", $queryStr = "_q", $attriStr = "_a", $aByAStr = "_aByA")
     {
         if (count($datos) == 0) {
             $datos = request()->all();
@@ -801,7 +826,7 @@ trait CrudModels
         $children = $model->{$campo};
         $children_items = collect($children_items);
         $deleted_ids = $children->filter(
-            function ($child) use ($children_items) {
+            function ($child) use ($children_items, $config, $campo) {
                 return empty($children_items->where($config[$campo]['id'], $child->$config[$campo]['id'])->first());
             }
         )->map(
@@ -812,10 +837,10 @@ trait CrudModels
             }
         );
         $attachments = $children_items->filter(
-            function ($children_item) {
+            function ($children_item, $config, $campo) {
                 return empty($children_item->$config[$campo]['id']);
             }
-        )->map(function ($children_item) use ($deleted_ids) {
+        )->map(function ($children_item) use ($deleted_ids, $config, $campo) {
             $children_item->$config[$campo]['id'] = $deleted_ids->pop();
             return new $config[$campo]['modelo']($children_item);
         });
@@ -887,7 +912,7 @@ trait CrudModels
      * @param array $config The configuration array
      * @param Request $input Optional the request. If null, it will use request() function
      * @param type $obj Optional, the object to save or edit. If null, it would look for one using its $config['id'] value in the $input, or create a new one if not found
-     * @return Object|boolean The saved object or false in case of error with uploaded files
+     * @return Object|boolean True or an erro response in case of error with uploaded files
      */
     public static function saveObjeto(array $config, \Illuminate\Http\Request $input = null, $obj = null)
     {
@@ -1196,7 +1221,7 @@ trait CrudModels
      * @param boolean $addNewName Optional, if true, will add the new field name to the filename (assumed in $campo . "_name" in input)
      * @return boolean|string The name of the faile to save in the bd or false if something went wrong
      */
-    private static function saveFileFromRequest(\Illuminate\Http\Request $input, $campo, array $detalles, $addNewName = true)
+    public static function saveFileFromRequest(\Illuminate\Http\Request $input, $campo, array $detalles, $addNewName = true)
     {
         if ($input->hasFile($campo)) {
             $file = $input->file($campo);
@@ -1210,7 +1235,7 @@ trait CrudModels
                 } catch (Error $err) {
                     $esImagen = false;
                 }
-                $destinationPath = \Illuminate\Support\Str::finish(public_path($detalles['path']), '/');
+                $destinationPath = \Illuminate\Support\Str::finish($detalles['path'], '/');
                 $filename = "";
                 if (isset($detalles['pre'])) {
                     if ($detalles['pre'] == '_originalName_') {
@@ -1239,13 +1264,13 @@ trait CrudModels
 
                 $filename .= \Illuminate\Support\Str::random($numRand) . $new_name;
                 $disk = \Illuminate\Support\Arr::get($detalles, "disk", "local");
-                $path = $file->store($destinationPath . $filename, $disk);
                 $filename .= "." . $file->getClientOriginalExtension();
+                $path = $file->storeAs($destinationPath, $filename, $disk);
                 $upload_success = $path !== false;
                 if ($upload_success) {
-                    if ($esImagen && isset($detalles['resize'])) {
+                    if ($esImagen && isset($detalles['resize']) && class_exists('Intervention\Image\Image')) {
                         foreach ($detalles['resize'] as $resize) {
-                            $image_resize = Image::make($destinationPath . $filename);
+                            $image_resize = Intervention\Image\Image::make($destinationPath . $filename);
                             $width = 0;
                             if (isset($resize['width'])) {
                                 $width = $resize['width'];
