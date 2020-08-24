@@ -84,13 +84,13 @@ if ($js_section != "") {
 }
 ?>
 <script>
-    $(document).ready(function () {
+    window.onload = function () {
         $('#{{ $tabla . "_" . $extraId }}').sliderb({
             formatter: function (value) {
                 return "{{ $pre }}" + value + "{{ $post }}";
             }
         });
-    });
+    };
 </script>
 <?php
 if ($js_section != "") {

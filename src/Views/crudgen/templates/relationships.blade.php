@@ -77,13 +77,13 @@ if ($js_section != "") {
 }
 ?>
 <script>
-    $(document).ready(function () {
+    window.onload = function () {
         $('#{{ $tabla . "_" . $extraId }}').select2({
             minimumResultsForSearch: 8,
             width: '100%',
             language: "{{ App::getLocale()}}"
         });
-    });
+    };
 </script>
 <?php
 if ($js_section != "") {

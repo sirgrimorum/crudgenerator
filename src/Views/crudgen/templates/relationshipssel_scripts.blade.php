@@ -6,7 +6,7 @@ if ($js_section != "") {
 }
 ?>
 <script>
-    $(document).ready(function() {
+    window.onload = function () {
     
     $.typeahead({
         input: '#{{ $tabla . '_' . $columna }}_search',
@@ -129,7 +129,7 @@ if ($js_section != "") {
         },
         debug: true
     });
-    });
+    };
     
     function quitarPivote(idSelected,nameSelected){
         console.log('quitar',idSelected,nameSelected);
