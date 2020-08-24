@@ -10,24 +10,29 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App;
 use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Storage;
 
-class CrudController extends BaseController {
+class CrudController extends BaseController
+{
 
     use AuthorizesRequests,
         DispatchesJobs,
         ValidatesRequests;
 
-    public function index($modelo, Request $request) {
+    public function index($modelo, Request $request)
+    {
         $config = CrudGenerator::getConfigWithParametros($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config));
     }
 
-    public function create($modelo, Request $request) {
+    public function create($modelo, Request $request)
+    {
         $config = CrudGenerator::getConfigWithParametros($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config));
     }
 
-    public function store($modelo, Request $request) {
+    public function store($modelo, Request $request)
+    {
         $config = CrudGenerator::getConfigWithParametros($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config)) {
             return $this->devolver($request, $config, $permiso);
@@ -41,17 +46,20 @@ class CrudController extends BaseController {
         return $this->devolver($request, $config, $permiso, $objeto);
     }
 
-    public function show($modelo, $registro, Request $request) {
+    public function show($modelo, $registro, Request $request)
+    {
         $config = CrudGenerator::getConfigWithParametros($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config, $registro), $registro);
     }
 
-    public function edit($modelo, $registro, Request $request) {
+    public function edit($modelo, $registro, Request $request)
+    {
         $config = CrudGenerator::getConfigWithParametros($modelo);
         return $this->devolver($request, $config, CrudGenerator::checkPermission($config, $registro), $registro);
     }
 
-    public function update($modelo, $registro, Request $request) {
+    public function update($modelo, $registro, Request $request)
+    {
         $config = CrudGenerator::getConfigWithParametros($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config, $registro)) {
             return $this->devolver($request, $config, $permiso, $registro);
@@ -65,7 +73,8 @@ class CrudController extends BaseController {
         return $this->devolver($request, $config, $permiso, $objeto);
     }
 
-    public function destroy($modelo, $registro, Request $request) {
+    public function destroy($modelo, $registro, Request $request)
+    {
         $config = CrudGenerator::getConfigWithParametros($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config, $registro)) {
             return $this->devolver($request, $config, $permiso, $registro);
@@ -91,7 +100,8 @@ class CrudController extends BaseController {
         return $this->devolver($request, $config, $permiso, 0, $datos);
     }
 
-    public function modelfile($modelo, $campo, Request $request) {
+    public function modelfile($modelo, $campo, Request $request)
+    {
         $config = CrudGenerator::getConfigWithParametros($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config, 0, 'show')) {
             return $this->devolver($request, $config, $permiso, 0, "", 'show');
@@ -108,7 +118,8 @@ class CrudController extends BaseController {
         abort(500, "Error preparing the file for the model '$modelo");
     }
 
-    public function file(Request $request) {
+    public function file(Request $request)
+    {
         if ($request->has('_f')) {
             $filename = $request->_f;
             return $this->devolverFile($filename);
@@ -116,25 +127,26 @@ class CrudController extends BaseController {
         abort(500, "Error no file in query '_f'");
     }
 
-    private function devolverFile($filename, $detalles = []) {
+    private function devolverFile($filename, $detalles = [])
+    {
         $tipo = CrudGenerator::filenameIs($filename, $detalles);
         if (isset($detalles['path'])) {
-            $path = \Illuminate\Support\Str::start(str_replace("\\", "/", $filename), \Illuminate\Support\Str::finish(str_replace("\\", "/", $detalles['path']), '/'));
+            $path = Storage::disk(\Illuminate\Support\Arr::get($detalles, "disk", "local"))->url(\Illuminate\Support\Str::start(str_replace("\\", "/", $filename), \Illuminate\Support\Str::finish(str_replace("\\", "/", $detalles['path']), '/')));
         } else {
-            $path = $filename;
+            $path = Storage::disk(\Illuminate\Support\Arr::get($detalles, "disk", "local"))->url($filename);
         }
         switch ($tipo) {
             case 'video':
                 $stream = new VideoStream($path);
-                return response()->stream(function() use ($stream) {
-                            $stream->start();
-                        });
+                return response()->stream(function () use ($stream) {
+                    $stream->start();
+                });
                 break;
             case 'audio':
                 $stream = new AudioStream($path);
-                return response()->stream(function() use ($stream) {
-                            $stream->start();
-                        });
+                return response()->stream(function () use ($stream) {
+                    $stream->start();
+                });
                 /* return response()->stream(function () use ($file_location) {
                   $stream = fopen($file_location, 'r');
                   fpassthru($stream);
@@ -143,15 +155,16 @@ class CrudController extends BaseController {
             case 'image':
             case 'pdf':
             case 'text':
-                return response()->file(public_path($path));
+                return Storage::disk(\Illuminate\Support\Arr::get($detalles, "disk", "local"))->response($filename);
                 break;
             default:
-                return response()->download(public_path($path));
+                return Storage::disk(\Illuminate\Support\Arr::get($detalles, "disk", "local"))->download($filename);
                 break;
         }
     }
 
-    private function devolverValidation($validator, $modelo, Request $request, $registro = 0) {
+    private function devolverValidation($validator, $modelo, Request $request, $registro = 0)
+    {
         //$action = substr($request->route()->getName(), stripos($request->route()->getName(), "::") + 2);
 
         $tipoReturn = "content";
@@ -193,13 +206,14 @@ class CrudController extends BaseController {
               return redirect(route($newaction, $extra) . $getReturn)
               ->withInput()
               ->withErrors($validator);
-             * 
+             *
              */
             return back()->withInput()->withErrors($validator);
         }
     }
 
-    private function devolver(Request $request, $config, $permiso, $objeto = 0, $extraDatos = "", $action = "") {
+    private function devolver(Request $request, $config, $permiso, $objeto = 0, $extraDatos = "", $action = "")
+    {
         if ($action == "") {
             $action = substr($request->route()->getName(), stripos($request->route()->getName(), "::") + 2);
         }
@@ -309,7 +323,7 @@ class CrudController extends BaseController {
                             "base_url" => route('sirgrimorum_home'),
                             "plural" => $plural,
                             "config" => $config,
-                                ])->render();
+                        ])->render();
                         break;
                     case "show":
                     case "edit":
@@ -319,7 +333,7 @@ class CrudController extends BaseController {
                             "plural" => $plural,
                             "registro" => $registro,
                             "config" => $config,
-                                ])->render();
+                        ])->render();
                         break;
                     case "store":
                     case "update":
@@ -340,9 +354,8 @@ class CrudController extends BaseController {
                         }
                         if ($tipoReturn == "content") {
                             $result = redirect(route('sirgrimorum_modelos::index', [
-                                        'modelo' => $modelo,
-                                    ]) . $getReturn)->with(config("sirgrimorum.crudgenerator.status_messages_key"), $mensajeStr)
-                            ;
+                                'modelo' => $modelo,
+                            ]) . $getReturn)->with(config("sirgrimorum.crudgenerator.status_messages_key"), $mensajeStr);
                         } else {
                             $result = back()->with(config("sirgrimorum.crudgenerator.status_messages_key"), $mensajeStr);
                         }
@@ -414,5 +427,4 @@ class CrudController extends BaseController {
             }
         }
     }
-
 }
