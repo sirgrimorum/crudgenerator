@@ -5,6 +5,7 @@ namespace Sirgrimorum\CrudGenerator;
 use Illuminate\Validation\Validator;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Thanks to https://github.com/felixkiss
@@ -37,7 +38,7 @@ class ExtendedValidator extends Validator {
         }
     }
 
-    // Laravel uses this convention to look for validation rules, this function will be triggered 
+    // Laravel uses this convention to look for validation rules, this function will be triggered
     // for with_articles
     public function validateWithArticles($attribute, $value, $parameters) {
         $this->requireParameterCount(0, $parameters, 'with_articles');
@@ -79,21 +80,21 @@ class ExtendedValidator extends Validator {
         $trans = $this->getTranslator();
         $i = 0;
         foreach($langs as $localeCode) {
-            $lang = $trans->trans('crudgenerator::admin.layout.labels.' . $localeCode);
+            $lang = $trans->get('crudgenerator::admin.layout.labels.' . $localeCode);
             $lang = lcfirst($lang);
             if ($i == 0) {
                 $str = $lang;
             } elseif ($i < count($langs) - 1) {
                 $str .= ", " . $lang;
             } else {
-                $str .= " " . $trans->trans('crudgenerator::admin.layout.labels.and') . " " . $lang;
+                $str .= " " . $trans->get('crudgenerator::admin.layout.labels.and') . " " . $lang;
             }
             $i++;
         }
         return str_replace(":langs", $str, $message);
     }
 
-    // Laravel uses this convention to look for validation rules, this function will be triggered 
+    // Laravel uses this convention to look for validation rules, this function will be triggered
     // for composite_unique
     public function validateUniqueComposite($attribute, $value, $parameters) {
         $this->requireParameterCount(2, $parameters, 'unique_composite');
@@ -137,7 +138,7 @@ class ExtendedValidator extends Validator {
          */
         echo "<p>ignore_id=" . $ignore_id . ", ignore_column=" . $ignore_column . "</p>";
         // query the table with all the conditions
-        $result = \DB::table($table)->select(\DB::raw(1))->where($fields)->where($ignore_column, "<>", $ignore_id)->first();
+        $result = DB::table($table)->select(DB::raw(1))->where($fields)->where($ignore_column, "<>", $ignore_id)->first();
 
         return empty($result); // true if empty
     }
@@ -164,7 +165,7 @@ class ExtendedValidator extends Validator {
         return str_replace(":fields", $campos, $message);
     }
 
-    // Laravel uses this convention to look for validation rules, this function will be triggered 
+    // Laravel uses this convention to look for validation rules, this function will be triggered
     // for unique_except
     public function validateUniqueExcept($attribute, $value, $parameters) {
         $this->requireParameterCount(2, $parameters, 'unique_except');
@@ -208,7 +209,7 @@ class ExtendedValidator extends Validator {
          */
         //echo "<p>ignore_id=" . $ignore_id . ", ignore_column=" . $ignore_column . "</p>";
         // query the table with all the conditions
-        $result = \DB::table($table)->select(\DB::raw(1))->where($fields)->where($ignore_column, "<>", $ignore_id)->first();
+        $result = DB::table($table)->select(DB::raw(1))->where($fields)->where($ignore_column, "<>", $ignore_id)->first();
 
         return empty($result); // true if empty
     }

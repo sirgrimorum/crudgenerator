@@ -8,13 +8,13 @@ use Exception;
 use Sirgrimorum\CrudGenerator\CrudController;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use ReflectionClass;
 use ReflectionMethod;
 use Illuminate\Support\Facades\File;
 use Sirgrimorum\CrudGenerator\SuperClosure;
 use Sirgrimorum\CrudGenerator\Traits;
-use App;
 use Illuminate\Support\Facades\Lang;
 
 class CrudGenerator {
@@ -236,7 +236,7 @@ class CrudGenerator {
             if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.plural")) {
                 $plurales = trans("crudgenerator::" . strtolower($modelo) . ".labels.plural");
             } else {
-                $plurales = $plural;
+                $plurales = \Illuminate\Support\Str::plural($modelo);
             }
             if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
                 $singulares = trans("crudgenerator::" . strtolower($modelo) . ".labels.singular");
