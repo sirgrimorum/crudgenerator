@@ -73,7 +73,7 @@ if (isset($datos["placeholder"])) {
             <div class="input-group-prepend">
                 <div class="rounded-left border border-secondary">
                     @if ($tipoFile=='image')
-                    <img class="rounded-left " style="cursor: pointer;" src="{{asset($filename)}}" onclick="toogleImagen(this);">
+                    <img class="rounded-left " style="cursor: pointer;" src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" onclick="toogleImagen(this);">
                     @elseif($tipoFile=='video')
                     <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="toogleVideo(this);"><i class="mt-2 fa fa-film fa-lg" aria-hidden="true"></i></div>
                     @elseif($tipoFile=='audio')
@@ -118,7 +118,7 @@ if (isset($datos["placeholder"])) {
         @if($tipoFile =='image')
         <div class="collapse" data-id="collapseImageCont">
             <div class="card collapse" >
-                <img class="card-img-top" src="{{asset($filename)}}" data-id="collapseImage">
+                <img class="card-img-top" src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" data-id="collapseImage">
             </div>
         </div>
         @elseif($tipoFile =='video')
@@ -196,7 +196,7 @@ if (isset($datos["placeholder"])) {
             <div class="input-group-prepend">
                 <div class="rounded-left border border-secondary d-none">
                     <div class="d-none pl-3 pr-3 h-100 pt-1" style="cursor: default;"><i class="mt-2 fa fa-file-text-o fa-lg" aria-hidden="true"></i></div>
-                    <img class="rounded-left d-none" style="cursor: pointer;" src="{{asset('img/car_bmw.jpg')}}" onclick="toogleImagen(this);">
+                    <img class="rounded-left d-none" style="cursor: pointer;" src="" onclick="toogleImagen(this);">
                 </div>
                 <div class="input-group-text">{{trans("crudgenerator::admin.layout.labels.file")}}</div>
             </div>
@@ -227,7 +227,7 @@ if (isset($datos["placeholder"])) {
             <div class="input-group-prepend">
                 <div class="rounded-left border border-secondary d-none">
                     <div class="d-none pl-3 pr-3 h-100 pt-1" style="cursor: default;"><i class="mt-2 fa fa-file-text-o fa-lg" aria-hidden="true"></i></div>
-                    <img class="rounded-left d-none" style="cursor: pointer;" src="{{asset('img/car_bmw.jpg')}}" onclick="toogleImagen(this);">
+                    <img class="rounded-left d-none" style="cursor: pointer;" src="" onclick="toogleImagen(this);">
                 </div>
                 <div class="input-group-text">{{trans("crudgenerator::admin.layout.labels.file")}}</div>
             </div>

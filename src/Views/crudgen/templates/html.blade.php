@@ -61,7 +61,7 @@ if ($js_section != "") {
 <script>
     $(document).ready(function () {
         CKEDITOR.replace('{{ $tabla . "_" . $extraId }}');
-    })();
+    });
 </script>
 <?php
 if ($js_section != "") {

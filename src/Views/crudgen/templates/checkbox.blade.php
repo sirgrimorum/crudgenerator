@@ -4,15 +4,15 @@ if (isset($config["extraId"])) {
 } else {
     $extraId = $columna;
 }
-$dato = old($extraId);
-if ($dato == "") {
+$dato = old($extraId) ?? "";
+if ($dato === "") {
     try {
         $dato = $registro->{$columna};
     } catch (Exception $ex) {
         $dato = "";
     }
 }
-if ($dato == "") {
+if ($dato === "") {
     if (isset($datos["valor"])) {
         $dato = $datos["valor"];
     }
@@ -67,7 +67,7 @@ if (isset($datos['unchecked'])){
         @endforeach
         @else
         <?php
-        if ($datos['value'] == $dato) {
+        if ($datos['value'] == $dato || $dato == true) {
             $checked = true;
         } else {
             $checked = false;

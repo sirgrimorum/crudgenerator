@@ -103,7 +103,7 @@ $identificador = $config['id'];
                                                         ?>
                                                         <div class="card text-center">
                                                             <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
-                                                                <img class="card-img-top" src="{{asset($filename)}}">
+                                                                <img class="card-img-top" src="{{ route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}">
                                                             </a>
                                                             <div class="card-body" >
                                                                 <h5 class="card-title">{{$datoReg->name}}</h5>
@@ -221,7 +221,7 @@ $identificador = $config['id'];
                                     </ul>
                                     <?php
                                 } else {
-                                    
+
                                 }
                             } elseif ($datos['tipo'] == "relationshipssel") {
                                 if (CrudGenerator::hasRelation($registro, $columna)) {
@@ -282,7 +282,7 @@ $identificador = $config['id'];
                                     </dl>
                                     <?php
                                 } else {
-                                    
+
                                 }
                             } elseif ($datos['tipo'] == "select") {
                                 if (array_key_exists($registro->{$columna}, $datos['opciones'])) {
@@ -378,7 +378,7 @@ $identificador = $config['id'];
                                     if ($tipoFile == 'image') {
                                         ?>
                                         <div class="card text-center">
-                                            <img class="card-img-top" src="{{asset($filename)}}">
+                                            <img class="card-img-top" src="{{ route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}">
                                             <div class="card-body" >
                                                 <h5 class="card-title">{{$auxprevioName}}</h5>
                                             </div>
@@ -442,11 +442,11 @@ $identificador = $config['id'];
                                     echo number_format($registro->{$columna});
                                 }
                             } elseif ($datos['tipo'] == "article" && class_exists(config('sirgrimorum.transarticles.default_articles_model'))) {
-                                echo TransArticles::get($registro->{$columna});
+                                echo $registro->get($columna);
                             } elseif ($datos['tipo'] == "json") {
                                 echo '<pre>' . print_r($registro->{$columna},true) . '</pre>';
                             } else {
-                                echo $registro->{$columna};
+                                echo $registro->get($columna);
                             }
                             if (isset($datos["post"])) {
                                 echo " " . $datos["post"];

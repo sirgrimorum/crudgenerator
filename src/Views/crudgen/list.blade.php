@@ -91,7 +91,7 @@ if (old("__parametros","") != ""){
         <tr id = "{{ $tablaid }}__{{ $value->{$config['id']} }}|{!! $value->{$config['nombre']} !!}">
             @foreach($campos as $columna => $datos)
             @if (CrudGenerator::inside_array($datos,"hide","list")===false)
-            <td>
+            <td class="position-relative">
                 @if (isset($datos["pre"]))
                 {!! $datos["pre"] !!}
                 @endif
@@ -158,7 +158,7 @@ if (old("__parametros","") != ""){
                                     </li>
                                     @endif
                                 @endforeach
-                                </ul>   
+                                </ul>
                                 @endif
                             @endif
                         @endif
@@ -235,13 +235,17 @@ if (old("__parametros","") != ""){
                 @else
                 {{ number_format($value->{$columna}()) }}
                 @endif
-                @else            
+                @else
                 {!! $value->{$columna}() !!}
                 @endif
                 @elseif ($datos['tipo']=="article" && class_exists(config('sirgrimorum.transarticles.default_articles_model')))
-                {!!TransArticles::get($value->{$columna})!!}
+                <div style="max-height:200px;overflow-y:scroll;">
+                    {!! $value->get($columna) !!}
+                </div>
                 @elseif ($datos['tipo']=="json")
-                <pre>{!!print_r($value->{$columna},true)!!}</pre>
+                <div style="max-height:200px;overflow-y:scroll;">
+                    <pre>{!!print_r($value->{$columna},true)!!}</pre>
+                </div>
                 @elseif ($datos['tipo']=="url")
                 <a href='{{ $value->{$columna} }}' target='_blank'><i class="mt-2 fa fa-link fa-lg" aria-hidden="true"></i></a>
                 @elseif ($datos['tipo']=="file")
@@ -256,8 +260,8 @@ if (old("__parametros","") != ""){
                 ?>
                 @if($tipoFile == 'image')
                 <figure class="figure">
-                    <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >                   
-                        <img src="{{asset($filename)}}" class="figure-img img-fluid rounded" alt="{{$auxprevioName}}">
+                    <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
+                        <img src="{{ route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" class="figure-img img-fluid rounded" alt="{{$auxprevioName}}">
                         <figcaption class="figure-caption">{{$auxprevioName}}</figcaption>
                     </a>
                 </figure>
@@ -266,7 +270,7 @@ if (old("__parametros","") != ""){
                     <li class="pl-2">
                         @switch($tipoFile)
                         @case('image')
-                        <i class="fa fa-lg fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="{{asset($filename)}}"></i>
+                        <i class="fa fa-lg fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="{{ route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}"></i>
                         @break
                         @case('video')
                         <i class="fa fa-film fa-lg fa-li" aria-hidden="true"></i>
@@ -316,12 +320,12 @@ if (old("__parametros","") != ""){
                 @if(is_object($datoReg))
                 <?php
                 $filename = \Illuminate\Support\Str::start($datoReg->file, \Illuminate\Support\Str::finish($datos['path'], '\\'));
-                $tipoFile =CrudGenerator::filenameIs($datoReg->file,$datos);
+                $tipoFile = CrudGenerator::filenameIs($datoReg->file,$datos);
                 ?>
                     <li class="pl-2">
                         @switch($tipoFile)
                         @case('image')
-                        <i class="fa fa-lg fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="{{asset($filename)}}"></i>
+                        <i class="fa fa-lg fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="{{ route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}"></i>
                         @break
                         @case('video')
                         <i class="fa fa-film fa-lg fa-li" aria-hidden="true"></i>
@@ -365,10 +369,10 @@ if (old("__parametros","") != ""){
                     @endif
                     @elseif($datos['tipo']=="html")
                     <div style="max-height:200px;overflow-y:scroll;">
-                        {!! $value->{$columna} !!}
+                        {!! $value->get($columna) !!}
                     </div>
                     @else
-                    {!! $value->{$columna} !!}
+                    {!! CrudGenerator::truncateText($value->get($columna)) !!}
                     @endif
                     @if(array_key_exists('enlace',$datos))
                 </a>
@@ -420,6 +424,12 @@ if (old("__parametros","") != ""){
 <?php if ($css_section != "") { ?>
     @push($css_section)
 
+    <style>
+        .btn-group > .btn:not(:last-child).dropdown-toggle{
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+    </style>
     <?php
 }
 if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.jquerytables_path"), ['http', '://'])) {
