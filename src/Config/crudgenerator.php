@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Support\Facades\Auth;
 
 return [
@@ -20,10 +21,10 @@ return [
       |--------------------------------------------------------------------------
       |  @type closure
      */
-    'permission' => function() {
-return true;
-return Auth::check();
-},
+    'permission' => function () {
+        return true;
+        return Auth::check();
+    },
     /**
      * Wether to use ajax and modals in lists crud o links to new pages
      *
@@ -63,26 +64,27 @@ return Auth::check();
      */
     'error_messages_key' => 'error',
     /**
-     * trans function prefix for configuration file in order to know is needed to translate with the following key
+     * list of prefixes added to data to be computed with a function after returning it
+     * used in configuration functions and in the get() function of models
+     * use __ to tell the function where to end
+     * 
+     * For parameters, use ', ' to separate them inside the prefix and the __
+     * For array parameter, use json notation inside comas
+     * 
+     * 'prefix' => 'global_function_name',
+     * 'prefix' => function([parameters]){ return $string}
      */
-    'trans_prefix' => '__trans__',
-    /**
-     * trans_article function prefix for configuration file in order to know is needed to translate with the following key
-     * Requires sirgrimorum/transarticles package to be instaled
-     */
-    'transarticle_prefix' => '__transarticle__',
-    /**
-     * route function prefix for configuration file in order to know is needed to translate routes with the following key
-     */
-    'route_prefix' => '__route__',
-    /**
-     * url function prefix for configuration file in order to know is needed to translate routes with the following key
-     */
-    'url_prefix' => '__url__',
-    /**
-     * App::getLocale() key for configuration file in order to know is needed to translate locales with the following key
-     */
-    'locale_key' => '__getLocale__',
+    'data_prefixes' => [
+        '__asset__' => 'asset',
+        '__route__' => 'route',
+        '__url__' => 'url',
+        '__trans__' => 'trans',
+        '__transarticle__' => 'transarticle',
+        '__getLocale__' => 'Illuminate\Support\Facades\App::getLocale',
+        '__function__' => function ($string) {
+            return $string;
+        },
+    ],
     /**
      * Name of the blade stack that includes de js
      */
@@ -105,7 +107,7 @@ return Auth::check();
      * path to csss to load in ckeditor separates with , and between ""
      */
     'principal_css' => '"__asset__css/app.css__"', // '"__asset__vendor/sirgrimorum/bootstrap3/css/bootstrap.min.css__", "__asset__css/app.css__"',
-    
+
     /**
      * Path to the jquery tables folder, if is in asset, just include the string for the asset
      * use the .map for the files in other server
@@ -149,17 +151,17 @@ return Auth::check();
      * needs bootstrap 3.*
      */
     'slider_path' => 'vendor/sirgrimorum/slider',
-     /**
+    /**
      * Path to the datetime picker folder, if is in asset, just include the string for the asset
      * use 'vendor/sirgrimorum/datetimepicker' publishing with tag=datetimepicker
      */
     'datetimepicker_path' => 'vendor/sirgrimorum/datetimepicker',
-     /**
+    /**
      * Path to the select2 folder, if is in asset, just include the string for the asset
      * use 'vendor/sirgrimorum/select2' publishing with tag=select2
      */
     'select2_path' => 'vendor/sirgrimorum/select2', // https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0
-     /**
+    /**
      * Path to the typeahead folder, if is in asset, just include the string for the asset
      * use 'vendor/sirgrimorum/typeahead' publishing with tag=typeahead
      */
@@ -174,33 +176,33 @@ return Auth::check();
     /**
      * Probable column names of the "name" for a model, used to autobuild config, only apply for string fields
      */
-    'probable_name' => ['name','nombre','title','titulo','nickname','alias','email','first_name','last_name','user_name','full_name'],
+    'probable_name' => ['name', 'nombre', 'title', 'titulo', 'nickname', 'alias', 'email', 'first_name', 'last_name', 'user_name', 'full_name'],
     /**
      * Probable column names of an "email" in the model, used to autobuild config, only apply for string fields
      */
-    'probable_email' => ['email','e_mail','correo'],
+    'probable_email' => ['email', 'e_mail', 'correo'],
     /**
      * Probable column names of an "url" in the model, used to autobuild config, only apply for string fields
      */
-    'probable_url' => ['url','web','www','web_page','page','link','enlace','pagina','pagina_web'],
+    'probable_url' => ['url', 'web', 'www', 'web_page', 'page', 'link', 'enlace', 'pagina', 'pagina_web'],
     /**
      * Probable column names of a "password" in the model, used to autobuild config, only apply for string fields
      */
-    'probable_password' => ['password','clave','contrasena','pswd'],
+    'probable_password' => ['password', 'clave', 'contrasena', 'pswd'],
     /**
      * Probable column names of a "html" in the model, used to autobuild config, only apply for text fields
      */
-    'probable_html' => ['html','code','codigo','texto','contenido','content', 'description', 'descripcion', 'comment', 'comments', 'comentario', 'comentarios'],
+    'probable_html' => ['html', 'code', 'codigo', 'texto', 'contenido', 'content', 'description', 'descripcion', 'comment', 'comments', 'comentario', 'comentarios'],
     /**
      * Probable column names of a "article" type in the model, used to autobuild config, only apply for text or string fields
      */
-    'probable_article' => ['scope','articulo'],
+    'probable_article' => ['scope', 'articulo'],
     /**
      * Probable column names of a "file" in the model, used to autobuild config, only apply for string fields
      */
-    'probable_file' => ['file','archivo','pdf','doc','document','documento'],
+    'probable_file' => ['file', 'archivo', 'pdf', 'doc', 'document', 'documento'],
     /**
      * Probable column names of an "image" in the model, used to autobuild config, only apply for string fields
      */
-    'probable_image' => ['image','pic','picture','avatar','foto','imagen','logo'],
+    'probable_image' => ['image', 'pic', 'picture', 'avatar', 'foto', 'imagen', 'logo'],
 ];

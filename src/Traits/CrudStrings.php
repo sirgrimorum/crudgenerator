@@ -2,7 +2,11 @@
 
 namespace Sirgrimorum\CrudGenerator\Traits;
 
-trait CrudStrings {
+use Closure;
+use Illuminate\Support\Facades\Lang;
+
+trait CrudStrings
+{
 
     /**
      * Get a block of comments from the coments string of a method, using a tag
@@ -10,7 +14,8 @@ trait CrudStrings {
      * @param string $tag The tag to search for, ej: @return, @param
      * @return string
      */
-    private static function checkDocBlock($str, $tag = '') {
+    public static function checkDocBlock($str, $tag = '')
+    {
         if (empty($tag)) {
             return $str;
         }
@@ -25,28 +30,29 @@ trait CrudStrings {
      * extract_tags()
      * Extract specific HTML tags and their attributes from a string.
      *
-     * You can either specify one tag, an array of tag names, or a regular expression that matches the tag name(s). 
-     * If multiple tags are specified you must also set the $selfclosing parameter and it must be the same for 
+     * You can either specify one tag, an array of tag names, or a regular expression that matches the tag name(s).
+     * If multiple tags are specified you must also set the $selfclosing parameter and it must be the same for
      * all specified tags (so you can't extract both normal and self-closing tags in one go).
-     * 
+     *
      * The function returns a numerically indexed array of extracted tags. Each entry is an associative array
      * with these keys :
      *  tag_name    - the name of the extracted tag, e.g. "a" or "img".
      *  offset      - the numberic offset of the first character of the tag within the HTML source.
      *  contents    - the inner HTML of the tag. This is always empty for self-closing tags.
      *  attributes  - a name -> value array of the tag's attributes, or an empty array if the tag has none.
-     *  full_tag    - the entire matched tag, e.g. '<a href="http://example.com">example.com</a>'. This key 
-     *                will only be present if you set $return_the_entire_tag to true.      
+     *  full_tag    - the entire matched tag, e.g. '<a href="http://example.com">example.com</a>'. This key
+     *                will only be present if you set $return_the_entire_tag to true.
      *
      * @param string $html The HTML code to search for tags.
-     * @param string|array $tag The tag(s) to extract.                           
-     * @param bool $selfclosing Whether the tag is self-closing or not. Setting it to null will force the script to try and make an educated guess. 
-     * @param bool $return_the_entire_tag Return the entire matched tag in 'full_tag' key of the results array.  
+     * @param string|array $tag The tag(s) to extract.
+     * @param bool $selfclosing Whether the tag is self-closing or not. Setting it to null will force the script to try and make an educated guess.
+     * @param bool $return_the_entire_tag Return the entire matched tag in 'full_tag' key of the results array.
      * @param string $charset The character set of the HTML code. Defaults to ISO-8859-1.
      *
-     * @return array An array of extracted tags, or an empty array if no matching tags were found. 
+     * @return array An array of extracted tags, or an empty array if no matching tags were found.
      */
-    public static function extract_tags($html, $tag, $selfclosing = null, $return_the_entire_tag = false, $charset = 'ISO-8859-1') {
+    public static function extract_tags($html, $tag, $selfclosing = null, $return_the_entire_tag = false, $charset = 'ISO-8859-1')
+    {
 
         if (is_array($tag)) {
             $tag = implode('|', $tag);
@@ -59,12 +65,12 @@ trait CrudStrings {
             $selfclosing = in_array($tag, $selfclosing_tags);
         }
 
-        //The regexp is different for normal and self-closing tags because I can't figure out 
+        //The regexp is different for normal and self-closing tags because I can't figure out
         //how to make a sufficiently robust unified one.
         if ($selfclosing) {
             $tag_pattern = '@<(?P<tag>' . $tag . ')           # <tag
             (?P<attributes>\s[^>]+)?       # attributes, if any
-            \s*/?>                   # /> or just >, being lenient here 
+            \s*/?>                   # /> or just >, being lenient here
             @xsi';
         } else {
             $tag_pattern = '@<(?P<tag>' . $tag . ')           # <tag
@@ -81,11 +87,11 @@ trait CrudStrings {
         (
             (?P<quote>[\"\'])(?P<value_quoted>.*?)(?P=quote)    # a quoted value
             |                           # or
-            (?P<value_unquoted>[^\s"\']+?)(?:\s+|$)           # an unquoted value (terminated by whitespace or EOF) 
+            (?P<value_unquoted>[^\s"\']+?)(?:\s+|$)           # an unquoted value (terminated by whitespace or EOF)
         )
         @xsi';
 
-        //Find all tags 
+        //Find all tags
         if (!preg_match_all($tag_pattern, $html, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
             //Return an empty array if we didn't find anything
             return array();
@@ -137,14 +143,15 @@ trait CrudStrings {
 
     /**
      * Returns if a value is present in an array using dot notation for key
-     * 
+     *
      * @param array $array The array
      * @param string $key The haystack using dot notation
      * @param mix $needle The needle
-     * 
+     *
      * return mix the index in the key if present, false if not present or key not available
      */
-    public static function inside_array($array, $key, $needle) {
+    public static function inside_array($array, $key, $needle)
+    {
         if (\Illuminate\Support\Arr::has($array, $key)) {
             foreach (\Illuminate\Support\Arr::get($array, $key) as $index => $value) {
                 if ($value == $needle) {
@@ -157,14 +164,15 @@ trait CrudStrings {
 
     /**
      *  Evaluate a custom function inside the config arrayetc.
-     * 
+     *
      * @param array $array The config array to translate
      * @param string $prefix The prefix that shows where the function must be replaced
      * @param closure $function The function to evaluate
      * @param string $close The close string that shows where the function must be stopped
      * @return array The operated config array
      */
-    public static function translateArray($array, $prefix, $function, $close = "__") {
+    public static function translateArray($array, $prefix, $function, $close = "__")
+    {
         $result = [];
         foreach ($array as $key => $item) {
             if (gettype($item) != "Closure Object") {
@@ -184,20 +192,21 @@ trait CrudStrings {
     }
 
     /**
-     * Use the crudgenerator prefixes to change strings in config array to evaluate 
+     * Use the crudgenerator prefixes to change strings in config array to evaluate
      * functions such as route(), trans(), url(), etc.
-     * 
-     * For parameters, use ', ' to separate them inside the prefix and the close. 
-     * 
+     *
+     * For parameters, use ', ' to separate them inside the prefix and the close.
+     *
      * For array, use json notation inside comas
-     * 
+     *
      * @param string $item The string to operate
      * @param string $prefix The prefix for the function
      * @param string $function The name of the function to evaluate
      * @param string $close Optional, the closing string for the prefix, default is '__'
      * @return string The string with the results of the evaluations
      */
-    private static function translateString($item, $prefix, $function, $close = "__") {
+    public static function translateString($item, $prefix, $function, $close = "__")
+    {
         $result = "";
         if (\Illuminate\Support\Str::contains($item, $prefix)) {
             if (($left = (stripos($item, $prefix))) !== false) {
@@ -244,23 +253,61 @@ trait CrudStrings {
     }
 
     /**
+     * Use crudgenerator config's data_prefixes to change data from models an evaluate functions in then
+     * funtions such as asset(), trans(), url(), etc.
+     *
+     * For parameters, use ', ' to separate them inside the prefix and the close.
+     *
+     * For array, use json notation inside comas
+     *
+     * @param string $item The string to operate
+     * @return string The string with the results of the evaluations
+     */
+    public static function translateDato($item)
+    {
+        $prefixes = config("sirgrimorum.crudgenerator.data_prefixes", []);
+        if (count($prefixes) <= 0) {
+            $prefixes = [
+                config("sirgrimorum.crudgenerator.locale_key", "__getLocale__") => 'Illuminate\Support\Facades\App::getLocale',
+                config("sirgrimorum.crudgenerator.asset_prefix", '__asset__') => 'asset',
+                config("sirgrimorum.crudgenerator.route_prefix", '__route__') => 'route',
+                config("sirgrimorum.crudgenerator.url_prefix", '__url__') => 'url',
+                config("sirgrimorum.crudgenerator.trans_prefix", '__trans__') => 'trans',
+                config("sirgrimorum.crudgenerator.transarticle_prefix", '__transarticle__') => 'transarticle',
+            ];
+        }
+        foreach ($prefixes as $prefix => $function) {
+            if ($function instanceof Closure) {
+                $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, $prefix, $function);
+            } elseif (is_string($function)) {
+                if (function_exists($function)) {
+                    $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, $prefix, $function);
+                }
+            }
+        }
+        return $item;
+    }
+
+    /**
      * Get if a Model has a relation
      * @param string $model
      * @param string $key the attribute name for the relation
      * @return boolean Wheter the key attribute is a relation or not
      */
-    public static function hasRelation($model, $key) {
+    public static function hasRelation($model, $key)
+    {
         return \Sirgrimorum\CrudGenerator\CrudGenerator::isFunctionOfType($model, $key, "Illuminate\Database\Eloquent\Relations\Relation");
     }
 
     /**
      * Get if a Model method returns certain type of value
-     * @param string $model
+     * @param Object $model
      * @param string $key the attribute name for the relation
      * @param string $tipo Optional the type of object returned to compare
      * @return boolean Wheter the key attribute is a relation or not
      */
-    public static function isFunctionOfType($model, $key, $tipo = "Illuminate\Database\Eloquent\Collection") {
+    public static function isFunctionOfType($model, $key, $tipo = "Illuminate\Database\Eloquent\Collection")
+    {
         if (method_exists($model, $key)) {
             return is_a($model->$key(), $tipo);
         } else {
@@ -274,7 +321,8 @@ trait CrudStrings {
      * @param string $key the attribute name for the function
      * @return boolean|int if key is a callable function, return the number of arguments, if not, return false (use strict comparision)
      */
-    public static function isFunction($model, $key) {
+    public static function isFunction($model, $key)
+    {
         $nombreLlamar = "";
         if (is_callable([$model, $key], true, $nombreLlamar) && method_exists($model, $key)) {
             $refClass = new \ReflectionClass($model);
@@ -288,7 +336,7 @@ trait CrudStrings {
 
     /**
      * Call a function from a model by name, fixin the number of parameters
-     * 
+     *
      * @param object $model The model
      * @param string $key The name of the function
      * @param array $args The parameters to pass
@@ -296,7 +344,8 @@ trait CrudStrings {
      * @param mix $valorRelleno Optional the value to fill with in the case $numArgs > count($args)
      * @return mix The return value of the function or null if something is wrong
      */
-    private static function callFunction($model, $key, $args, $numArgs = false, $valorRelleno = false) {
+    public static function callFunction($model, $key, $args, $numArgs = false, $valorRelleno = false)
+    {
         if ($numArgs === false) {
             $numArgs = \Sirgrimorum\CrudGenerator\CrudGenerator::isFunction($model, $key);
         }
@@ -318,12 +367,13 @@ trait CrudStrings {
 
     /**
      * Return the verified Class Name of a model
-     * 
+     *
      * @param string $modelo The model name
      * @param string $probable Optional The probable initial Model Class Name
      * @return boolean|string The Class Name or false if not found
      */
-    private static function getModel($modelo, $probable = '') {
+    public static function getModel($modelo, $probable = '')
+    {
         $modeloClass = $probable;
         if (!class_exists($modeloClass)) {
             $modeloClass = "App\\" . $modelo;
@@ -361,7 +411,8 @@ trait CrudStrings {
      * @param string $query The query string
      * @return array Array of names
      */
-    private static function splitQueryNames($query) {
+    public static function splitQueryNames($query)
+    {
         $resultado = [];
         if (($left = (stripos($query, "`"))) !== false) {
             while ($left !== false) {
@@ -380,14 +431,15 @@ trait CrudStrings {
     }
 
     /**
-     * Know if a field name is of certain type by comparing it with a list of comonly used field names 
+     * Know if a field name is of certain type by comparing it with a list of comonly used field names
      * of the same type.
-     * 
+     *
      * @param string $name The field name
      * @param dtryn $options The probable type name
      * @return boolean True if the $name is found in the probable names list for $option type
      */
-    private static function getTypeByName($name, $options) {
+    public static function getTypeByName($name, $options)
+    {
         if (!is_array($options)) {
             $options = config("sirgrimorum.crudgenerator.probable_" . $options);
         }
@@ -400,7 +452,8 @@ trait CrudStrings {
      * @param object $model The model object
      * @return string The attribute name or the id field name
      */
-    private static function getNameAttribute($model) {
+    public static function getNameAttribute($model)
+    {
         $attributes = $model->getConnection()->getSchemaBuilder()->getColumnListing($model->getTable());
         $compares = config("sirgrimorum.crudgenerator.probable_name");
         foreach ($compares as $compare) {
@@ -412,16 +465,17 @@ trait CrudStrings {
     }
 
     /**
-     * Return the value of a field from an object. 
-     * 
+     * Return the value of a field from an object.
+     *
      * If $campo is an array, returns a concatenated string with the values separated by de separator.
-     * 
+     *
      * @param object|array|string $elemento The objects
      * @param string|array $campo The field or list of fields names
      * @param string $separador Optional, the separator to concatenate with
      * @return string
      */
-    public static function getNombreDeLista($elemento, $campo, $separador = "-") {
+    public static function getNombreDeLista($elemento, $campo, $separador = "-")
+    {
         if (is_object($elemento)) {
             if (is_array($campo)) {
                 $strNombre = "";
@@ -464,20 +518,21 @@ trait CrudStrings {
 
     /**
      * Get the listo of distinct values for a field in a model
-     * 
+     *
      * @param string $modelo Model name or class
      * @param string|array $campo Attribute or list of attributes
      * @param boolean $trans If try to translate the options or not
      * @return array|boolean The array with the distinct values or false if no model class could be found
      */
-    public static function getOpcionesDeCampo($modelo, $campo, $trans = true) {
+    public static function getOpcionesDeCampo($modelo, $campo, $trans = true)
+    {
         if ($modeloClass = \Sirgrimorum\CrudGenerator\CrudGenerator::getModel($modelo, $modelo)) {
             $modelo = strtolower(basename($modeloClass));
             if (is_array($campo)) {
                 $tiene = false;
                 if ($trans) {
                     foreach ($campo as $opcCampo) {
-                        if (\Lang::has('crudgenerator::' . $modelo . ".selects." . $opcCampo)) {
+                        if (Lang::has('crudgenerator::' . $modelo . ".selects." . $opcCampo)) {
                             $tiene = true;
                         }
                     }
@@ -487,7 +542,7 @@ trait CrudStrings {
                     foreach ($modeloClass::select($campo)->groupBy($campo)->get()->toArray() as $opcion) {
                         $auxResultado = [];
                         foreach ($campo as $opcCampo) {
-                            if (\Lang::has('crudgenerator::' . $modelo . ".selects." . $opcCampo)) {
+                            if (Lang::has('crudgenerator::' . $modelo . ".selects." . $opcCampo)) {
                                 $auxResultado[] = trans('crudgenerator::' . $modelo . ".selects." . $opcCampo . "." . $opcion[$opcCampo]);
                             } else {
                                 $auxResultado[] = $opcion[$opcCampo];
@@ -500,7 +555,7 @@ trait CrudStrings {
                     return $modeloClass::select($campo)->groupBy($campo)->get()->toArray();
                 }
             } else {
-                if (\Lang::has('crudgenerator::' . $modelo . ".selects." . $campo) && $trans) {
+                if (Lang::has('crudgenerator::' . $modelo . ".selects." . $campo) && $trans) {
                     $resultado = [];
                     foreach ($modeloClass::select($campo)->distinct()->get()->toArray() as $opcion) {
                         $resultado[] = trans('crudgenerator::' . $modelo . ".selects." . $campo . "." . $opcion);
@@ -520,8 +575,9 @@ trait CrudStrings {
      * @param string $json_string
      * @return boolean
      */
-    public static function isJsonString($json_string) {
-        if (strpos($json_string,"{")===false){
+    public static function isJsonString($json_string)
+    {
+        if (strpos($json_string, "{") === false) {
             return false;
         }
         return !preg_match('/[^,:{}\\[\\]0-9.\\-+Eaeflnr-u \\n\\r\\t]/', preg_replace('/"(\\.|[^"\\\\])*"/', '', $json_string));
@@ -532,7 +588,8 @@ trait CrudStrings {
      * @param string $url
      * @return string
      */
-    public static function getYoutubeId($url) {
+    public static function getYoutubeId($url)
+    {
         preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $url, $match);
         $youtube_id = $match[1];
         return $youtube_id;
@@ -543,7 +600,8 @@ trait CrudStrings {
      * @param string $url
      * @return string
      */
-    public static function urlType($url) {
+    public static function urlType($url)
+    {
         $parsed = parse_url($url);
         if (isset($parsed['host'])) {
             $hostname = $parsed['host'];
@@ -564,7 +622,8 @@ trait CrudStrings {
      * @param string $locale Optional current locale, if empty, will try to get it form the url
      * @return string
      */
-    public static function setLocale($locale = null) {
+    public static function setLocale($locale = null)
+    {
         $app = app();
         $currentLocale = $app->config->get('app.locale');
         if (empty($locale) || !is_string($locale)) {
@@ -591,7 +650,8 @@ trait CrudStrings {
      * @param string $modelo The model name (plural or singular)
      * @return string
      */
-    public static function transRouteModel($modelo) {
+    public static function transRouteModel($modelo)
+    {
         $app = app();
         //$modeloClass = CrudGenerator::getModel($modelo, substr($modelo,0, strlen($modelo)-1));
         $base = "";
@@ -651,7 +711,8 @@ trait CrudStrings {
      * @param string $route The route, it could be (modelo.action) or only (action)
      * @return string
      */
-    public static function transRoute($route) {
+    public static function transRoute($route)
+    {
         $app = app();
         $locale = \Sirgrimorum\CrudGenerator\CrudGenerator::setLocale();
         //$locale = $app->getLocale();
@@ -680,7 +741,8 @@ trait CrudStrings {
      * @param string $route The route
      * @return string
      */
-    public static function transRouteExternal($route) {
+    public static function transRouteExternal($route)
+    {
         $app = app();
         $locale = \Sirgrimorum\CrudGenerator\CrudGenerator::setLocale();
         //$locale = $app->getLocale();
@@ -694,7 +756,8 @@ trait CrudStrings {
      * @param string $url Optional the url to change, if empty, will change the current url
      * @return string
      */
-    public static function changeLocale($locale, $url = null) {
+    public static function changeLocale($locale, $url = null)
+    {
         $app = app();
         //$modeloClass = CrudGenerator::getModel($modelo, substr($modelo,0, strlen($modelo)-1));
         $base = "";
@@ -727,12 +790,13 @@ trait CrudStrings {
     }
 
     /**
-     * Da el rgb de un color RGB a partir de un factor y un color por wavelength 
-     * @param real $color 
+     * Da el rgb de un color RGB a partir de un factor y un color por wavelength
+     * @param real $color
      * @param real $factor
      * @return int
      */
-    private static function adjustColor($color, $factor) {
+    public static function adjustColor($color, $factor)
+    {
         if ($color == 0.0) {
             return 0;
         } else {
@@ -742,11 +806,12 @@ trait CrudStrings {
 
     /**
      * Define el rgb de un wavelength
-     * @param int $wavelength 
+     * @param int $wavelength
      * @param array valores para r, g y b
      * @return array RGB
      */
-    private static function setColors($wavelength, $rgb) {
+    public static function setColors($wavelength, $rgb)
+    {
         $red = $rgb["r"];
         $green = $rgb["g"];
         $blue = $rgb["b"];
@@ -791,7 +856,8 @@ trait CrudStrings {
      * @param array $rgb arreglo con el factor f
      * @return array con el factor f
      */
-    private static function setFactor($wavelength, $rgb) {
+    public static function setFactor($wavelength, $rgb)
+    {
         $factor = $rgb["f"];
         if ($wavelength >= 380 && $wavelength <= 419) {
             $factor = 0.3 + 0.7 * ($wavelength - 380.0) / (420.0 - 380.0);
@@ -811,7 +877,8 @@ trait CrudStrings {
      * @param int $numSteps Número de colores a devolver
      * @return array Array de colores en rgb hexa string ej: #ff33b3
      */
-    public static function arrColors($numSteps) {
+    public static function arrColors($numSteps)
+    {
         $colors = [];
         $rgb = [
             "r" => 0,
@@ -820,7 +887,7 @@ trait CrudStrings {
             "f" => 0
         ];
 
-        for ($i = 0; $i < $numSteps; $i ++) {
+        for ($i = 0; $i < $numSteps; $i++) {
             $lambda = round(380 + 400 * ($i / ($numSteps - 1)));
             $rgb = \Sirgrimorum\CrudGenerator\CrudGenerator::setColors($lambda, $rgb);
             $rgb = \Sirgrimorum\CrudGenerator\CrudGenerator::setFactor($lambda, $rgb);
@@ -844,7 +911,8 @@ trait CrudStrings {
      * @param array $array
      * @return int
      */
-    public static function countdim($array) {
+    public static function countdim($array)
+    {
         if (is_array(reset($array))) {
             $return = \Sirgrimorum\CrudGenerator\CrudGenerator::countdim(reset($array)) + 1;
         } else {
@@ -854,4 +922,66 @@ trait CrudStrings {
         return $return;
     }
 
+    /**
+     * Builds de standard html tag for a file of certain type
+     *
+     * @param string $tipoFile The file tipe string ej: 'image'
+     * @param string $urlFile The url source for the file
+     * @param string $nameFile The name of the file
+     * @param string $tipoMime The mime type string of the file
+     * @return string The html tag builded
+     */
+    public static function getHtmlParaFile($tipoFile, $urlFile, $nameFile, $tipoMime)
+    {
+        switch ($tipoFile) {
+            case 'image':
+                $fileHtml = "<img class='img-fluid' src='{$urlFile}' alt='{$nameFile}' />";
+                break;
+            case 'video':
+                $fileHtml = "<video class='img-fluid' controls><source src='{$urlFile}' type='video/mp4'>Your browser does not support the video tag.</video>";
+                break;
+            case 'audio':
+                $fileHtml = "<audio class='mw-100' controls preload='auto'><source src='{$urlFile}' type='$tipoMime'></audio>";
+                break;
+            case 'pdf':
+                $fileHtml = "<iframe class='img-fluid mh-100' src='{$urlFile}' ></iframe>";
+                break;
+            default:
+                switch ($tipoFile) {
+                    case 'text':
+                        $faTipo = "fa-file-text-o";
+                        break;
+                    case 'office':
+                        $faTipo = "fa-file-word-o";
+                        break;
+                    case 'compressed':
+                        $faTipo = "fa-file-archive-o";
+                        break;
+                    default:
+                        $faTipo = "fa-file-o";
+                        break;
+                }
+                $fileHtml = "<a class='text-secondary' href='{$urlFile}' target='_blank'><i class='fa $faTipo fa-lg' aria-hidden='true'></i></a>";
+                break;
+        }
+        return $fileHtml;
+    }
+
+    /**
+     * Truncate a long text without truncating words.
+     *
+     * @param string $text The string to truncate
+     * @param int $chars The aproximate max number of characters, default 200
+     * @return string The truncated text
+     */
+    public static function truncateText($text, $chars = 200) {
+        if (strlen($text) <= $chars) {
+            return $text;
+        }
+        $text = $text." ";
+        $text = substr($text,0,$chars);
+        $text = substr($text,0,strrpos($text,' '));
+        $text = $text."...";
+        return $text;
+    }
 }

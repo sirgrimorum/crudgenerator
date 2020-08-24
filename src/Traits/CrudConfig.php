@@ -2,9 +2,11 @@
 
 namespace Sirgrimorum\CrudGenerator\Traits;
 
+use Exception;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Lang;
 use ReflectionClass;
 use ReflectionMethod;
 
@@ -392,7 +394,7 @@ trait CrudConfig {
      * @param array $columns Optional The inicial details
      * @return array The array with the details
      */
-    private static function getModelDetailsFromModel($modeloClass, $modeloE, $columns = []) {
+    public static function getModelDetailsFromModel($modeloClass, $modeloE, $columns = []) {
 
         $class = new ReflectionClass($modeloClass);
         $methods = $class->getMethods(ReflectionMethod::IS_PUBLIC);
@@ -519,7 +521,7 @@ trait CrudConfig {
      * @param array $columns the Array with the details
      * @return array The configuration array
      */
-    private static function buildConfig($modeloClass, $tabla, $modelo, $columns) {
+    public static function buildConfig($modeloClass, $tabla, $modelo, $columns) {
         $transPrefix = config("sirgrimorum.crudgenerator.trans_prefix");
         $config = [
             "modelo" => $modeloClass,
@@ -531,9 +533,9 @@ trait CrudConfig {
         ];
         $configCampos = [];
         $rules = [];
-        if (\Lang::has('crudgenerator::' . $modelo)) {
+        if (Lang::has('crudgenerator::' . $modelo)) {
             $transFile = 'crudgenerator::' . $modelo;
-        } elseif (\Lang::has($modelo)) {
+        } elseif (Lang::has($modelo)) {
             $transFile = $modelo;
         } else {
             $transFile = false;
@@ -544,7 +546,7 @@ trait CrudConfig {
                 $rulesExtraArrayStr = "";
                 $prefixRules = "bail|";
                 $prefixRulesExtraArray = "bail|";
-                if (\Lang::has((string) $transFile . ".selects." . $campo) && is_array(trans((string) $transFile . ".selects." . $campo))) {
+                if (Lang::has((string) $transFile . ".selects." . $campo) && is_array(trans((string) $transFile . ".selects." . $campo))) {
                     $configCampos[$campo] = [
                         'tipo' => 'select',
                         'label' => $campo,
@@ -701,13 +703,13 @@ trait CrudConfig {
                     $configCampos[$campo]['valor'] = $datos['default'];
                 }
                 if ($transFile !== false) {
-                    if (\Lang::has($transFile . ".labels." . $campo)) {
+                    if (Lang::has($transFile . ".labels." . $campo)) {
                         $configCampos[$campo]['label'] = $transPrefix . $transFile . ".labels." . $campo;
                     }
-                    if (\Lang::has($transFile . ".placeholders." . $campo)) {
+                    if (Lang::has($transFile . ".placeholders." . $campo)) {
                         $configCampos[$campo]['placeholder'] = $transPrefix . $transFile . ".placeholders." . $campo;
                     }
-                    if (\Lang::has($transFile . ".descriptions." . $campo)) {
+                    if (Lang::has($transFile . ".descriptions." . $campo)) {
                         $configCampos[$campo]['description'] = $transPrefix . $transFile . ".descriptions." . $campo;
                     }
                 }
@@ -759,7 +761,7 @@ trait CrudConfig {
                             if (count($datos['relation']['datosQuery']['pivotColumns']) > 0) {
                                 $campoLabel = ucfirst($campo);
                                 if ($transFile !== false) {
-                                    if (\Lang::has($transFile . ".labels." . $campo)) {
+                                    if (Lang::has($transFile . ".labels." . $campo)) {
                                         $campoLabel = $transPrefix . $transFile . ".labels." . $campo;
                                     }
                                 }
@@ -777,16 +779,16 @@ trait CrudConfig {
                                         'valor' => "",
                                     ];
                                     if ($transFile !== false) {
-                                        if (\Lang::has($transFile . ".labels." . $pivotColumn['name'])) {
+                                        if (Lang::has($transFile . ".labels." . $pivotColumn['name'])) {
                                             $pivotColumnAux['label'] = $transPrefix . $transFile . ".labels." . $pivotColumn['name'];
                                         }
-                                        if (\Lang::has($transFile . ".placeholders." . $pivotColumn['name'])) {
+                                        if (Lang::has($transFile . ".placeholders." . $pivotColumn['name'])) {
                                             $pivotColumnAux['placeholder'] = $transPrefix . $transFile . ".placeholders." . $pivotColumn['name'];
                                         }
-                                        if (\Lang::has($transFile . ".descriptions." . $pivotColumn['name'])) {
+                                        if (Lang::has($transFile . ".descriptions." . $pivotColumn['name'])) {
                                             $pivotColumnAux['description'] = $transPrefix . $transFile . ".descriptions." . $pivotColumn['name'];
                                         }
-                                        if (\Lang::has($transFile . ".selects." . $pivotColumn['name']) && is_array(trans($transFile . ".selects." . $pivotColumn['name']))) {
+                                        if (Lang::has($transFile . ".selects." . $pivotColumn['name']) && is_array(trans($transFile . ".selects." . $pivotColumn['name']))) {
                                             $pivotColumnAux['type'] = 'select';
                                             $pivotColumnAux['opciones'] = $transPrefix . $transFile . ".selects." . $pivotColumn['name'];
                                         }
@@ -874,13 +876,13 @@ trait CrudConfig {
                         break;
                 }
                 if ($transFile !== false) {
-                    if (\Lang::has($transFile . ".labels." . $campo)) {
+                    if (Lang::has($transFile . ".labels." . $campo)) {
                         $configCampos[$campo]['label'] = $transPrefix . $transFile . ".labels." . $campo;
                     }
-                    if (\Lang::has($transFile . ".placeholders." . $campo)) {
+                    if (Lang::has($transFile . ".placeholders." . $campo)) {
                         $configCampos[$campo]['placeholder'] = $transPrefix . $transFile . ".placeholders." . $campo;
                     }
-                    if (\Lang::has($transFile . ".descriptions." . $campo)) {
+                    if (Lang::has($transFile . ".descriptions." . $campo)) {
                         $configCampos[$campo]['description'] = $transPrefix . $transFile . ".descriptions." . $campo;
                     }
                 }
@@ -906,7 +908,7 @@ trait CrudConfig {
      * @param array $preConfig The principal configuration array
      * @return boolean|array The new configuration file
      */
-    private static function smartMergeConfig($config, $preConfig) {
+    public static function smartMergeConfig($config, $preConfig) {
         if (is_array($preConfig)) {
             if (isset($preConfig['parametros'])) {
                 $parametros = $preConfig['parametros'];
@@ -999,13 +1001,7 @@ trait CrudConfig {
                 if (is_array($item)) {
                     $result[$key] = \Sirgrimorum\CrudGenerator\CrudGenerator::translateConfig($item);
                 } elseif (is_string($item)) {
-                    $item = str_replace(config("sirgrimorum.crudgenerator.locale_key"), \App::getLocale(), $item);
-                    $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, config("sirgrimorum.crudgenerator.route_prefix"), "route");
-                    $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, config("sirgrimorum.crudgenerator.url_prefix"), "url");
-                    if (function_exists('trans_article')) {
-                        $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, config("sirgrimorum.crudgenerator.transarticle_prefix"), "trans_article");
-                    }
-                    $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, config("sirgrimorum.crudgenerator.trans_prefix"), "trans");
+                    $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateDato($item);
                     $result[$key] = $item;
                 } else {
                     $result[$key] = $item;
@@ -1079,7 +1075,7 @@ trait CrudConfig {
                     }
                     if (isset($config['campos'][$clave]['groupby'])) {
                         $groupBy = $config['campos'][$clave]['groupby'];
-                        $modelosM->sortBy(function($elemento) use($groupBy) {
+                        $modelosM->sortBy(function($elemento) use($groupBy, $separador) {
                             return \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($elemento, $groupBy, $separador);
                         });
                     }
