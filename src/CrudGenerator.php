@@ -38,9 +38,10 @@ class CrudGenerator {
      * Generate create view for a model
      * @param array $config Configuration array
      * @param boolean $simple Optional True for a simple view (just the form)
+     * @param boolean $botonModal Optional True for include only a button with a modal window
      * @return string Create form in HTML
      */
-    public static function create($config, $simple = false) {
+    public static function create($config, $simple = false, $botonModal = false) {
         //$config = CrudGenerator::translateConfig($config);
         if (request()->has('_itemRelSel')) {
             list($itemsRelSelCampo, $itemsRelSelId) = explode("|", request()->_itemRelSel);
@@ -83,7 +84,12 @@ class CrudGenerator {
                         'modelo' => $modelo
             ]);
         } else {
-            $view = View::make('sirgrimorum::crudgen.create', [
+            if ($botonModal){
+                $vista = 'sirgrimorum::admin.create.boton_modal';
+            }else{
+                $vista = 'sirgrimorum::crudgen.create';
+            }
+            $view = View::make($vista, [
                         'config' => $config,
                         'tieneHtml' => CrudGenerator::hasTipo($config, ['html','article']),
                         'tieneDate' => CrudGenerator::hasTipo($config, ['date', 'datetime', 'time']),
@@ -106,9 +112,10 @@ class CrudGenerator {
      * @param integer $id Key of the object
      * @param boolean $simple Optional True for a simple view (just the form)
      * @param Model $registro Optional The Object
+     * @param boolean $botonModal Optional True for include only a button with a modal window
      * @return string the Object in html
      */
-    public static function show($config, $id = null, $simple = false, $registro = null) {
+    public static function show($config, $id = null, $simple = false, $registro = null, $botonModal = false) {
         //$config = CrudGenerator::translateConfig($config);
         $modelo = strtolower(class_basename($config["modelo"]));
         if ($registro == null) {
@@ -132,7 +139,12 @@ class CrudGenerator {
             $js_section = "";
             $css_section = "";
         }
-        $view = View::make('sirgrimorum::crudgen.show', array(
+        if ($botonModal){
+            $vista = 'sirgrimorum::admin.show.boton_modal';
+        }else{
+            $vista = 'sirgrimorum::crudgen.show';
+        }
+        $view = View::make($vista, array(
                     'config' => $config,
                     'registro' => $registro,
                     'js_section' => $js_section,
@@ -148,9 +160,10 @@ class CrudGenerator {
      * @param integer $id Key of the object
      * @param boolean $simple Optional True for a simple view (just the form)
      * @param Model $registro Optional The object
+     * @param boolean $botonModal Optional True for include only a button with a modal window
      * @return HTML Edit form
      */
-    public static function edit($config, $id = null, $simple = false, $registro = null) {
+    public static function edit($config, $id = null, $simple = false, $registro = null, $botonModal = false) {
         //$config = CrudGenerator::translateConfig($config);
         $modelo = strtolower(class_basename($config["modelo"]));
         $config = CrudGenerator::loadTodosFromConfig($config);
@@ -184,7 +197,12 @@ class CrudGenerator {
             $js_section = "";
             $css_section = "";
         }
-        $view = View::make('sirgrimorum::crudgen.edit', [
+        if ($botonModal){
+            $vista = 'sirgrimorum::admin.edit.boton_modal';
+        }else{
+            $vista = 'sirgrimorum::crudgen.edit';
+        }
+        $view = View::make($vista, [
                     'config' => $config,
                     'registro' => $registro,
                     'tieneHtml' => CrudGenerator::hasTipo($config, ['html','article']),
