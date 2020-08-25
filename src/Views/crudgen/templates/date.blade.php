@@ -87,7 +87,7 @@ if ($js_section != "") {
 }
 ?>
 <script>
-    window.onload = function () {
+     document.addEventListener("DOMContentLoaded", function () {
         $('#{{ $tabla . "_" . $extraId }}').datetimepicker({
             locale: '{{ App::getLocale() }}',
             format: '{{$format}}',
@@ -99,7 +99,7 @@ if ($js_section != "") {
             var momento = $('#{{ $tabla . "_" . $extraId }}').data("DateTimePicker").date();
             $('#{{ $tabla . "_" . $extraId }}').val(momento.format("YYYY-MM-DD"));
         });
-    };
+    });
 </script>
 <?php
 if ($js_section != "") {

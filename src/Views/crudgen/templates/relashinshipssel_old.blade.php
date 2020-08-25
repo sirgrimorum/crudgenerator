@@ -194,7 +194,7 @@ if ($js_section != "") {
 }
 ?>
 <script>
-    window.onload = function () {
+    document.addEventListener("DOMContentLoaded", function () {
     $(".chbx_{{$columna}}").change(function() {
     @foreach($datos['columnas'] as $columnaT)
             @if ($columnaT['type'] != 'label' && $columnaT['type'] != 'labelpivot')
@@ -280,7 +280,7 @@ if ($js_section != "") {
         },
         debug: true
     });
-    };
+    });
 </script>
 <?php
 if ($js_section != "") {

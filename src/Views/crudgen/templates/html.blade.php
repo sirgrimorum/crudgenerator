@@ -59,9 +59,9 @@ if ($js_section != "") {
 }
 ?>
 <script>
-    window.onload = function () {
+     document.addEventListener("DOMContentLoaded", function () {
         CKEDITOR.replace('{{ $tabla . "_" . $extraId }}');
-    };
+    });
 </script>
 <?php
 if ($js_section != "") {
