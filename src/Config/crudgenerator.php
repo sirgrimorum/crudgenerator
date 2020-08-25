@@ -78,7 +78,7 @@ return [
         '__asset__' => 'asset',
         '__route__' => 'route',
         '__url__' => 'url',
-        '__trans__' => 'trans',
+        '__trans__' => '__',
         '__transarticle__' => 'transarticle',
         '__getLocale__' => 'Illuminate\Support\Facades\App::getLocale',
         '__function__' => function ($string) {

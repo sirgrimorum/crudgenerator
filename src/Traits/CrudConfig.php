@@ -14,26 +14,26 @@ trait CrudConfig {
 
     /**
      * Get the configuration array for a model using de CrudGenerator format.
-     * 
+     *
      * Using the model, it would bring it from the crudgenerator.admin_routes array.
-     * 
+     *
      * If crudgenerator.admin_routes is 'render' or no configuration file with its value is found
-     * it will create automatically a new one based on the \Sirgrimorum\CrudGenerator\CrudGenerator configuration file, 
+     * it will create automatically a new one based on the \Sirgrimorum\CrudGenerator\CrudGenerator configuration file,
      * the Model class and the DataBase table for that Model.
-     * 
+     *
      * Use $smartMerge for merging 2 configuration arrays, if no $baseConfig is set, it would smart merge the
      * $config and use automatically created one as base, otherwise it would smart merge de two configurations using
      * $baseConfig as Base and $config to overwrite it.
-     * 
+     *
      * If no $config is set and $smartMerge is true, it would look for the config file using crudgenerator.admin_routes
      * and use it to overwrite the automatically created one. If no file is found, it would return the automaticaly
      * genereted one.
-     * 
+     *
      * For smart merge, use the value "notThisTime" in $config to delete that key from the $baseConfig or
      * the autoconfiguration.
-     * 
+     *
      * The configuration returned would be localized.
-     * 
+     *
      * @param string $modelo The Model class name, used to retreave the default configuration from crudgenerator.admin_routes
      * @param boolean $smartMerge Optional, true for smart merge or false (default) to only retrive the config
      * @param mix $config Optional, The configuration route or array to load. empty or 'render'(default) to automaticaly create it, if no one is found using only $model. If $smatMerge is true, is used to overwrite $baseConfig
@@ -89,7 +89,7 @@ trait CrudConfig {
                 if ($baseConfig != "") {
                     if (is_array($baseConfig)) {
                         $config = $baseConfig;
-                    } elseif ($baseConfig != "") {
+                    } elseif (is_string($baseConfig)) {
                         $config = config($baseConfig);
                     }
                     if (is_array($config)) {
@@ -185,10 +185,10 @@ trait CrudConfig {
     }
 
     /**
-     * Get the configuration array for a model using de CrudGenerator format, just like getConfig, 
-     * but if in the request a "__parametros" field with a json is found, the configuratio will be created 
+     * Get the configuration array for a model using de CrudGenerator format, just like getConfig,
+     * but if in the request a "__parametros" field with a json is found, the configuratio will be created
      * using its values insted of the ones passed to this function.
-     * 
+     *
      * @param string $modelo The Model class name, used to retreave the default configuration from crudgenerator.admin_routes
      * @param boolean $smartMerge Optional, true for smart merge or false (default) to only retrive the config
      * @param mix $config Optional, The configuration route or array to load. empty or 'render'(default) to automaticaly create it, if no one is found using only $model. If $smatMerge is true, is used to overwrite $baseConfig
@@ -522,7 +522,7 @@ trait CrudConfig {
      * @return array The configuration array
      */
     public static function buildConfig($modeloClass, $tabla, $modelo, $columns) {
-        $transPrefix = config("sirgrimorum.crudgenerator.trans_prefix");
+        $transPrefix = \Sirgrimorum\CrudGenerator\CrudGenerator::getPrefixFromFunction("__",  '__trans__');
         $config = [
             "modelo" => $modeloClass,
             "tabla" => $tabla,
@@ -892,7 +892,7 @@ trait CrudConfig {
             }
         }
         foreach ($columns['hasmany'] as $relacion) {
-            
+
         }
         $config["campos"] = $configCampos;
         $config['rules'] = $rules;
@@ -901,9 +901,9 @@ trait CrudConfig {
 
     /**
      * Merge 2 configuration arrays, with $config as base and using $preConfig to overwrite.
-     * 
+     *
      * A value of "notThisTime" in a field would mean that the field must be deleted
-     * 
+     *
      * @param array $config The base configuration array
      * @param array $preConfig The principal configuration array
      * @return boolean|array The new configuration file
@@ -984,7 +984,7 @@ trait CrudConfig {
 
     /**
      *  Evaluate functions inside the config array, such as trans(), route(), url() etc.
-     * 
+     *
      * @param array $array The config array
      * @return array The operated config array
      */
@@ -1018,7 +1018,7 @@ trait CrudConfig {
 
     /**
      * Know if a config array has any field of certain type
-     * 
+     *
      * @param array $array Config array
      * @param string|array $tipo Type of field
      * @return boolean
@@ -1038,7 +1038,7 @@ trait CrudConfig {
         return false;
     }
 
-    
+
     /**
      * Check and load the necesary "todos" option form all fields in a configuration array
      * @param array $config The configuration array
@@ -1054,7 +1054,7 @@ trait CrudConfig {
                             $auxTodos = $modeloM::hydrate($config['campos'][$clave]['todos']);
                             $config['campos'][$clave]['todos'] = $auxTodos;
                         } catch (Exception $exc) {
-                            
+
                         }
                     }
                 }

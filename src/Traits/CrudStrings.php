@@ -253,17 +253,11 @@ trait CrudStrings
     }
 
     /**
-     * Use crudgenerator config's data_prefixes to change data from models an evaluate functions in then
-     * funtions such as asset(), trans(), url(), etc.
+     * Get de prefixes and funcitons array to use when translating configs
      *
-     * For parameters, use ', ' to separate them inside the prefix and the close.
-     *
-     * For array, use json notation inside comas
-     *
-     * @param string $item The string to operate
-     * @return string The string with the results of the evaluations
+     * @return array
      */
-    public static function translateDato($item)
+    public static function getPrefixesTranslateConfig()
     {
         $prefixes = config("sirgrimorum.crudgenerator.data_prefixes", []);
         if (count($prefixes) <= 0) {
@@ -272,10 +266,50 @@ trait CrudStrings
                 config("sirgrimorum.crudgenerator.asset_prefix", '__asset__') => 'asset',
                 config("sirgrimorum.crudgenerator.route_prefix", '__route__') => 'route',
                 config("sirgrimorum.crudgenerator.url_prefix", '__url__') => 'url',
-                config("sirgrimorum.crudgenerator.trans_prefix", '__trans__') => 'trans',
+                config("sirgrimorum.crudgenerator.trans_prefix", '__trans__') => '__',
                 config("sirgrimorum.crudgenerator.transarticle_prefix", '__transarticle__') => 'transarticle',
             ];
         }
+        return $prefixes;
+    }
+
+    /**
+     * Get the prefix for a specific function to use when translating configs
+     *
+     * @param mixed $function The name of the function or callable to look for
+     * @param string $default The default value if no prefix is found
+     * @return string the prefix for that function
+     */
+    public static function getPrefixFromFunction($function, $default = "")
+    {
+        $prefixes = \Sirgrimorum\CrudGenerator\CrudGenerator::getPrefixesTranslateConfig();
+        $encontrado = array_search($function, $prefixes);
+        if ($encontrado === false && $function == "__") {
+            $encontrado = array_search("trans", $prefixes);
+        } elseif ($encontrado === false && $function == "trans") {
+            $encontrado = array_search("__", $prefixes);
+        }
+        if ($encontrado === false) {
+            return $default;
+        }
+        return $encontrado;
+    }
+
+    /**
+     * Use crudgenerator config's data_prefixes to change data from models an evaluate functions in then
+     * funtions such as asset(), trans(), url(), etc.
+     *
+     * For parameters, use ', ' to separate them inside the prefix and the close.
+     *
+     * For array, use json notation inside comas
+     *
+     * @param string $item The string to operate
+     * @param string $close The close string that shows where the function must be stopped
+     * @return string The string with the results of the evaluations
+     */
+    public static function translateDato($item, $close = "__")
+    {
+        $prefixes = \Sirgrimorum\CrudGenerator\CrudGenerator::getPrefixesTranslateConfig();
         foreach ($prefixes as $prefix => $function) {
             if (is_string($item)) {
                 if ($function instanceof Closure) {
@@ -285,6 +319,8 @@ trait CrudStrings
                         $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, $prefix, $function);
                     }
                 }
+            } else {
+                $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateArray($item, $prefix, $function, $close);
             }
         }
         return $item;
@@ -976,14 +1012,15 @@ trait CrudStrings
      * @param int $chars The aproximate max number of characters, default 200
      * @return string The truncated text
      */
-    public static function truncateText($text, $chars = 200) {
+    public static function truncateText($text, $chars = 200)
+    {
         if (strlen($text) <= $chars) {
             return $text;
         }
-        $text = $text." ";
-        $text = substr($text,0,$chars);
-        $text = substr($text,0,strrpos($text,' '));
-        $text = $text."...";
+        $text = $text . " ";
+        $text = substr($text, 0, $chars);
+        $text = substr($text, 0, strrpos($text, ' '));
+        $text = $text . "...";
         return $text;
     }
 }
