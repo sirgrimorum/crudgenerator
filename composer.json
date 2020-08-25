@@ -2,7 +2,6 @@
     "name": "sirgrimorum/crudgenerator",
     "type": "library",
     "description": "Automatic CRUD generator for Laravel",
-    "type": "library",
     "license": "MIT",
     "authors": [{
         "name": "sirgrimorum",
@@ -27,7 +26,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "3.7.40-dev"
+            "dev-master": "3.7.41-dev"
         },
         "laravel": {
             "providers": [
