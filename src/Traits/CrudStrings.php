@@ -277,11 +277,13 @@ trait CrudStrings
             ];
         }
         foreach ($prefixes as $prefix => $function) {
-            if ($function instanceof Closure) {
-                $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, $prefix, $function);
-            } elseif (is_string($function)) {
-                if (function_exists($function)) {
+            if (is_string($item)) {
+                if ($function instanceof Closure) {
                     $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, $prefix, $function);
+                } elseif (is_string($function)) {
+                    if (function_exists($function)) {
+                        $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, $prefix, $function);
+                    }
                 }
             }
         }
