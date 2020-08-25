@@ -27,7 +27,7 @@ class CrudGenerator {
     protected $app;
 
     /**
-     * 
+     *
      * @param string $app Ipara nada
      */
     function __construct($app) {
@@ -66,6 +66,13 @@ class CrudGenerator {
         }
         if ($config['url'] == "Sirgrimorum_CrudAdministrator") {
             $config['url'] = route("sirgrimorum_modelo::store", ["modelo" => $modelo]);
+            if (Lang::has('crudgenerator::' . $modelo . '.labels.create')) {
+                $config['botones'] = trans("crudgenerator::$modelo.labels.create");
+            } else {
+                $config['botones'] = trans("crudgenerator::admin.layout.crear");
+            }
+        }
+        if (!isset($config['botones'])){
             if (Lang::has('crudgenerator::' . $modelo . '.labels.create')) {
                 $config['botones'] = trans("crudgenerator::$modelo.labels.create");
             } else {
