@@ -17,7 +17,8 @@ use Sirgrimorum\CrudGenerator\SuperClosure;
 use Sirgrimorum\CrudGenerator\Traits;
 use Illuminate\Support\Facades\Lang;
 
-class CrudGenerator {
+class CrudGenerator
+{
 
     use Traits\CrudStrings,
         Traits\CrudConfig,
@@ -30,7 +31,8 @@ class CrudGenerator {
      *
      * @param string $app Ipara nada
      */
-    function __construct($app) {
+    function __construct($app)
+    {
         $this->app = $app;
     }
 
@@ -41,7 +43,8 @@ class CrudGenerator {
      * @param boolean $botonModal Optional True for include only a button with a modal window
      * @return string Create form in HTML
      */
-    public static function create($config, $simple = false, $botonModal = false) {
+    public static function create($config, $simple = false, $botonModal = false)
+    {
         //$config = CrudGenerator::translateConfig($config);
         if (request()->has('_itemRelSel')) {
             list($itemsRelSelCampo, $itemsRelSelId) = explode("|", request()->_itemRelSel);
@@ -51,7 +54,7 @@ class CrudGenerator {
                 }
             }
         }
-        if (!CrudGenerator::checkPermission($config)) {
+        if (!CrudGenerator::checkPermission($config, 0, 'create')) {
             return View::make('sirgrimorum::crudgen.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
         }
         $modelo = strtolower(class_basename($config["modelo"]));
@@ -72,7 +75,7 @@ class CrudGenerator {
                 $config['botones'] = trans("crudgenerator::admin.layout.crear");
             }
         }
-        if (!isset($config['botones'])){
+        if (!isset($config['botones'])) {
             if (Lang::has('crudgenerator::' . $modelo . '.labels.create')) {
                 $config['botones'] = trans("crudgenerator::$modelo.labels.create");
             } else {
@@ -81,33 +84,33 @@ class CrudGenerator {
         }
         if (request()->has('_itemRelSel')) {
             $view = View::make('sirgrimorum::crudgen.templates.relationshipssel_simple', [
-                        'config' => $config,
-                        'datoId' => $itemsRelSelId,
-                        'columna' => $itemsRelSelCampo,
-                        'tabla' => (new $config['campos'][$itemsRelSelCampo]['modelo'])->getTable(),
-                        'datos' => $config['campos'][$itemsRelSelCampo],
-                        'js_section' => $js_section,
-                        'css_section' => $css_section,
-                        'modelo' => $modelo
+                'config' => $config,
+                'datoId' => $itemsRelSelId,
+                'columna' => $itemsRelSelCampo,
+                'tabla' => (new $config['campos'][$itemsRelSelCampo]['modelo'])->getTable(),
+                'datos' => $config['campos'][$itemsRelSelCampo],
+                'js_section' => $js_section,
+                'css_section' => $css_section,
+                'modelo' => $modelo
             ]);
         } else {
-            if ($botonModal){
+            if ($botonModal) {
                 $vista = 'sirgrimorum::admin.create.boton_modal';
-            }else{
+            } else {
                 $vista = 'sirgrimorum::crudgen.create';
             }
             $view = View::make($vista, [
-                        'config' => $config,
-                        'tieneHtml' => CrudGenerator::hasTipo($config, ['html','article']),
-                        'tieneDate' => CrudGenerator::hasTipo($config, ['date', 'datetime', 'time']),
-                        'tieneSlider' => CrudGenerator::hasTipo($config, 'slider'),
-                        'tieneSelect' => CrudGenerator::hasTipo($config, ['select', 'relationship', 'relationships']),
-                        'tieneSearch' => CrudGenerator::hasTipo($config, [ 'relationshipssel']),
-                        'tieneFile' => CrudGenerator::hasTipo($config, [ 'file', 'files']),
-                        'tieneJson' => CrudGenerator::hasTipo($config, [ 'json']),
-                        'js_section' => $js_section,
-                        'css_section' => $css_section,
-                        'modelo' => $modelo
+                'config' => $config,
+                'tieneHtml' => CrudGenerator::hasTipo($config, ['html', 'article']),
+                'tieneDate' => CrudGenerator::hasTipo($config, ['date', 'datetime', 'time']),
+                'tieneSlider' => CrudGenerator::hasTipo($config, 'slider'),
+                'tieneSelect' => CrudGenerator::hasTipo($config, ['select', 'relationship', 'relationships']),
+                'tieneSearch' => CrudGenerator::hasTipo($config, ['relationshipssel']),
+                'tieneFile' => CrudGenerator::hasTipo($config, ['file', 'files']),
+                'tieneJson' => CrudGenerator::hasTipo($config, ['json']),
+                'js_section' => $js_section,
+                'css_section' => $css_section,
+                'modelo' => $modelo
             ]);
         }
         return $view->render();
@@ -122,7 +125,8 @@ class CrudGenerator {
      * @param boolean $botonModal Optional True for include only a button with a modal window
      * @return string the Object in html
      */
-    public static function show($config, $id = null, $simple = false, $registro = null, $botonModal = false) {
+    public static function show($config, $id = null, $simple = false, $registro = null, $botonModal = false)
+    {
         //$config = CrudGenerator::translateConfig($config);
         $modelo = strtolower(class_basename($config["modelo"]));
         if ($registro == null) {
@@ -136,7 +140,7 @@ class CrudGenerator {
                 $registro = $modeloM::find($id);
             }
         }
-        if (!CrudGenerator::checkPermission($config, $registro->getKey())) {
+        if (!CrudGenerator::checkPermission($config, $registro->getKey(), 'show')) {
             return View::make('sirgrimorum::crudgen.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
         }
         if (!$simple) {
@@ -146,17 +150,17 @@ class CrudGenerator {
             $js_section = "";
             $css_section = "";
         }
-        if ($botonModal){
+        if ($botonModal) {
             $vista = 'sirgrimorum::admin.show.boton_modal';
-        }else{
+        } else {
             $vista = 'sirgrimorum::crudgen.show';
         }
         $view = View::make($vista, array(
-                    'config' => $config,
-                    'registro' => $registro,
-                    'js_section' => $js_section,
-                    'css_section' => $css_section,
-                    'modelo' => $modelo
+            'config' => $config,
+            'registro' => $registro,
+            'js_section' => $js_section,
+            'css_section' => $css_section,
+            'modelo' => $modelo
         ));
         return $view->render();
     }
@@ -170,7 +174,8 @@ class CrudGenerator {
      * @param boolean $botonModal Optional True for include only a button with a modal window
      * @return HTML Edit form
      */
-    public static function edit($config, $id = null, $simple = false, $registro = null, $botonModal = false) {
+    public static function edit($config, $id = null, $simple = false, $registro = null, $botonModal = false)
+    {
         //$config = CrudGenerator::translateConfig($config);
         $modelo = strtolower(class_basename($config["modelo"]));
         $config = CrudGenerator::loadTodosFromConfig($config);
@@ -186,7 +191,7 @@ class CrudGenerator {
                 $registro = $modeloM::find($id);
             }
         }
-        if (!CrudGenerator::checkPermission($config, $registro->getKey())) {
+        if (!CrudGenerator::checkPermission($config, $registro->getKey(), 'edit')) {
             return View::make('sirgrimorum::crudgen.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
         }
         if ($config['url'] == "Sirgrimorum_CrudAdministrator") {
@@ -204,24 +209,24 @@ class CrudGenerator {
             $js_section = "";
             $css_section = "";
         }
-        if ($botonModal){
+        if ($botonModal) {
             $vista = 'sirgrimorum::admin.edit.boton_modal';
-        }else{
+        } else {
             $vista = 'sirgrimorum::crudgen.edit';
         }
         $view = View::make($vista, [
-                    'config' => $config,
-                    'registro' => $registro,
-                    'tieneHtml' => CrudGenerator::hasTipo($config, ['html','article']),
-                    'tieneDate' => CrudGenerator::hasTipo($config, ['date', 'datetime', 'time']),
-                    'tieneSlider' => CrudGenerator::hasTipo($config, 'slider'),
-                    'tieneSelect' => CrudGenerator::hasTipo($config, ['select', 'relationship', 'relationships']),
-                    'tieneSearch' => CrudGenerator::hasTipo($config, [ 'relationshipssel']),
-                    'tieneFile' => CrudGenerator::hasTipo($config, [ 'file', 'files']),
-                    'tieneJson' => CrudGenerator::hasTipo($config, [ 'json']),
-                    'js_section' => $js_section,
-                    'css_section' => $css_section,
-                    'modelo' => $modelo
+            'config' => $config,
+            'registro' => $registro,
+            'tieneHtml' => CrudGenerator::hasTipo($config, ['html', 'article']),
+            'tieneDate' => CrudGenerator::hasTipo($config, ['date', 'datetime', 'time']),
+            'tieneSlider' => CrudGenerator::hasTipo($config, 'slider'),
+            'tieneSelect' => CrudGenerator::hasTipo($config, ['select', 'relationship', 'relationships']),
+            'tieneSearch' => CrudGenerator::hasTipo($config, ['relationshipssel']),
+            'tieneFile' => CrudGenerator::hasTipo($config, ['file', 'files']),
+            'tieneJson' => CrudGenerator::hasTipo($config, ['json']),
+            'js_section' => $js_section,
+            'css_section' => $css_section,
+            'modelo' => $modelo
         ]);
         return $view->render();
     }
@@ -234,9 +239,10 @@ class CrudGenerator {
      * @param Model() $registros Optional Array of objects to show
      * @return HTML Table with the objects
      */
-    public static function lists($config, $modales = false, $simple = false, $registros = null) {
+    public static function lists($config, $modales = false, $simple = false, $registros = null)
+    {
         //$config = CrudGenerator::translateConfig($config);
-        if (!CrudGenerator::checkPermission($config)) {
+        if (!CrudGenerator::checkPermission($config, 0, 'index')) {
             return View::make('sirgrimorum::crudgen.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
         }
         $modeloM = $config['modelo'];
@@ -276,14 +282,13 @@ class CrudGenerator {
             ];
         }
         $view = View::make('sirgrimorum::crudgen.list', [
-                    'config' => $config,
-                    'registros' => $registros,
-                    'modales' => $modales,
-                    'js_section' => $js_section,
-                    'css_section' => $css_section,
-                    'modelo' => strtolower($modelo)
+            'config' => $config,
+            'registros' => $registros,
+            'modales' => $modales,
+            'js_section' => $js_section,
+            'css_section' => $css_section,
+            'modelo' => strtolower($modelo)
         ]);
         return $view->render();
     }
-
 }
