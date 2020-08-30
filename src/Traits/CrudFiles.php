@@ -241,6 +241,9 @@ trait CrudFiles
         $searchArr = ["{?php}", "{php?}", "[[", "]]", "[!!", "!!]", "{modelo}", "{Modelo}", "{model}", "{Model}", "*extends", "*section", "*stop", "*stack", "*push", "*if", "*else", "*foreach", "*end", "{ " . $modelo . " }"];
         $replaceArr = ["<?php", "?>", "{{", "}}", "{!!", "!!}", $modelo, $modeloM, $modelo, $modeloM, "@extends", "@section", "@stop", "@stack", "@push", "@if", "@else", "@foreach", "@end", "{" . $modelo . "}"];
         $contenido = view($view, ["config" => $config, "localized" => $localized, "modelo" => $modelo])->render();
+        if ($modelo == "user" && $view == "sirgrimorum::templates.policy"){
+            $contenido = str_replace(['$user, {Model} ${model}','${model}->getKey()'], ['$user, {Model} ${model}2','${model}2->getKey()'], $contenido);
+        }
         $contenido = str_replace($searchArr, $replaceArr, $contenido);
 
         if (substr($path, strlen($path) - 1) == "/" || substr($path, strlen($path) - 1) == "\\") {
@@ -426,7 +429,7 @@ trait CrudFiles
      * @param array $array Array to transform
      * @return string
      */
-    private static function arrayToFile($array)
+    public static function arrayToFile($array)
     {
         $strFile = "<?php" . chr(13) . chr(10) . chr(13) . chr(10) . "return [" . chr(13) . chr(10);
         $strValue = \Sirgrimorum\CrudGenerator\CrudGenerator::arrayToFileWrite($array, 0);
