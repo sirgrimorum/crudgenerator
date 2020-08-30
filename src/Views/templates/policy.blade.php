@@ -5,7 +5,9 @@ namespace App\Policies;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 use App\User;
+@if ($modelo != "user")
 use {{$config['modelo']}};
+@endif
 use Sirgrimorum\CrudGenerator\CrudGenerator;
 
 class {Model}Policy
@@ -22,38 +24,37 @@ class {Model}Policy
         //
     }
     
-    public function index(User $user){
-        //return ${model}->user_id == $user->id;
+    public function index(?User $user){
         $config = CrudGenerator::getConfig('{model}');
         return CrudGenerator::checkPermission($config);
     }
     
-    public function create(User $user){
+    public function create(?User $user){
         $config = CrudGenerator::getConfig('{model}');
         return CrudGenerator::checkPermission($config);
     }
     
-    public function store(User $user){
+    public function store(?User $user){
         $config = CrudGenerator::getConfig('{model}');
         return CrudGenerator::checkPermission($config);
     }
     
-    public function show(User $user, {Model} ${model}){
+    public function show(?User $user, {Model} ${model}){
         $config = CrudGenerator::getConfig('{model}');
         return CrudGenerator::checkPermission($config, ${model}->getKey());
     }
     
-    public function edit(User $user, {Model} ${model}){
+    public function edit(?User $user, {Model} ${model}){
         $config = CrudGenerator::getConfig('{model}');
         return CrudGenerator::checkPermission($config, ${model}->getKey());
     }
     
-    public function update(User $user, {Model} ${model}){
+    public function update(?User $user, {Model} ${model}){
         $config = CrudGenerator::getConfig('{model}');
         return CrudGenerator::checkPermission($config, ${model}->getKey());
     }
     
-    public function destroy(User $user, {Model} ${model}){
+    public function destroy(?User $user, {Model} ${model}){
         $config = CrudGenerator::getConfig('{model}');
         return CrudGenerator::checkPermission($config, ${model}->getKey());
     }

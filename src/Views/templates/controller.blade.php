@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests\{Model}Request;
 use App\User;
+@if ($modelo != "user")
 use {{$config['modelo']}};
+@endif
 use App\Repositories\{Model}Repository;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
 
