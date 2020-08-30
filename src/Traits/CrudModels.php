@@ -21,7 +21,11 @@ trait CrudModels
     public static function checkPermission(array $config, $registro = 0, $action = "")
     {
         if ($action == "") {
-            $action = substr(request()->route()->getName(), stripos(request()->route()->getName(), "::") + 2);
+            if (stripos(request()->route()->getName(), "::") !== false){
+                $action = substr(request()->route()->getName(), stripos(request()->route()->getName(), "::") + 2);
+            }else{
+                $action = substr(request()->route()->getName(), strripos(request()->route()->getName(), ".") + 1);
+            }
         }
         $resultado = true;
         $general = false;
