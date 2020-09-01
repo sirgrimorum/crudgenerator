@@ -456,18 +456,23 @@ if ($js_section != "") {
 if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.jquerytables_path"), ['http', '://'])) {
     //echo '<script src="' . config("sirgrimorum.crudgenerator.jquerytables_path") . '"></script>';
 } else {
-    echo '<script src="' . asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/datatables.min.js") . '"></script>';
+    //echo '<script src="' . asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/datatables.min.js") . '"></script>';
+    echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/datatables.min.js"),false);
 }
 if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
-    echo '<script src="' . config("sirgrimorum.crudgenerator.confirm_path") . '"></script>';
-    echo '<script src="' . asset("vendor/sirgrimorum/confirm/js/rails.js") . '"></script>';
+    //echo '<script src="' . config("sirgrimorum.crudgenerator.confirm_path") . '"></script>';
+    //echo '<script src="' . asset("vendor/sirgrimorum/confirm/js/rails.js") . '"></script>';
+    echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml( config("sirgrimorum.crudgenerator.confirm_path"),false);
+    echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(asset("vendor/sirgrimorum/confirm/js/rails.js") ,false);
 } else {
-    echo '<script src="' . asset(config("sirgrimorum.crudgenerator.confirm_path") . "/js/jquery-confirm.min.js") . '"></script>';
-    echo '<script src="' . asset(config("sirgrimorum.crudgenerator.confirm_path") . "/js/rails.js") . '"></script>';
+    //echo '<script src="' . asset(config("sirgrimorum.crudgenerator.confirm_path") . "/js/jquery-confirm.min.js") . '"></script>';
+    //echo '<script src="' . asset(config("sirgrimorum.crudgenerator.confirm_path") . "/js/rails.js") . '"></script>';
+    echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(asset(config("sirgrimorum.crudgenerator.confirm_path") . "/js/jquery-confirm.min.js"),false);
+    echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(asset(config("sirgrimorum.crudgenerator.confirm_path") . "/js/rails.js"),false);
 }
 ?>
-<script>
-    $(document).ready(function() {
+<script id="{{ $tablaid }}_datatables_block" type="text/html">
+    window.addEventListener('load', function() {
     @if ((old("_action")=="create" || old("_action")=="edit") && $siOld)
             $("#{{$modeloUCF}}_{{old('_action')}}_modal").modal("show");
     @endif
@@ -705,6 +710,7 @@ if (is_array($botones)) {
     //new $.fn.dataTable.FixedHeader(lista_{{ $tabla }});
     });
 </script>
+@loadScript('',true,"{$tablaid}_datatables_block")
 <?php
 if ($js_section != "") {
     ?>

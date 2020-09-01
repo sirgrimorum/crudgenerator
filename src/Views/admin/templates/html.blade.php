@@ -55,6 +55,8 @@
             @stack(config("sirgrimorum.crudgenerator.css_section"))
         @endif
         
+        <!-- ScriptsLoader -->
+        @addScriptsLoader()
         
     </head>
 

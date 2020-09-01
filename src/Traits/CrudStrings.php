@@ -1023,4 +1023,25 @@ trait CrudStrings
         $text = $text . "...";
         return $text;
     }
+
+    /**
+     * Add a script loader to a blade
+     * @param string $src The path to the script, leave empty to inline script
+     * @param bool $defer Optional if the script should be defered, default false
+     * @param string $inner Optional the innerHtml script, could be the id of a text/html script block or a large text
+     * @param bool $innerIsBlock Optional if the $inner parameter is an id of a block or not. Default false
+     * @return string The script call for the scriptLoader function
+     */
+    public static function addScriptLoaderHtml($src, $defer = false, $inner = "", $innerIsBlock=false){
+        $name = config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader");
+        $deferStr = ($defer)?"true":"false";
+        $html = "";
+        if ($inner!="" && !$innerIsBlock){
+            $id = \Illuminate\Support\Str::random(8) . "_typeahead_block";
+            $html = "<script id=\"$id\" type=\"text/html\">$inner</script>";
+            $inner = $id;
+        }
+        $html .= "<script>$name('$src',$deferStr,\"$inner\");</script>";
+        return $html;
+    }
 }

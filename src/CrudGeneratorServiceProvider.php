@@ -119,6 +119,73 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
             //echo $html;
             return $html;
         });
+        //Add the scriptsLoader funtion to load scripts only once
+        Blade::directive('addScriptsLoader', function () {
+            $name = config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader");
+            $html = "<script>".
+            "function $name(path, diferir, inner=''){".
+                "let scripts = Array .from(document.querySelectorAll('script')).map(scr => scr.src);".
+                "var callbackName = inner;".
+                "if (inner=='' && path != ''){".
+                    "callbackName = path.split('/').pop().split('#')[0].split('?')[0].replaceAll('.','_');".
+                "}".
+                "if (!scripts.includes(path) || path == ''){".
+                    "var tag = document.createElement('script');".
+                    "tag.type = 'text/javascript';".
+                    "if (callbackName!= ''){".
+                        "if(tag.readyState) {".
+                            "tag.onreadystatechange = function() {".
+                                "if ( tag.readyState === 'loaded' || tag.readyState === 'complete' ) {".
+                                    "tag.onreadystatechange = null;".
+                                    "if(callbackName in window){window[callbackName]();}".
+                                "}".
+                            "};".
+                        "}else{".
+                            "tag.onload = function() {".
+                                "if(callbackName in window){window[callbackName]();}".
+                            "};".
+                        "}".
+                    "}".
+                    "if (path != ''){".
+                        "tag.src = path;".
+                    "}".
+                    "if (diferir){".
+                        "var attd = document.createAttribute('defer');".
+                        "tag.setAttributeNode(attd);".
+                    "}".
+                    "if (inner != ''){".
+                        "var innerBlock = document.getElementById(inner);" .
+                        "if (typeof innerBlock !== 'undefined' && innerBlock !== null){" .
+                            "tag.innerHTML = innerBlock.innerHTML;".
+                        "}" .
+                    "}".
+                    "document.getElementsByTagName('body')[document.getElementsByTagName('body').length-1].appendChild(tag);".
+                "}else{".
+                    "if (callbackName!= ''){".
+                        "if(callbackName in window){window[callbackName]();}".
+                    "}".
+                "}".
+            "}".
+            "</script>";
+            return $html;
+        });
+        Blade::directive('loadScript', function ($expression) {
+            $auxExpression = explode(',', str_replace(['(', ')', ' ', '"', "'"], '', $expression));
+            if (count($auxExpression) > 2) {
+                $src = $auxExpression[0];
+                $defer = $auxExpression[1] == "true";
+                $inner = "<?php echo \"" .  $auxExpression[2] . "\"; ?>";
+            } elseif (count($auxExpression) > 1) {
+                $src = $auxExpression[0];
+                $defer = $auxExpression[1] == "true";
+                $inner = "";
+            } else {
+                $src = $auxExpression[0];
+                $defer = false;
+                $inner = "";
+            }
+            return CrudGenerator::addScriptLoaderHtml($src, $defer, $inner, true);
+        });
         /**
          * Console commands
          */
