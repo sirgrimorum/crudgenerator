@@ -87,7 +87,7 @@ if ($js_section != "") {
 }
 ?>
 <script>
-     document.addEventListener("DOMContentLoaded", function () {
+    window.addEventListener('load', function() {
         $('#{{ $tabla . "_" . $extraId }}').datetimepicker({
             locale: '{{ App::getLocale() }}',
             format: '{{$format}}',

@@ -5,8 +5,8 @@ if ($js_section != "") {
     <?php
 }
 ?>
-<script>
-     document.addEventListener("DOMContentLoaded", function () {
+<script id="{{ $tabla . '_' . $columna }}_typeahead_block" type="text/html">
+    function jquery_typeahead_min_js(){
     
     $.typeahead({
         input: '#{{ $tabla . '_' . $columna }}_search',
@@ -129,6 +129,9 @@ if ($js_section != "") {
         },
         debug: true
     });
+    }
+    window.addEventListener('load', function() {
+        jquery_typeahead_min_js();
     });
     
     function quitarPivote(idSelected,nameSelected){
@@ -153,6 +156,7 @@ if ($js_section != "") {
             });
     }
 </script>
+@loadScript('',true,"{$tabla}_{$columna}_typeahead_block")
 <?php
 if ($js_section != "") {
     ?>

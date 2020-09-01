@@ -74,7 +74,7 @@ if ($js_section != "") {
 }
 ?>
 <script>
-     document.addEventListener("DOMContentLoaded", function () {
+     window.addEventListener('load', function() {
         $('#{{ $tabla . "_" . $extraId }}').select2({
             minimumResultsForSearch: 8,
             width: '100%',

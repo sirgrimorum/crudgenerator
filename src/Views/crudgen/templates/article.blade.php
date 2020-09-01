@@ -106,13 +106,19 @@ if ($js_section != "") {
     <?php
 }
 ?>
-<script>
-     document.addEventListener("DOMContentLoaded", function () {
-    @foreach(config("sirgrimorum.crudgenerator.list_locales") as $localeCode)
-            CKEDITOR.replace('{{ $tabla . "_" . $extraId . "_" . $localeCode }}');
-    @endforeach
+<script id="{{ $tabla . "_" . $extraId }}_ckeditor_block" type="text/html">
+    window.addEventListener('load', function() {
+        @foreach(config("sirgrimorum.crudgenerator.list_locales") as $localeCode)
+        CKEDITOR.replace('{{ $tabla . "_" . $extraId . "_" . $localeCode }}');
+        @endforeach
     });
+    function ckeditor_js() {
+        @foreach(config("sirgrimorum.crudgenerator.list_locales") as $localeCode)
+        CKEDITOR.replace('{{ $tabla . "_" . $extraId . "_" . $localeCode }}');
+        @endforeach
+    }
 </script>
+@loadScript('',true,"{$tabla}_{$extraId}_ckeditor_block")
 <?php
 if ($js_section != "") {
     ?>

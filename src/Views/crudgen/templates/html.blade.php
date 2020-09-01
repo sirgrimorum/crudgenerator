@@ -58,11 +58,16 @@ if ($js_section != "") {
     <?php
 }
 ?>
-<script>
-     document.addEventListener("DOMContentLoaded", function () {
+<script id="{{ $tabla . "_" . $extraId }}_ckeditor_block" type="text/html">
+    window.addEventListener('load', function() {
         CKEDITOR.replace('{{ $tabla . "_" . $extraId }}');
     });
+    function ckeditor_js() {
+        CKEDITOR.replace('{{ $tabla . "_" . $extraId }}');
+    }
+
 </script>
+@loadScript('',true,"{$tabla}_{$extraId}_ckeditor_block")
 <?php
 if ($js_section != "") {
     ?>
