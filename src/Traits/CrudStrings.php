@@ -267,7 +267,7 @@ trait CrudStrings
                 config("sirgrimorum.crudgenerator.route_prefix", '__route__') => 'route',
                 config("sirgrimorum.crudgenerator.url_prefix", '__url__') => 'url',
                 config("sirgrimorum.crudgenerator.trans_prefix", '__trans__') => '__',
-                config("sirgrimorum.crudgenerator.transarticle_prefix", '__transarticle__') => 'transarticle',
+                config("sirgrimorum.crudgenerator.transarticle_prefix", '__transarticle__') => 'trans_article',
             ];
         }
         return $prefixes;

@@ -79,7 +79,7 @@ return [
         '__route__' => 'route',
         '__url__' => 'url',
         '__trans__' => '__',
-        '__transarticle__' => 'transarticle',
+        '__transarticle__' => 'trans_article',
         '__getLocale__' => 'Illuminate\Support\Facades\App::getLocale',
         '__function__' => function ($string) {
             return $string;
