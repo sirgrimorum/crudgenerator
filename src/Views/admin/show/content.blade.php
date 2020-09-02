@@ -1,4 +1,4 @@
-@extends("sirgrimorum::admin/templates/html")
+@extends("sirgrimorum::admin/templates/html", ["modeloActual"=>$modelo])
 <?php
 if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.plural")) {
     $plurales = trans("crudgenerator::" . strtolower($modelo) . ".labels.plural");
