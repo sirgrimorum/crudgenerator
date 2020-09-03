@@ -60,16 +60,20 @@
             order: 0;
             // background-color: #f5f2f9;
             border-bottom: 1px solid rgba(0, 0, 0, .1);
+        }
 
-            @media (min-width: 768px) {
-                    position: sticky;
-                    top: 4rem;
-                    z-index: 1000;
-                    height: subtract(100vh, 4rem);
+        @media (min-width: 768px) {
+            .bd-sidebar {
+                position: sticky;
+                top: 4rem;
+                z-index: 1000;
+                height: subtract(100vh, 4rem);
                 border-right: 1px solid rgba(0,0,0,.1);
             }
+        }
 
-            @media (min-width: 1200px) {
+        @media (min-width: 1200px) {
+            .bd-sidebar {
                 flex: 0 1 320px;
             }
         }
@@ -79,14 +83,15 @@
             padding-bottom: 1rem;
             margin-right: -15px;
             margin-left: -15px;
+        }
 
-            @media (min-width: 768px) {
+        @media (min-width: 768px) {
+            .bd-links {
                     max-height: subtract(100vh, 9rem);
                     overflow-y: auto;
                     display: block !important;
             }
         }
-
         .bd-search {
             position: relative; // To contain the Algolia search
             padding: 1rem 15px;
@@ -151,6 +156,8 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     {!! JSLocalization::put(Auth::user(),"currentUser") !!}
     {!! JSLocalization::put(config("sirgrimorum.crudgenerator"),"crudgenConfig") !!}
+    <!-- LinksTagLoader -->
+    @addLinkTagsLoader()
     @if (config("sirgrimorum.crudgenerator.css_section") != "")
     @stack(config("sirgrimorum.crudgenerator.css_section"))
     @endif
@@ -253,8 +260,8 @@
                                     $plurales = ucfirst($modelo) . 's';
                                 }
                                 ?>
-                            <li class="nav-item bd-toc-item {{ ($modeloActual == $modelo)?"active" : "" }}">
-                                <a class="bd-toc-link nav-link {{ ($modeloActual == $modelo)?"active" : "" }} text-truncate"
+                            <li class="nav-item bd-toc-item {{ (isset($modeloActual) && $modeloActual == $modelo)?"active" : "" }}">
+                                <a class="bd-toc-link nav-link {{ (isset($modeloActual) && $modeloActual == $modelo)?"active" : "" }} text-truncate"
                                     href="{{ route('sirgrimorum_modelos::index',['modelo'=>strtolower($modelo)]) }}">
                                     <span>{{ $plurales }}</span>
                                 </a>

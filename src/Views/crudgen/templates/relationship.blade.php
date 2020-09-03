@@ -72,15 +72,24 @@ if ($js_section != "") {
     @push($js_section)
     <?php
 }
+$nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader") . "Creator";
 ?>
 <script>
-     window.addEventListener('load', function() {
-        $('#{{ $tabla . "_" . $extraId }}').select2({
-            minimumResultsForSearch: 8,
-            width: '100%',
-            language: "{{ App::getLocale()}}"
-        });
+    var {{ $tabla . "_" . $extraId }}Ejecutado = false;
+    function {{ $tabla . "_" . $extraId }}Loader(){
+        if (!{{ $tabla . "_" . $extraId }}Ejecutado){
+            $('#{{ $tabla . "_" . $extraId }}').select2({
+                minimumResultsForSearch: 8,
+                width: '100%',
+                language: "{{ App::getLocale()}}"
+            });
+        }
+        {{ $tabla . "_" . $extraId }}Ejecutado = true;
+    }
+    window.addEventListener('load', function() {
+        {{ $tabla . "_" . $extraId }}Loader();
     });
+    {{ $nameScriptLoader }}('select2_min_js',"{{ $tabla . "_" . $extraId }}Loader();");
 </script>
 <?php
 if ($js_section != "") {

@@ -105,20 +105,23 @@ if ($js_section != "") {
     @push($js_section)
     <?php
 }
+$nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader") . "Creator";
 ?>
-<script id="{{ $tabla . "_" . $extraId }}_ckeditor_block" type="text/html">
-    window.addEventListener('load', function() {
-        @foreach(config("sirgrimorum.crudgenerator.list_locales") as $localeCode)
-        CKEDITOR.replace('{{ $tabla . "_" . $extraId . "_" . $localeCode }}');
-        @endforeach
-    });
-    function ckeditor_js() {
-        @foreach(config("sirgrimorum.crudgenerator.list_locales") as $localeCode)
-        CKEDITOR.replace('{{ $tabla . "_" . $extraId . "_" . $localeCode }}');
-        @endforeach
+<script>
+    var {{ $tabla . "_" . $extraId }}Ejecutado = false;
+    function {{ $tabla . "_" . $extraId }}Loader(){
+        if (!{{ $tabla . "_" . $extraId }}Ejecutado){
+            @foreach(config("sirgrimorum.crudgenerator.list_locales") as $localeCode)
+            CKEDITOR.replace('{{ $tabla . "_" . $extraId . "_" . $localeCode }}');
+            @endforeach
+        }
+        {{ $tabla . "_" . $extraId }}Ejecutado = true;
     }
+    window.addEventListener('load', function() {
+        {{ $tabla . "_" . $extraId }}Loader();
+    });
+    {{ $nameScriptLoader }}('ckeditor_js',"{{ $tabla . "_" . $extraId }}Loader();");
 </script>
-@loadScript('',true,"{$tabla}_{$extraId}_ckeditor_block")
 <?php
 if ($js_section != "") {
     ?>

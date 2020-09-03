@@ -84,22 +84,31 @@ if ($js_section != "") {
     @push($js_section)
     <?php
 }
+$nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader") . "Creator";
 ?>
 <script>
+    var {{ $tabla . "_" . $extraId }}Ejecutado = false;
+    function {{ $tabla . "_" . $extraId }}Loader(){
+        if (!{{ $tabla . "_" . $extraId }}Ejecutado){
+            $('#{{ $tabla . "_" . $extraId }}').datetimepicker({
+                locale: '{{ App::getLocale() }}',
+                inline: true,
+                ignoreReadonly: false,
+                format: '{{$format}}',
+                sideBySide: true,
+                extraFormats: ["YYYY-MM-DD HH:mm:ss"],
+            });
+            $('#{{ $tabla . "_" . $extraId }}').closest("form").on('submit',function(e){
+                var momento = $('#{{ $tabla . "_" . $extraId }}').data("DateTimePicker").date();
+                $('#{{ $tabla . "_" . $extraId }}').val(momento.format("YYYY-MM-DD HH:mm:ss"));
+            });
+        }
+        {{ $tabla . "_" . $extraId }}Ejecutado = true;
+    }
     window.addEventListener('load', function() {
-        $('#{{ $tabla . "_" . $extraId }}').datetimepicker({
-            locale: '{{ App::getLocale() }}',
-            inline: true,
-            ignoreReadonly: false,
-            format: '{{$format}}',
-            sideBySide: true,
-            extraFormats: ["YYYY-MM-DD HH:mm:ss"],
-        });
-        $('#{{ $tabla . "_" . $extraId }}').closest("form").on('submit',function(e){
-            var momento = $('#{{ $tabla . "_" . $extraId }}').data("DateTimePicker").date();
-            $('#{{ $tabla . "_" . $extraId }}').val(momento.format("YYYY-MM-DD HH:mm:ss"));
-        });
+        {{ $tabla . "_" . $extraId }}Loader();
     });
+    {{ $nameScriptLoader }}('ckeditor_js',"{{ $tabla . "_" . $extraId }}Loader();");
 </script>
 <?php
 if ($js_section != "") {

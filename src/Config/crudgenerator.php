@@ -146,6 +146,14 @@ return [
      */
     'error_icon' => 'fa fa-exclamation-triangle fa-lg',
     /**
+     * Name for the scriptLoader function
+     */
+    'scriptLoader_name' => 'scriptLoader',
+    /**
+     * Name for the linkTagLoader function
+     */
+    'linkTagLoader_name' => 'linkTagLoader',
+    /**
      * Path to the bootstrap slider folder, if is in asset, just include the string for the asset
      * use 'vendor/sirgrimorum/slider' publishing with tag=slider
      * needs bootstrap 3.*

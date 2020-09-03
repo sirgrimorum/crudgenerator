@@ -82,15 +82,24 @@ if ($js_section != "") {
     @push($js_section)
     <?php
 }
+$nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader") . "Creator";
 ?>
 <script>
-     window.addEventListener('load', function() {
-        $('#{{ $tabla . "_" . $extraId }}').sliderb({
-            formatter: function (value) {
-                return "{{ $pre }}" + value + "{{ $post }}";
-            }
-        });
+    var {{ $tabla . "_" . $extraId }}Ejecutado = false;
+    function {{ $tabla . "_" . $extraId }}Loader(){
+        if (!{{ $tabla . "_" . $extraId }}Ejecutado){
+            $('#{{ $tabla . "_" . $extraId }}').sliderb({
+                formatter: function (value) {
+                    return "{{ $pre }}" + value + "{{ $post }}";
+                }
+            });
+        }
+        {{ $tabla . "_" . $extraId }}Ejecutado = true;
+    }
+    window.addEventListener('load', function() {
+        {{ $tabla . "_" . $extraId }}Loader();
     });
+    {{ $nameScriptLoader }}('bootstrap-slider_js',"{{ $tabla . "_" . $extraId }}Loader();");
 </script>
 <?php
 if ($js_section != "") {

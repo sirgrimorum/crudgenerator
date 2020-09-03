@@ -1044,4 +1044,18 @@ trait CrudStrings
         $html .= "<script>$name('$src',$deferStr,\"$inner\");</script>";
         return $html;
     }
+
+    /**
+     * Add a link tag loader to a blade
+     * @param string $href The path to the file
+     * @param string $tyrelpe Optional the rel attribute of the link tag, default is "stylesheet"
+     * @param string $type Optional the type attribute of the link tag, default is "text/css"
+     * @return string The script call for the scriptLoader function
+     */
+    public static function addLinkTagLoaderHtml($href, $rel = "stylesheet", $type = "text/css"){
+        $name = config("sirgrimorum.crudgenerator.linkTagLoader_name","linkTagLoader");
+        $html = "";
+        $html .= "<script>$name('$href','$rel','$type');</script>";
+        return $html;
+    }
 }

@@ -57,17 +57,22 @@ if ($js_section != "") {
     @push($js_section)
     <?php
 }
+$nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader") . "Creator";
 ?>
-<script id="{{ $tabla . "_" . $extraId }}_ckeditor_block" type="text/html">
-    window.addEventListener('load', function() {
-        CKEDITOR.replace('{{ $tabla . "_" . $extraId }}');
-    });
-    function ckeditor_js() {
-        CKEDITOR.replace('{{ $tabla . "_" . $extraId }}');
+<script>
+    var {{ $tabla . "_" . $extraId }}Ejecutado = false;
+    function {{ $tabla . "_" . $extraId }}Loader(){
+        if (!{{ $tabla . "_" . $extraId }}Ejecutado){
+            CKEDITOR.replace('{{ $tabla . "_" . $extraId }}');
+        }
+        {{ $tabla . "_" . $extraId }}Ejecutado = true;
     }
+    window.addEventListener('load', function() {
+        {{ $tabla . "_" . $extraId }}Loader();
+    });
+    {{ $nameScriptLoader }}('ckeditor_js',"{{ $tabla . "_" . $extraId }}Loader();");
 
 </script>
-@loadScript('',true,"{$tabla}_{$extraId}_ckeditor_block")
 <?php
 if ($js_section != "") {
     ?>

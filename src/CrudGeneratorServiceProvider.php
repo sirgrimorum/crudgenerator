@@ -87,7 +87,7 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
             return new ExtendedValidator($translator, $data, $rules, $messages, $customAttributes);
         }
         );
-        
+
         /**
          * Blade directives
          */
@@ -123,6 +123,20 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
         Blade::directive('addScriptsLoader', function () {
             $name = config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader");
             $html = "<script>".
+            "var callbacksFunctions = [];".
+            "function {$name}Creator(callbackName, functionBody){".
+                "if(!(callbackName in callbacksFunctions)){".
+                    "callbacksFunctions[callbackName] = [];".
+                "}".
+                "callbacksFunctions[callbackName].push(new Function(functionBody));".
+            "}".
+            "function {$name}Runner(callbackName){".
+                "if(callbackName in callbacksFunctions){".
+                    "for (var i = 0; i < callbacksFunctions[callbackName].length; i++){".
+                        "callbacksFunctions[callbackName][i]();".
+                    "}".
+                "}".
+            "}".
             "function $name(path, diferir, inner=''){".
                 "let scripts = Array .from(document.querySelectorAll('script')).map(scr => scr.src);".
                 "var callbackName = inner;".
@@ -137,12 +151,12 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
                             "tag.onreadystatechange = function() {".
                                 "if ( tag.readyState === 'loaded' || tag.readyState === 'complete' ) {".
                                     "tag.onreadystatechange = null;".
-                                    "if(callbackName in window){window[callbackName]();}".
+                                    "{$name}Runner(callbackName);".
                                 "}".
                             "};".
                         "}else{".
                             "tag.onload = function() {".
-                                "if(callbackName in window){window[callbackName]();}".
+                                "{$name}Runner(callbackName);".
                             "};".
                         "}".
                     "}".
@@ -185,6 +199,42 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
                 $inner = "";
             }
             return CrudGenerator::addScriptLoaderHtml($src, $defer, $inner, true);
+        });
+        //Add the linkTagssLoader funtion to load scripts only once
+        Blade::directive('addLinkTagsLoader', function () {
+            $name = config("sirgrimorum.crudgenerator.linkTagLoader_name","linkTagLoader");
+            $html = "<script>".
+            "function $name(path, rel = 'stylesheet', type = 'text/css'){".
+                "let links = Array .from(document.querySelectorAll('link')).map(href => href.href);".
+                "if (!links.includes(path) || path == ''){".
+                    "var tag = document.createElement('link');".
+                    "tag.type = type;".
+                    "tag.rel = rel;".
+                    "if (path != ''){".
+                        "tag.href = path;".
+                    "}".
+                    "document.getElementsByTagName('head')[document.getElementsByTagName('head').length-1].appendChild(tag);".
+                "}".
+            "}".
+            "</script>";
+            return $html;
+        });
+        Blade::directive('loadLinkTag', function ($expression) {
+            $auxExpression = explode(',', str_replace(['(', ')', ' ', '"', "'"], '', $expression));
+            if (count($auxExpression) > 2) {
+                $href = $auxExpression[0];
+                $rel = $auxExpression[1];
+                $type = $auxExpression[2];
+            } elseif (count($auxExpression) > 1) {
+                $href = $auxExpression[0];
+                $rel = $auxExpression[1];
+                $type = "text/css";
+            } else {
+                $href = $auxExpression[0];
+                $rel = "stylesheet";
+                $type = "text/css";
+            }
+            return CrudGenerator::addLinkTagLoaderHtml($href, $rel, $type);
         });
         /**
          * Console commands
