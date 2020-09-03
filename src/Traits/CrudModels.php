@@ -181,8 +181,8 @@ trait CrudModels
     public static function field_array($value, $columna, $datos = "")
     {
         $config = [];
+        $modelo = strtolower(class_basename(get_class($value)));
         if ($datos == "") {
-            $modelo = strtolower(class_basename(get_class($value)));
             $config = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfigWithParametros($modelo);
             if (isset($config['campos'][$columna])) {
                 if (is_array($config['campos'][$columna])) {
