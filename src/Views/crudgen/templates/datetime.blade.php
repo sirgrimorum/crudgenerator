@@ -108,7 +108,7 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
     window.addEventListener('load', function() {
         {{ $tabla . "_" . $extraId }}Loader();
     });
-    {{ $nameScriptLoader }}('ckeditor_js',"{{ $tabla . "_" . $extraId }}Loader();");
+    {{ $nameScriptLoader }}('bootstrap-datetimepicker_min_js',"{{ $tabla . "_" . $extraId }}Loader();");
 </script>
 <?php
 if ($js_section != "") {
