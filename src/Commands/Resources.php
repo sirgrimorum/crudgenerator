@@ -141,5 +141,6 @@ class Resources extends Command
             }
         }
         $bar->finish();
+        return 0;
     }
 }

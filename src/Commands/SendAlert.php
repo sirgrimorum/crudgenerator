@@ -89,5 +89,6 @@ class SendAlert extends Command
         } else {
             $this->error("Class not found");
         }
+        return 0;
     }
 }

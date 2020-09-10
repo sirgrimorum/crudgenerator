@@ -202,5 +202,6 @@ class SyncLocalSsh extends Command
         } else {
             $bar->finish();
         }
+        return 0;
     }
 }

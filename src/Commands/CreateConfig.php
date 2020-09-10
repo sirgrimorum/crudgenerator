@@ -88,5 +88,6 @@ class CreateConfig extends Command
         } else {
             $bar->finish();
         }
+        return 0;
     }
 }

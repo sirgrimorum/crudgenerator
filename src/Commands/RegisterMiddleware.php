@@ -43,5 +43,6 @@ class RegisterMiddleware extends Command
         } else {
             $this->error("Something went wrong registering CrudGenerator middleware, please register ir in app/Http/Kernel.php");
         }
+        return 0;
     }
 }

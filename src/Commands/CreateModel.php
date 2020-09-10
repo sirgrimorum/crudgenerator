@@ -94,5 +94,6 @@ class CreateModel extends Command
         } else {
             $bar->finish();
         }
+        return 0;
     }
 }

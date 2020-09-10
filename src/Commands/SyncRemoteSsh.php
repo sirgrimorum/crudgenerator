@@ -194,5 +194,6 @@ class SyncRemoteSsh extends Command
         } else {
             $bar->finish();
         }
+        return 0;
     }
 }

@@ -167,5 +167,6 @@ class SyncLocal extends Command
         } else {
             $bar->finish();
         }
+        return 0;
     }
 }
