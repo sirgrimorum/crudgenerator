@@ -91,7 +91,7 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
                                     }else{
                                         $.alert({
                                             theme: '{!!config("sirgrimorum.crudgenerator.error_theme")!!}',
-                                            icon: '{!!config("sirgrimorum.crudgenerator.error_icon")!!}',
+                                            icon: '{!!config("sirgrimorum.crudgenerator.icons.error")!!}',
                                             title: '{!!trans('crudgenerator::admin.messages.pivot_exists_title')!!}',
                                             content: '{!!trans('crudgenerator::admin.messages.pivot_exists_message')!!}',
                                         });
@@ -99,7 +99,7 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
                                 } else{
                                     $.alert({
                                         theme: '{!!config("sirgrimorum.crudgenerator.error_theme")!!}',
-                                        icon: '{!!config("sirgrimorum.crudgenerator.error_icon")!!}',
+                                        icon: '{!!config("sirgrimorum.crudgenerator.icons.error")!!}',
                                         title: data.title,
                                         content: data.statusText,
                                     });
@@ -119,7 +119,7 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
                                 }
                                 $.alert({
                                     theme: '{!!config("sirgrimorum.crudgenerator.error_theme")!!}',
-                                    icon: '{!!config("sirgrimorum.crudgenerator.error_icon")!!}',
+                                    icon: '{!!config("sirgrimorum.crudgenerator.icons.error")!!}',
                                     title: title,
                                     content: content,
                                 });

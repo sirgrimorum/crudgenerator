@@ -3,7 +3,9 @@
 namespace Sirgrimorum\CrudGenerator\Traits;
 
 use Closure;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Lang;
+use Sirgrimorum\CrudGenerator\CrudGenerator;
 
 trait CrudStrings
 {
@@ -987,22 +989,96 @@ trait CrudStrings
             default:
                 switch ($tipoFile) {
                     case 'text':
-                        $faTipo = "fa-file-text-o";
-                        break;
                     case 'office':
-                        $faTipo = "fa-file-word-o";
-                        break;
                     case 'compressed':
-                        $faTipo = "fa-file-archive-o";
+                        $faTipo = CrudGenerator::getIcon("{$tipoFile}_file");
                         break;
                     default:
-                        $faTipo = "fa-file-o";
+                        $faTipo = CrudGenerator::getIcon("file");
                         break;
                 }
-                $fileHtml = "<a class='text-secondary' href='{$urlFile}' target='_blank'><i class='fa $faTipo fa-lg' aria-hidden='true'></i></a>";
+                $fileHtml = "<a class='text-secondary' href='{$urlFile}' target='_blank'><i class='$faTipo' aria-hidden='true'></i></a>";
                 break;
         }
         return $fileHtml;
+    }
+
+    /**
+     * Get the class for an icon i tag of a given type
+     * Icons are defined in crudgenerators config file under icons
+     * Defaults uses font-awesome 4.7
+     * 
+     * @param string $tipo The type of the icon
+     * @param bool Optional $conTag If should return the i tag or only the icon class, default false
+     * @param string Optional $classAdicional the aditional classes to includ in the i tag
+     * @return string The class for that type
+     */
+    public static function getIcon($tipo, $conTag = false, $classAdicional = "")
+    {
+        $tipoConfig = $tipo;
+        switch ($tipo) {
+            case 'empty':
+                $default = 'fa fa-lg';
+                break;
+            case 'minus':
+                $default = 'fa fa-minus';
+                break;
+            case 'plus':
+                $default = 'fa fa-plus';
+                break;
+            case 'info':
+                $default = 'fa fa-info-circle fa-lg';
+                break;
+            case 'confirm':
+                $default = 'fa fa-question-circle fa-lg';
+                break;
+            case 'success':
+                $default = 'fa fa-check fa-lg';
+                break;
+            case 'error':
+                $default = 'fa fa-exclamation-triangle fa-lg';
+                break;
+            case 'text':
+            case 'text_file':
+                $tipoConfig = 'text_file';
+                $default = 'fa fa-file-text-o fa-lg';
+                break;
+            case 'office':
+            case 'office_file':
+                $tipoConfig = 'office_file';
+                $default = 'fa fa-file-word-o fa-lg';
+                break;
+            case 'compressed':
+            case 'compressed_file':
+                $tipoConfig = 'compressed_file';
+                $default = 'fa fa-file-archive-o fa-lg';
+                break;
+            case 'other':
+            case 'file':
+                $tipoConfig = 'file';
+                $default = 'fa fa-file-o fa-lg';
+                break;
+            case 'url':
+                $default = 'fa fa-link fa-lg';
+                break;
+            case 'video':
+                $default = 'fa fa-film fa-lg';
+                break;
+            case 'audio':
+                $default = 'fa fa-file-audio-o fa-lg';
+                break;
+            case 'pdf':
+                $default = 'fa fa-file-pdf-o fa-lg';
+                break;
+            default:
+                $default = "fa fa-$tipo fa-lg";
+                break;
+        }
+        $icono =  Arr::get(config('sirgrimorum.crudgenerator.icons'), $tipoConfig, $default);
+        if ($conTag){
+            return "<i class='$icono $classAdicional' aria-hidden='true'></i>";
+        }
+        return $icono;
     }
 
     /**
@@ -1032,11 +1108,12 @@ trait CrudStrings
      * @param bool $innerIsBlock Optional if the $inner parameter is an id of a block or not. Default false
      * @return string The script call for the scriptLoader function
      */
-    public static function addScriptLoaderHtml($src, $defer = false, $inner = "", $innerIsBlock=false){
-        $name = config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader");
-        $deferStr = ($defer)?"true":"false";
+    public static function addScriptLoaderHtml($src, $defer = false, $inner = "", $innerIsBlock = false)
+    {
+        $name = config("sirgrimorum.crudgenerator.scriptLoader_name", "scriptLoader");
+        $deferStr = ($defer) ? "true" : "false";
         $html = "";
-        if ($inner!="" && !$innerIsBlock){
+        if ($inner != "" && !$innerIsBlock) {
             $id = \Illuminate\Support\Str::random(8) . "_typeahead_block";
             $html = "<script id=\"$id\" type=\"text/html\">$inner</script>";
             $inner = $id;
@@ -1052,8 +1129,9 @@ trait CrudStrings
      * @param string $type Optional the type attribute of the link tag, default is "text/css"
      * @return string The script call for the scriptLoader function
      */
-    public static function addLinkTagLoaderHtml($href, $rel = "stylesheet", $type = "text/css"){
-        $name = config("sirgrimorum.crudgenerator.linkTagLoader_name","linkTagLoader");
+    public static function addLinkTagLoaderHtml($href, $rel = "stylesheet", $type = "text/css")
+    {
+        $name = config("sirgrimorum.crudgenerator.linkTagLoader_name", "linkTagLoader");
         $html = "";
         $html .= "<script>$name('$href','$rel','$type');</script>";
         return $html;

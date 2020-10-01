@@ -62,35 +62,16 @@ if (isset($datos["placeholder"])) {
                     @if ($tipoFile=='image')
                     <img class="rounded-left " style="cursor: pointer;" src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" onclick="toogleImagen(this);">
                     @elseif($tipoFile=='video')
-                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="toogleVideo(this);"><i class="mt-2 fa fa-film fa-lg" aria-hidden="true"></i></div>
+                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="toogleVideo(this);">{{ CrudGenerator::getIcon($tipoFile,true,'mt-2') }}</div>
                     @elseif($tipoFile=='audio')
-                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="toogleAudio(this);"><i class="mt-2 fa fa-file-audio-o fa-lg" aria-hidden="true"></i></div>
+                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="toogleAudio(this);">{{ CrudGenerator::getIcon($tipoFile,true,'mt-2') }}</div>
                     @elseif($tipoFile=='pdf')
-                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="tooglePdf(this);"><i class="mt-2 fa fa-file-pdf-o fa-lg" aria-hidden="true"></i></div>
+                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="tooglePdf(this);">{{ CrudGenerator::getIcon($tipoFile,true,'mt-2') }}</div>
                     @elseif($tipoFile=='other')
-                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: default;"><i class="mt-2 fa fa-file-o fa-lg" aria-hidden="true"></i></div>
+                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: default;">{{ CrudGenerator::getIcon($tipoFile,true,'mt-2') }}</div>
                     @else
                     <a class="d-block pl-3 pr-3 h-100 pt-1 text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
-                        @switch($tipoFile)
-                        @case('video')
-                        <i class="mt-2 fa fa-film fa-lg" aria-hidden="true"></i>
-                        @break
-                        @case('audio')
-                        <i class="mt-2 fa fa-file-audio-o fa-lg" aria-hidden="true"></i>
-                        @break
-                        @case('pdf')
-                        <i class="mt-2 fa fa-file-pdf-o fa-lg" aria-hidden="true"></i>
-                        @break
-                        @case('text')
-                        <i class="mt-2 fa fa-file-text-o fa-lg" aria-hidden="true"></i>
-                        @break
-                        @case('office')
-                        <i class="mt-2 fa fa-file-word-o fa-lg" aria-hidden="true"></i>
-                        @break
-                        @case('compressed')
-                        <i class="mt-2 fa fa-file-archive-o fa-lg" aria-hidden="true"></i>
-                        @break
-                        @endswitch
+                        {{ CrudGenerator::getIcon($tipoFile,true,'mt-2') }}
                     </a>
                     @endif
                 </div>
@@ -99,7 +80,7 @@ if (isset($datos["placeholder"])) {
             {{ Form::text($extraId . "_namereg", $auxprevioName, ['class' => 'form-control nombre_file ',  'placeholder'=>trans("crudgenerator::admin.layout.labels.name"), "readonly"=>"readonly"]) }}
             {{ Form::hidden($extraId . "_filereg", $auxprevio, ['class' => 'form-control ',]) }}
             <div class="input-group-append">
-                <button type="button" class="btn btn-outline-danger" onclick="removeFile(this,'{{$tabla . "_" . $extraId}}')"  title="{{trans("crudgenerator::admin.layout.labels.remove")}}"><i class="fa fa-minus" aria-hidden="true"></i></button>
+                <button type="button" class="btn btn-outline-danger" onclick="removeFile(this,'{{$tabla . "_" . $extraId}}')"  title="{{trans("crudgenerator::admin.layout.labels.remove")}}">{{ CrudGenerator::getIcon('minus',true) }}</button>
             </div>
         </div>
         @if($tipoFile =='image')
@@ -135,7 +116,7 @@ if (isset($datos["placeholder"])) {
         <div class="input-group mt-2 mb-0">
             <div class="input-group-prepend">
                 <div class="rounded-left border border-secondary d-none">
-                    <div class="d-none pl-3 pr-3 h-100 pt-1" style="cursor: default;"><i class="mt-2 fa fa-file-text-o fa-lg" aria-hidden="true"></i></div>
+                    <div class="d-none pl-3 pr-3 h-100 pt-1" style="cursor: default;">{{ CrudGenerator::getIcon('file',true,'mt-2') }}</div>
                     <img class="rounded-left d-none" style="cursor: pointer;" src="" onclick="toogleImagen(this);">
                 </div>
                 <div class="input-group-text rounded-left">{{trans("crudgenerator::admin.layout.labels.new_file")}}</div>

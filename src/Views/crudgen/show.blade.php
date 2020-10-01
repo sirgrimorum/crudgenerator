@@ -145,22 +145,7 @@ $identificador = $config['id'];
                                                         ?>
                                                         <div class="card text-center" >
                                                             <div class="card-header">
-                                                                <?php
-                                                                switch ($tipoFile) {
-                                                                    case('text'):
-                                                                        echo '<i class="fa fa-file-text-o fa-3x" aria-hidden="true"></i>';
-                                                                        break;
-                                                                    case('office'):
-                                                                        echo '<i class="fa fa-file-word-o fa-3x" aria-hidden="true"></i>';
-                                                                        break;
-                                                                    case('compressed'):
-                                                                        echo '<i class="fa fa-file-archive-o fa-3x" aria-hidden="true"></i>';
-                                                                        break;
-                                                                    case('other'):
-                                                                        echo '<i class="fa fa-file-o fa-3x" aria-hidden="true"></i>';
-                                                                        break;
-                                                                }
-                                                                ?>
+                                                                {{ CrudGenerator::getIcon($tipoFile,true,'fa-3x') }}
                                                             </div>
                                                             <div clas="card-body" >
                                                                 <h5 class="card-title">
@@ -364,7 +349,7 @@ $identificador = $config['id'];
                                     <?php
                                 } else {
                                     ?>
-                                    <a class='btn' href='{{ $registro->{$columna} }}' target='_blank'><i class="mt-2 fa fa-link fa-lg" aria-hidden="true"></i></a> {{ $registro->{$columna} }}
+                                    <a class='btn' href='{{ $registro->{$columna} }}' target='_blank'><i class="mt-2 {{ CrudGenerator::getIcon('url') }}" aria-hidden="true"></i></a> {{ $registro->{$columna} }}
                                     <?php
                                 }
                             } elseif ($datos['tipo'] == "file") {
@@ -411,22 +396,7 @@ $identificador = $config['id'];
                                     <?php } else { ?>
                                         <ul class="fa-ul">
                                             <li class="pl-2">
-                                                <?php
-                                                switch ($tipoFile) {
-                                                    case('text'):
-                                                        echo '<i class="fa fa-file-text-o fa-lg fa-li" aria-hidden="true"></i>';
-                                                        break;
-                                                    case('office'):
-                                                        echo '<i class="fa fa-file-word-o fa-lg fa-li" aria-hidden="true"></i>';
-                                                        break;
-                                                    case('compressed'):
-                                                        echo '<i class="fa fa-file-archive-o fa-lg fa-li" aria-hidden="true"></i>';
-                                                        break;
-                                                    case('other'):
-                                                        echo '<i class="fa fa-file-o fa-lg fa-li" aria-hidden="true"></i>';
-                                                        break;
-                                                }
-                                                ?>
+                                                {{ CrudGenerator::getIcon($tipoFile,true,'fa-li') }}
                                                 <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
                                                     {{$auxprevioName}}
                                                 </a>

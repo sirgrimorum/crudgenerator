@@ -286,7 +286,7 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
                 confirmContent = confirmContent.replace(":modelName", $nameText.val());
                 $.confirm({
                     theme: '{{config('sirgrimorum.crudgenerator.confirm_theme')}}',
-                    icon: '{!!config('sirgrimorum.crudgenerator.confirm_icon')!!}',
+                    icon: '{!!config('sirgrimorum.crudgenerator.icons.confirm')!!}',
                     title: confirmTitle,
                     content: confirmContent,
                         buttons: {

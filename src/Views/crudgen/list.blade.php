@@ -247,7 +247,7 @@ if (old("__parametros","") != ""){
                     <pre>{!!print_r($value->{$columna},true)!!}</pre>
                 </div>
                 @elseif ($datos['tipo']=="url")
-                <a href='{{ $value->{$columna} }}' target='_blank'><i class="mt-2 fa fa-link fa-lg" aria-hidden="true"></i></a>
+                <a href='{{ $value->{$columna} }}' target='_blank'><i class="mt-2 {{ CrudGenerator::getIcon('url') }}" aria-hidden="true"></i></a>
                 @elseif ($datos['tipo']=="file")
                 @if ($value->{$columna} == "" )
                 -
@@ -268,35 +268,14 @@ if (old("__parametros","") != ""){
                 @else
                 <ul class="fa-ul">
                     <li class="pl-2">
-                        @switch($tipoFile)
-                        @case('image')
-                        <i class="fa fa-lg fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="{{ route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}"></i>
-                        @break
-                        @case('video')
-                        <i class="fa fa-film fa-lg fa-li" aria-hidden="true"></i>
-                        @break
-                        @case('audio')
-                        <i class="fa fa-file-audio-o fa-lg fa-li" aria-hidden="true"></i>
-                        @break
-                        @case('pdf')
-                        <i class="fa fa-file-pdf-o fa-lg fa-li" aria-hidden="true"></i>
-                        @break
-                        @case('text')
-                        <i class="fa fa-file-text-o fa-lg fa-li" aria-hidden="true"></i>
-                        @break
-                        @case('office')
-                        <i class="fa fa-file-word-o fa-lg fa-li" aria-hidden="true"></i>
-                        @break
-                        @case('compressed')
-                        <i class="fa fa-file-archive-o fa-lg fa-li" aria-hidden="true"></i>
-                        @break
-                        @case('other')
-                        <i class="fa fa-file-o fa-lg fa-li" aria-hidden="true"></i>
-                        @break
-                        @endswitch
-                    <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
-                        {{$auxprevioName}}
-                    </a>
+                        @if ($tipoFile == 'image')
+                        <i class="{{ CrudGenerator::getIcon('empty') }} fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="{{ route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}"></i>
+                        @else
+                        {{ CrudGenerator::getIcon($tipoFile,true,'fa-li') }}
+                        @endif
+                        <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
+                            {{$auxprevioName}}
+                        </a>
                     </li>
                 </ul>
                 @endif
@@ -323,35 +302,14 @@ if (old("__parametros","") != ""){
                 $tipoFile = CrudGenerator::filenameIs($datoReg->file,$datos);
                 ?>
                     <li class="pl-2">
-                        @switch($tipoFile)
-                        @case('image')
-                        <i class="fa fa-lg fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="{{ route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}"></i>
-                        @break
-                        @case('video')
-                        <i class="fa fa-film fa-lg fa-li" aria-hidden="true"></i>
-                        @break
-                        @case('audio')
-                        <i class="fa fa-file-audio-o fa-lg fa-li" aria-hidden="true"></i>
-                        @break
-                        @case('pdf')
-                        <i class="fa fa-file-pdf-o fa-lg fa-li" aria-hidden="true"></i>
-                        @break
-                        @case('text')
-                        <i class="fa fa-file-text-o fa-lg fa-li" aria-hidden="true"></i>
-                        @break
-                        @case('office')
-                        <i class="fa fa-file-word-o fa-lg fa-li" aria-hidden="true"></i>
-                        @break
-                        @case('compressed')
-                        <i class="fa fa-file-archive-o fa-lg fa-li" aria-hidden="true"></i>
-                        @break
-                        @case('other')
-                        <i class="fa fa-file-o fa-lg fa-li" aria-hidden="true"></i>
-                        @break
-                        @endswitch
-                    <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
-                        {{$datoReg->name}}
-                    </a>
+                        @if ($tipoFile == 'image')
+                        <i class="{{ CrudGenerator::getIcon('empty') }} fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="{{ route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}"></i>
+                        @else
+                        {{ CrudGenerator::getIcon($tipoFile,true,'fa-li') }}
+                        @endif
+                        <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
+                            {{$datoReg->name}}
+                        </a>
                     </li>
                 @endif
                 @endforeach
@@ -509,7 +467,7 @@ if (is_array($botones)) {
             $textBoton = $butName;
             $titleBoton = $butName;
             $confirmTheme = config('sirgrimorum.crudgenerator.confirm_theme');
-            $confirmIcon = config('sirgrimorum.crudgenerator.confirm_icon');
+            $confirmIcon = config('sirgrimorum.crudgenerator.iconcs.confirm');
             if (($confirmContent = trans('crudgenerator::' . strtolower($modelo) . '.messages.confirm_destroy')) == 'crudgenerator::' . strtolower($modelo) . '.messages.confirm_destroy') {
                 $confirmContent = trans('crudgenerator::admin.messages.confirm_destroy');
             }
@@ -632,7 +590,7 @@ if (is_array($botones)) {
                                                                 if ($.type(data.result) == "object"){
                                                         $.alert({
                                                         theme: '{!!config("sirgrimorum.crudgenerator.success_theme")!!}',
-                                                                icon: '{!!config("sirgrimorum.crudgenerator.success_icon")!!}',
+                                                                icon: '{!!config("sirgrimorum.crudgenerator.icons.success")!!}',
                                                                 title: data.title + ' - ' + data.statusText,
                                                                 content: data.result.{{config("sirgrimorum.crudgenerator.status_messages_key")}},
                                                         });
@@ -645,7 +603,7 @@ if (is_array($botones)) {
                                                         } else{
                                                         $.alert({
                                                         theme: '{!!config("sirgrimorum.crudgenerator.error_theme")!!}',
-                                                                icon: '{!!config("sirgrimorum.crudgenerator.error_icon")!!}',
+                                                                icon: '{!!config("sirgrimorum.crudgenerator.icons.error")!!}',
                                                                 title: data.title,
                                                                 content: data.statusText,
                                                         });
@@ -665,7 +623,7 @@ if (is_array($botones)) {
                                                         }
                                                         $.alert({
                                                         theme: '{!!config("sirgrimorum.crudgenerator.error_theme")!!}',
-                                                                icon: '{!!config("sirgrimorum.crudgenerator.error_icon")!!}',
+                                                                icon: '{!!config("sirgrimorum.crudgenerator.icons.error")!!}',
                                                                 title: title,
                                                                 content: content,
                                                         });

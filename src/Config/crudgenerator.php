@@ -126,25 +126,13 @@ return [
      */
     'confirm_theme' => 'dark',
     /**
-     * icon for the confirm window, options are bootstrap glyphicons 'glyphicon glyphicon-warning-sign' glyphicons or if you instaled it, fontawsome 'fa fa-question-circle fa-lg'
-     */
-    'confirm_icon' => 'fa fa-question-circle fa-lg',
-    /**
      * theme for the success alert, options are 'material', 'bootstrap', 'dark', 'light'
      */
     'success_theme' => 'dark',
     /**
-     * icon for the success alert, options are bootstrap glyphicons 'glyphicon glyphicon-warning-sign' glyphicons or if you instaled it, fontawsome 'fa fa-question-circle fa-lg'
-     */
-    'success_icon' => 'fa fa-check fa-lg',
-    /**
      * theme for the error alert, options are 'material', 'bootstrap', 'dark', 'light'
      */
     'error_theme' => 'dark',
-    /**
-     * icon for the error alert, options are bootstrap glyphicons 'glyphicon glyphicon-warning-sign' glyphicons or if you instaled it, fontawsome 'fa fa-question-circle fa-lg'
-     */
-    'error_icon' => 'fa fa-exclamation-triangle fa-lg',
     /**
      * Name for the scriptLoader function
      */
@@ -175,10 +163,33 @@ return [
      */
     'typeahead_path' => 'vendor/sirgrimorum/typeahead', // 
     /**
+     * Icons to use in the different alerts, buttons, links this need font awesome 4.7 npm install font-awesome@4.7.0 --save
+     */
+    'icons' => [
+        'empty' => 'fa fa-lg', // for use with image icon, default is 'fa fa-lg'
+        'confirm' => 'fa fa-question-circle fa-lg', // confirm window, default is 'fa fa-question-circle fa-lg'
+        'success' => 'fa fa-check fa-lg', // success alert, default is 'fa fa-check fa-lg'
+        'error' => 'fa fa-exclamation-triangle fa-lg', // error alert, default is 'fa fa-exclamation-triangle fa-lg'
+        'text_file' => 'fa fa-file-text-o fa-lg', // text file button, default is 'fa fa-file-text-o fa-lg'
+        'office_file' => 'fa fa-file-word-o fa-lg', // office file type button, default is 'fa fa-file-word-o fa-lg'
+        'compressed_file' => 'fa fa-file-archive-o fa-lg', // compressed file button, default is 'fa fa-file-archive-o fa-lg'
+        'file' => 'fa fa-file-o fa-lg', // default file button, default is 'fa fa-file-o fa-lg'
+        'url' => 'fa fa-link fa-lg', // url button 'fa fa-link, default is fa-lg'
+        'video' => 'fa fa-film fa-lg', // video file button, default is 'fa fa-film fa-lg'
+        'audio' => 'ffa fa-file-audio-o fa-lg', // audio file button, default is 'fa fa-file-audio-o fa-lg'
+        'pdf' => 'fa fa-file-pdf-o fa-lg', // pdf file type button, default is 'fa fa-file-pdf-o fa-lg'
+        'minus' => 'fa fa-minus', // minus icon, default is 'fa fa-minus'
+        'plus' => 'fa fa-plus', // plus icon, default is 'fa fa-plus'
+        'info' => 'fa fa-info-circle fa-lg', // info icon, default is 'fa fa-info-circle fa-lg'
+
+    ],
+    /**
      * Routes list for the administrator
      * "[Name of the model with first uppercase]"=>"[config path of the configuration array for the model]",
+     * Use "-[Text]-" for group names. The text will be looked for in lang json using __
      */
     'admin_routes' => [
+        "-Models-",
         "Article" => "sirgrimorum.models.article",
     ],
     /**

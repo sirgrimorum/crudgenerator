@@ -51,7 +51,7 @@ if (isset($datos["placeholder"])) {
         <div class="input-group">
             <div class="input-group-prepend">
                 <div class="rounded-left border border-secondary">
-                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="toogleUrl(this);"><i class="mt-2 fa fa-link fa-lg" aria-hidden="true"></i></div>
+                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="toogleUrl(this);">{{ CrudGenerator::getIcon('url',true,'mt-2') }}</div>
                 </div>
                 @if (isset($datos["pre"]))
                 <div class="input-group-text">{{ $datos["pre"] }}</div>

@@ -1,6 +1,6 @@
 <?php
 $confirmTheme = config('sirgrimorum.crudgenerator.confirm_theme');
-$confirmIcon = config('sirgrimorum.crudgenerator.confirm_icon');
+$confirmIcon = config('sirgrimorum.crudgenerator.icons.confirm');
 $confirmContent = trans('crudgenerator::admin.messages.confirm_removepivot');
 $confirmYes = trans('crudgenerator::admin.layout.labels.yes');
 $confirmNo = trans('crudgenerator::admin.layout.labels.no');
