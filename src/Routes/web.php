@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
 Route::get(config("sirgrimorum.crudgenerator.admin_prefix"), function($localecode = null) {
         //return $localecode;
     return redirect(route('sirgrimorum_home'));
