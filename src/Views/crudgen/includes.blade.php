@@ -19,6 +19,13 @@ if ($tieneSlider || $tieneDate || $tieneSelect || $tieneSearch || $tieneFile || 
             echo Sirgrimorum\CrudGenerator\CrudGenerator::addLinkTagLoaderHtml( asset(config("sirgrimorum.crudgenerator.typeahead_path") . '/jquery.typeahead.min.css'));
         }
     }
+    if ($tieneColor) {
+        if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.colorpicker_path"), ['http', '://'])) {
+            echo Sirgrimorum\CrudGenerator\CrudGenerator::addLinkTagLoaderHtml(config("sirgrimorum.crudgenerator.colorpicker_path"). '/css/bootstrap-colorpicker.css');
+        } else {
+            echo Sirgrimorum\CrudGenerator\CrudGenerator::addLinkTagLoaderHtml( asset(config("sirgrimorum.crudgenerator.colorpicker_path") . '/css/bootstrap-colorpicker.css'));
+        }
+    }
     if ($tieneSelect) {
         if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.select2_path"), ['http', '://'])) {
             echo Sirgrimorum\CrudGenerator\CrudGenerator::addLinkTagLoaderHtml(config("sirgrimorum.crudgenerator.select2_path") . '/css/select2.min.css');
@@ -113,6 +120,13 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
         } else {
             echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(asset(config("sirgrimorum.crudgenerator.confirm_path") . "/js/jquery-confirm.min.js"),false);
             echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(asset(config("sirgrimorum.crudgenerator.confirm_path") . "/js/rails.js"),false);
+        }
+    }
+    if ($tieneColor) {
+        if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.colorpicker_path"), ['http', '://'])) {
+            echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(config("sirgrimorum.crudgenerator.colorpicker_path") . '/js/bootstrap-colorpicker.js',false);
+        } else {
+            echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(asset(config("sirgrimorum.crudgenerator.colorpicker_path") . '/js/bootstrap-colorpicker.js'),false);
         }
     }
     if ($tieneSelect) {
