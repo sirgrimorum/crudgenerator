@@ -33,6 +33,7 @@ return [
         ],
         'labels' => [
             'home' => 'Home',
+            'home_admin' => 'Administrador',
             'en' => 'Inglés',
             'es' => 'Español',
             'close' => 'Cerrar',

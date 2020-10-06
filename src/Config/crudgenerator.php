@@ -32,6 +32,22 @@ return [
      */
     'use_modals' => true,
     /**
+     * crud administrator personalization
+     */
+    'theme' => [
+        'navbar_class' => 'navbar-light navbar-expand-md navbar-laravel', // classes fo the navbar
+        'sidebar_class' => '', // classes for the sidebar container
+        'sidebar_nav_class' => 'nav-pills', // classes for the sidebar nav
+        'sidebar_items' => 'nav-link text-secondary', // classes for the sidebar items
+        'sidebar_items_hover_color' => '#000 !important', // hover color for sidebar items
+        'sidebar_item_active' => 'active', // classes for active sidebar items
+        'sidebar_item_active_color' => '#fff !important', // color for active sidebar items
+        'sidebar_item_titulo' => 'text-white bg-dark', // classes for titles in sidebar
+        'sidebar_item_titulo_opacity' => '0.15', // opacity for titles in sidebar
+        'footer_class' => 'bg-dark text-white', // classes for the footer container
+        'footer_a_color' => '#eee', // color for the a tags in footer
+    ],
+    /**
      * The home path name
      *
      * @type string
@@ -166,6 +182,8 @@ return [
      * Icons to use in the different alerts, buttons, links this need font awesome 4.7 npm install font-awesome@4.7.0 --save
      */
     'icons' => [
+        'home' => 'fa fa-home', // for use in admin menu
+        'home_admin' => 'fa fa-cog', // for use in admin menu
         'empty' => 'fa fa-lg', // for use with image icon, default is 'fa fa-lg'
         'confirm' => 'fa fa-question-circle fa-lg', // confirm window, default is 'fa fa-question-circle fa-lg'
         'success' => 'fa fa-check fa-lg', // success alert, default is 'fa fa-check fa-lg'
