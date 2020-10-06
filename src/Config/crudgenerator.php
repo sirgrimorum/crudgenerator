@@ -241,5 +241,5 @@ return [
     /**
      * Probable column names of an "image" in the model, used to autobuild config, only apply for string fields
      */
-    'probable_image' => ['image', 'pic', 'picture', 'avatar', 'foto', 'imagen', 'logo'],
+    'probable_image' => ['image', 'pic', 'picture', 'avatar', 'foto', 'imagen', 'logo', 'icon', 'icono'],
 ];
