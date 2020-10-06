@@ -78,6 +78,9 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
         $this->publishes([
             __DIR__ . '/Assets/typeahead' => public_path('vendor/sirgrimorum/typeahead'),
                 ], 'assets');
+        $this->publishes([
+            __DIR__ . '/Assets/colorpicker' => public_path('vendor/sirgrimorum/colorpicker'),
+                ], 'assets');
 
         /**
          * Extended validator

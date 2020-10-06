@@ -475,7 +475,7 @@ trait CrudStrings
      * of the same type.
      *
      * @param string $name The field name
-     * @param dtryn $options The probable type name
+     * @param array|string $options The probable type name or array of options
      * @return boolean True if the $name is found in the probable names list for $option type
      */
     public static function getTypeByName($name, $options)

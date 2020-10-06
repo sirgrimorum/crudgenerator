@@ -179,6 +179,11 @@ return [
      */
     'typeahead_path' => 'vendor/sirgrimorum/typeahead', // 
     /**
+     * Path to the color-picker folder, if is in asset, just include the string for the asset
+     * use 'vendor/sirgrimorum/colorpicker' publishing with tag=colorpicker
+     */
+    'colorpicker_path' => 'vendor/sirgrimorum/colorpicker', // 
+    /**
      * Icons to use in the different alerts, buttons, links this need font awesome 4.7 npm install font-awesome@4.7.0 --save
      */
     'icons' => [
@@ -242,4 +247,8 @@ return [
      * Probable column names of an "image" in the model, used to autobuild config, only apply for string fields
      */
     'probable_image' => ['image', 'pic', 'picture', 'avatar', 'foto', 'imagen', 'logo', 'icon', 'icono'],
+    /**
+     * Probable column names of a "color" in the model, used to autobuild config, only apply for string fields
+     */
+    'probable_color' => ['color'],
 ];

@@ -35,7 +35,7 @@
             "icono" => "<i class="fa fa-home mr-1"></i>", // optional code to be inserted before the name in the admin menu
             "campos" => [ // list of fields structure. For smart merge, set the value to "notThisTime" to CrudLoader to remove this attribute or field
                 "[field/attribute name]" => [ //as apears in the model if used for db save with url "Sirgrimorum_CrudAdministrator"
-                    "tipo" => "[type of the field]", // required for all types, options are: "function", "checkbox", "date", "datetime", "time", "email", "url", "file", "files" (multiple files in a single field with Json notation, recomended, text type), "hidden", "html", "article" (Translation from Articles table, needs sirgrimorum/transarticles package), "number", "password", "radio", "relationship" (belongsTo one to many), "relationships" (many to many), "relationshipssel" (many to many with pivot table), "select", "slider", "text", "textarea", "json"
+                    "tipo" => "[type of the field]", // required for all types, options are: "function", "checkbox", "color", "date", "datetime", "time", "email", "url", "file", "files" (multiple files in a single field with Json notation, recomended, text type), "hidden", "html", "article" (Translation from Articles table, needs sirgrimorum/transarticles package), "number", "password", "radio", "relationship" (belongsTo one to many), "relationships" (many to many), "relationshipssel" (many to many with pivot table), "select", "slider", "text", "textarea", "json"
                     "label" => "[text of the label]", // required for all types, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.labels.name__",
                     "placeholder" => "[placeholder text]", // required for text, textarea, email, password and number types, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.placeholders.name__",
                     "description" => "[description text]", // use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.descriptions.name__",
@@ -78,7 +78,8 @@
                     "format" => [ // for the date, time and datetime types, carbon and moment results must be equivalents
                         "carbon" => "[carbon datetime format text]", // if not present defaults are "Y-m-d" for date or "H:i:s" for time or "Y-m-d H:i:s" for datetime, use % for localized format using strftime ej: '%A %d %B %Y'
                         "moment" => "[moment datetime format text]", // if not present defaults are "YYYY-MM-DD" for date or "HH:mm:ss" for time or "YYYY-MM-DD HH:mm:ss" for datetime
-                    ]
+                    ],
+                    "format" => "", // for the color type, default is null, could be "hex", search in  bootstrap-color-picker for other options
                     "timezone" => "[time zone text]", // for the date and datetime types, if not present default is timezone in app.php config
                     "min" => 0, // required for slider type, min value for slider and number types
                     "max" => 100, // required for slider type, max value for slider and number types
@@ -87,7 +88,7 @@
                     "columnas" => [[ // required for the relationshipssel type, list of columns to show in the table
                         "label" => "[Header for the column]", // required, use the 'trans_prefix' value if you want localization
                         "placeholder" => "[Placeholder for the column]", // required for 'text' and 'number' types, use the 'trans_prefix' value if you want localization
-                        "type" => "[type of the filed]", // required, options are: "label" (value of a field in table), "labelpivot" (value of a field in the pivot table), "text", "textarea", "number", "hidden", "select" (or de other types of regular fields)
+                        "type" => "[type of the filed]", // required, options are basically the same of field minus relationships plus: "label" (value of a field in table), "labelpivot" (value of a field in the pivot table)
                         "campo" => "[name of the field]", // required
                         "opciones" => [] // required for select type, array of options, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.selects.options__"
  *                      "format" => [(number of decimals), "[decimal separator]", "[mil separator]"], // for number types, aplies format to the number []

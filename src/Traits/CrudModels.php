@@ -942,6 +942,7 @@ trait CrudModels
                         case 'html':
                         case 'number':
                         case 'password':
+                        case 'color':
                         case 'radio':
                         case 'slider':
                         case 'text':

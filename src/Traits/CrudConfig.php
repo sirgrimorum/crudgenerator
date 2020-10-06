@@ -655,6 +655,8 @@ trait CrudConfig {
                                 $configCampos[$campo]['tipo'] = "url";
                                 $rulesStr .=$prefixRules . 'url';
                                 $prefixRules = "|";
+                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'color')) {
+                                $configCampos[$campo]['tipo'] = "color";
                             } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'password')) {
                                 $configCampos[$campo]['tipo'] = "password";
                                 $configCampos[$campo]['hide'] = ["show","list","edit"];
@@ -849,6 +851,8 @@ trait CrudConfig {
                                                 $pivotColumnAux['type'] = "email";
                                             } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'url')) {
                                                 $pivotColumnAux['type'] = "url";
+                                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'color')) {
+                                                $pivotColumnAux['type'] = "color";
                                             } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'password')) {
                                                 $pivotColumnAux['type'] = "password";
                                             } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || \Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
