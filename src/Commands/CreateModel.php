@@ -12,7 +12,7 @@ class CreateModel extends Command
      *
      * @var string
      */
-    protected $signature = 'crudgen:createmodel {table : The Table name} {--path= : Provide a custom paht for saving the model file relative to base_path()}';
+    protected $signature = 'crudgen:createmodel {table : The Table name} {--path= : Provide a custom path for saving the model file relative to base_path()}';
 
     /**
      * The console command description.
