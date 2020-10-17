@@ -244,16 +244,17 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
          */
         if ($this->app->runningInConsole()) {
             $this->commands([
-               Commands\SendAlert::class,
-               Commands\CreateModel::class,
-               Commands\CreateLang::class,
-               Commands\CreateConfig::class,
-               Commands\RegisterMiddleware::class,
-               Commands\Resources::class,
-               Commands\SyncLocal::class,
-               Commands\SyncLocalSsh::class,
-               Commands\SyncRemote::class,
-               Commands\SyncRemoteSsh::class
+                Commands\AddGetToModel::class,
+                Commands\SendAlert::class,
+                Commands\CreateModel::class,
+                Commands\CreateLang::class,
+                Commands\CreateConfig::class,
+                Commands\RegisterMiddleware::class,
+                Commands\Resources::class,
+                Commands\SyncLocal::class,
+                Commands\SyncLocalSsh::class,
+                Commands\SyncRemote::class,
+                Commands\SyncRemoteSsh::class
             ]);
         }
     }
