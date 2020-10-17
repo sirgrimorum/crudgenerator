@@ -35,7 +35,16 @@ return [
      * crud administrator personalization
      */
     'theme' => [
+        'main_color' => '#fff', // main tag background color
         'navbar_class' => 'navbar-light navbar-expand-md navbar-laravel', // classes fo the navbar
+        'dropdown_menu_class' => '', // classes for the dropdown_menu in navbar
+        'dropdown_menu_item_class' => '', // classes for the dropdown_menu item in navbar
+        'dropdown_menu_item_active_color' => '#fff !important', // active color for the dropdown_menu item in navbar
+        'dropdown_menu_item_active_bgcolor' => '#007bff !important', // active background color for the dropdown_menu item in navbar
+        'dropdown_menu_item_hover_color' => '#16181b !important', // hover color for the dropdown_menu item in navbar
+        'dropdown_menu_item_hover_bgcolor' => '#f8f9fa !important', // hover background color for the dropdown_menu item in navbar
+        'dropdown_menu_item_disbled_color' => '#6c757d !important', // hover color for the dropdown_menu item in navbar
+        'dropdown_menu_item_disabled_bgcolor' => 'transparent !important', // hover background color for the dropdown_menu item in navbar
         'sidebar_class' => '', // classes for the sidebar container
         'sidebar_nav_class' => 'nav-pills', // classes for the sidebar nav
         'sidebar_items' => 'nav-link text-secondary', // classes for the sidebar items

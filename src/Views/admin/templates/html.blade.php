@@ -20,6 +20,23 @@
     <!-- Campo definido para incluir estilos especificos en las vistas que lo requieran -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <style>
+        main {
+            background-color: {{ config("sirgrimorum.crudgenerator.theme.main_color", "#fff") }};
+        }
+
+        div.dt-button-background{
+            background: rgba(0,0,0,0.7);
+            background: -ms-radial-gradient(center, ellipse farthest-corner, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%);
+            background: -moz-radial-gradient(center, ellipse farthest-corner, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%);
+            background: -o-radial-gradient(center, ellipse farthest-corner, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%);
+            background: -webkit-gradient(radial, center center, 0, center center, 497, color-stop(0, rgba(0,0,0,0.3)), color-stop(1, rgba(0,0,0,0.7)));
+            background: -webkit-radial-gradient(center, ellipse farthest-corner, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%);
+            background: radial-gradient(ellipse farthest-corner at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%);
+        }
+
+        div.dt-button-collection div.dropdown-menu{
+            padding: 8px 8px 4px 8px;
+        }
         /* same height */
         /* columns of same height styles */
         .container-xs-height {
@@ -53,7 +70,27 @@
         }
 
         .cont_footer a {
-            color:{{ config("sirgrimorum.crudgenerator.theme.footer_a_color") }};
+            color: {{ config("sirgrimorum.crudgenerator.theme.footer_a_color", "#eee") }};
+        }
+
+        /********************* dropdown menu */
+
+        .dropdown-item:hover,
+        .dropdown-item:focus {
+        color: {{ config("sirgrimorum.crudgenerator.theme.dropdown_menu_item_hover_color", "#16181b") }};
+        background-color: {{ config("sirgrimorum.crudgenerator.theme.dropdown_menu_item_hover_bgcolor", "#f8f9fa") }};
+        }
+
+        .dropdown-item.active,
+        .dropdown-item:active {
+        color: {{ config("sirgrimorum.crudgenerator.theme.dropdown_menu_item_active_color", "#fff") }};
+        background-color: {{ config("sirgrimorum.crudgenerator.theme.dropdown_menu_item_active_bgcolor", "#007bff") }};
+        }
+
+        .dropdown-item.disabled,
+        .dropdown-item:disabled {
+        color: {{ config("sirgrimorum.crudgenerator.theme.dropdown_menu_item_disbled_color", "#6c757d") }};
+        background-color: {{ config("sirgrimorum.crudgenerator.theme.dropdown_menu_item_disabled_bgcolor", "transparent") }};
         }
 
         /********************** Side bar */
@@ -66,9 +103,9 @@
         @media (min-width: 768px) {
             .bd-sidebar {
                 position: sticky !important;
-                top: 4rem;
+                top: 0rem;
                 z-index: 1000;
-                height: calc(100vh - 4rem);
+                height: calc(100vh - 0rem);
             }
 
             .bd-content {
@@ -121,11 +158,11 @@
             margin-left: -0.5rem;
         }
         .bd-toc-item.disabled{
-            opacity: {{ config("sirgrimorum.crudgenerator.theme.sidebar_item_titulo_opacity") }};
+            opacity: {{ config("sirgrimorum.crudgenerator.theme.sidebar_item_titulo_opacity", "0.15") }};
         }
 
         .bd-toc-item:not(.disabled)>.bd-toc-link:not(.active):hover {
-            color:{{ config("sirgrimorum.crudgenerator.theme.sidebar_items_hover_color") }};
+            color:{{ config("sirgrimorum.crudgenerator.theme.sidebar_items_hover_color", "#000 !important") }};
             text-decoration: none;
         }
 
@@ -138,7 +175,7 @@
         }
 
         .bd-toc-item.active>.bd-toc-link.active {
-            color:{{ config("sirgrimorum.crudgenerator.theme.sidebar_item_active_color") }};
+            color:{{ config("sirgrimorum.crudgenerator.theme.sidebar_item_active_color", "#fff !important") }};
         }
 
         .bd-toc-item.active>.bd-toc-link:not(.active):hover {
@@ -199,10 +236,10 @@
                                 aria-expanded="false"
                                 aria-haspopup="true">{{trans('crudgenerator::admin.layout.labels.' . App::getLocale()) }}<span
                                     class="caret"></span></a>
-                            <ul class="dropdown-menu" role="menu" aria-labelledby="navbarDropdown">
+                            <ul class="dropdown-menu {{ config("sirgrimorum.crudgenerator.theme.dropdown_menu_class") }}" role="menu" aria-labelledby="navbarDropdown">
                                 @foreach(config("sirgrimorum.crudgenerator.list_locales") as $localeCode)
                                 <li>
-                                    <a class="dropdown-item" rel="alternate" hreflang="{{$localeCode}}"
+                                    <a class="dropdown-item {{ config("sirgrimorum.crudgenerator.theme.dropdown_menu_item_class") }}" rel="alternate" hreflang="{{$localeCode}}"
                                         href="{{CrudGenerator::changeLocale($localeCode) }}">
                                         {{{ trans('crudgenerator::admin.layout.labels.'.$localeCode) }}}
                                     </a>
@@ -220,8 +257,8 @@
                                 aria-haspopup="true" aria-expanded="false">
                                 {{ Auth::user()->name }} <span class="caret"></span>
                             </a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault();
+                            <div class="dropdown-menu {{ config("sirgrimorum.crudgenerator.theme.dropdown_menu_class") }} " aria-labelledby="navbarDropdown">
+                                <a class="dropdown-item {{ config("sirgrimorum.crudgenerator.theme.dropdown_menu_item_class") }}" href="{{ route('logout') }}" onclick="event.preventDefault();
                                         document.getElementById('logout-form').submit();">
                                     {{ __('Logout') }}
                                 </a>
@@ -269,7 +306,7 @@
                             </li>
                             @else
                             <?php
-                                if (Lang::has("sirgrimorum_cms::" . strtolower($modelo) . ".labels.plural")) {
+                                if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.plural")) {
                                     $plurales = trans("crudgenerator::" . strtolower($modelo) . ".labels.plural");
                                 } else {
                                     $plurales = ucfirst($modelo) . 's';
