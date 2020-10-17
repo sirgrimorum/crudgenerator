@@ -11,7 +11,9 @@ return [
         'titulo' => 'Lista',
         'eliminar' => 'Eliminar',
         'ver' => 'Ver',
-        'editar' => 'Editar'
+        'editar' => 'Editar',
+        'prefiltros' => 'Configuración de la tabla',
+        
     ],
     'layout' => [
         'title' => 'Administrador',
@@ -52,6 +54,8 @@ return [
             'new_file' => 'Nuevo Archivo',
             'choose_file' => 'Seleccione un archivo',
             'pretty_print' => 'Dar formato',
+            'seleccione' => "Seleccione...",
+            'todos' => "Todos",
         ],
     ],
     'privado' => [
@@ -113,5 +117,4 @@ return [
         'unique_composite' => 'Ya existe un registro con la misma combinación de :fields',
         'with_articles' => 'Es obligatorio ingresar la versión en :langs del campo ":attribute"',
     ],
-        ]
-?>
+];

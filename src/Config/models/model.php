@@ -21,6 +21,10 @@
                 'remove' => "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/article/:modelId/destroy",
                 'create' => "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/articles/create",
             ],
+            "ajax" => false, // true if the table of list will be load using ajax
+            "serverSide" => false, // true if the table of list will be load using ajax on server side
+            "conditions" => true, // default true, show conditions buton in list view
+	        "filters" => false, // default false, show filters buton in list view
             "files" => false // true if it whould contain file fields,
             "class_form" => "[name of the class]", // optional class for the form, default ''
             "class_label" => "[name of the class]", // optional class for all the labels, default 'col-form-label font-weight-bold mb-0 pt-0'
@@ -33,6 +37,7 @@
             "pre_html" => "[Html code]", // optional code to be inserted after the form tag opening
             "post_html" => "[Html code]", // optional code to be inserted before the form tag closing
             "icono" => "<i class="fa fa-home mr-1"></i>", // optional code to be inserted before the name in the admin menu
+            "query" => [Callable that returns Builder or collection or array of objects], // optional a function that returns the query builder to be used as base to retreive the model fields, if empty, will use Model::whereRaw("1=1")
             "campos" => [ // list of fields structure. For smart merge, set the value to "notThisTime" to CrudLoader to remove this attribute or field
                 "[field/attribute name]" => [ //as apears in the model if used for db save with url "Sirgrimorum_CrudAdministrator"
                     "tipo" => "[type of the field]", // required for all types, options are: "function", "checkbox", "color", "date", "datetime", "time", "email", "url", "file", "files" (multiple files in a single field with Json notation, recomended, text type), "hidden", "html", "article" (Translation from Articles table, needs sirgrimorum/transarticles package), "number", "password", "radio", "relationship" (belongsTo one to many), "relationships" (many to many), "relationshipssel" (many to many with pivot table), "select", "slider", "text", "textarea", "json"
@@ -42,7 +47,7 @@
                     "valor" => "[default value of the field]", // use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
                     "value" => "[value or lists of values to be taken by de field]", // required for checkbox and radio types, mainly for the checkbox and radio use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
                     "unchecked" => "[value to be taken by de field when unchecked]", // for checkbox and radio types, default is 0, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
-                    "enlace" => "[url for link in show or lists views]", // use :modelId or :modelName to change it for de id or name of the object, use the 'trans_prefix' value if you want localization ej: url("__trans__crudgenerator::article.menu.links.usuario__", array(":modelId"),
+                    "enlace" => "[url for link in show or lists views]", // use :modelId or :modelName to change it for de id or name of the object, use the 'trans_prefix' value if you want localization ej: __route__users.show, {'user': ':modelId'}__ or url("__trans__crudgenerator::article.menu.links.usuario__", array(":modelId"),
                     "conditional" => [ // Only show if all of the conditions are fullfill. use :! for negation and :< :> := for operations and {:empty] or {:notempty}
                         'campo'=>'valor',
                         'campo'=>':!valor',
@@ -59,7 +64,7 @@
                     "id" => "[id field name]", // required for the relationship, relationships and the relationshipssel types
                     "campo" => "[attribute taken as name for the model]", // required for the relationship, relationships and the relationshipssel types, may use an array of field names
                     "groupby" => "[attribute taken as group for options in select]", // optional for the relationship, relationships and the relationshipssel types, may use an array of field names
-                    "todos" => "", // required for the relationship, relationships and the relationshipssel types, array of option models, leave blank if you want all of them
+                    "todos" => "", // required for the relationship, relationships and the relationshipssel types, array or collection of option models, a query Builder, callable that returns an array, a collection or a Query Builder, leave blank if you want all of them
                     "path" => "[name of the path in assets]/", // required for the file and files type, used to save the file, when url is "Sirgrimorum_CrudAdministrator"
                     "saveCompletePath" => true, // for the file and files type, if true, save the new filename including "path", when url is "Sirgrimorum_CrudAdministrator"
                     "disk" => 'local', // for the file and files type, the disk to use for saving the files, remember to create symbolic link for public php artisan storage:link
@@ -99,6 +104,7 @@
                    "pre_html" => "[Html code]", // for all types, code to be inserted before the <div class="form-group row"> tag opening for this field
                    "post_html" => "[Html code]", // for all types, code to be inserted after the <div class="form-group row"> tag closing for this field
                    "es_html" => true, // for article types, if use a wysig editor or not
+                   "datatables" => "[tipo de columna]", // for all types, options for this column in datatables, options are "noFiltro" (is not used as filter or condition), "preFiltro" (is used to prefilter the table)
                 ],
             ],
             "rules" => [ //the array contining the validation rules. If not here, it whill search for them in the model, public property with the same name

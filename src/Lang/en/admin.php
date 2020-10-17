@@ -11,7 +11,8 @@ return [
         'titulo' => 'Index',
         'eliminar' => 'Delete',
         'ver' => 'Show',
-        'editar' => 'Edit'
+        'editar' => 'Edit',
+        'prefiltros' => 'Table configuration',
     ],
     'layout' => [
         'title' => 'Manager',
@@ -52,6 +53,8 @@ return [
             'new_file' => 'New File',
             'choose_file' => 'Choose File',
             'pretty_print' => 'Pretty Print',
+            'seleccione' => "Select...",
+            'todos' => "All",
         ],
     ],
     'privado' => [
@@ -102,5 +105,4 @@ return [
         'unique_composite' => 'Already exists a row with the same combination of :fields',
         'with_articles' => 'Is required to set a version in :langs for the field ":attribute"',
     ],
-        ]
-?>
+];

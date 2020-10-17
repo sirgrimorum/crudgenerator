@@ -10,9 +10,12 @@ return [
     "sInfoFiltered" => "(filtrado de un total de _MAX_ registros)",
     "sInfoPostFix" => "",
     "sSearch" => "Buscar:",
+    "sSearchPlaceholder" => "Comience a teclear...",
     "sUrl" => "",
     "sInfoThousands" => ",",
     "sLoadingRecords" => "Cargando...",
+    "sProcessing" => "Procesando...",
+    "sloadingRecords" => '&nbsp;',
     "oPaginate" => [
         "sFirst" => "Primero",
         "sLast" => "Último",
@@ -23,7 +26,88 @@ return [
         "sSortAscending" => ": Activar para ordenar la columna de manera ascendente",
         "sSortDescending" => ": Activar para ordenar la columna de manera descendente"
     ],
+    "searchBuilder" => [
+        "add"=> '+',
+        "condition"=> 'Condición',
+        "clearAll"=> 'Eliminar todas',
+        "deleteTitle"=> 'Eliminar',
+        "data"=> 'Columna',
+        "leftTitle"=> 'Desagrupar',
+        "logicAnd"=> 'And',
+        "logicOr"=> 'Or',
+        "rightTitle"=> 'Agrupar',
+        "button"=> [
+            "0"=> '<i class="fa fa-filter fa-lg"></i>',
+            "_"=> '<i class="fa fa-filter fa-lg"></i> (%d)'
+        ],
+        "title"=> [
+            "0"=> 'Condiciones',
+            "_"=> 'Condiciones (%d)'
+        ],
+        "value"=> 'Opción',
+        "conditions" => [
+            "date" => [
+                "after" => 'Después de',
+                "before" => 'Antes de',
+                "between" => 'Entre',
+                "empty" => 'Vacío',
+                "equals" => 'Igual a',
+                "not" => 'Diferente a',
+                "notBetween" => 'No entre',
+                "notEmpty" => 'Lleno',
+            ],
+            "moment" => [
+                "after" => 'Después de',
+                "before" => 'Antes de',
+                "between" => 'Entre',
+                "empty" => 'Vacío',
+                "equals" => 'Igual a',
+                "not" => 'Diferente a',
+                "notBetween" => 'No entre',
+                "notEmpty" => 'Lleno',
+            ],
+            "number" => [
+                "between" => 'Entre',
+                "empty" => 'Vacío',
+                "equals" => 'Igual a',
+                "gt" => 'Mayor que',
+                "gte" => 'Mayor o igual a',
+                "lt" => 'Menor que',
+                "lte" => 'Menor o igual a',
+                "not" => 'Diferente a',
+                "notBetween" => 'No entre',
+                "notEmpty" => 'Lleno',
+            ],
+            "string" => [
+                "contains" => 'Contiene',
+                "empty" => 'Vacío',
+                "endsWith" => 'Termina con',
+                "equals" => 'Igual a',
+                "not" => 'Diferente a',
+                "notEmpty" => 'Lleno',
+                "startsWith" => 'Empieza con',
+            ]
+        ]
+    ],
+    "searchPanes" => [
+        "clearMessage" => "Clear All",
+        "emptyPanes" => null, // No mostrar el panel
+        "loadMessage" => "Loading filtering options...",
+        "count" => "{total}",
+        "countFiltered" => "{shown} / {total}",
+        "collapse" => [
+            "0" => '<i class="fa fa-search fa-lg"></i>',
+            "_" => '<i class="fa fa-search fa-lg"></i> (%d)',
+        ],
+        "title"=> [
+            "0"=> 'Sin Filtros',
+            "_"=> 'Filtros Activos - %d'
+        ],
+    ],
     "buttons"=>[
+        'cargar' => '<i class="fa fa-refresh fa-lg" aria-hidden="true"></i> Cargar datos', // <i class="fa fa-refresh fa-lg" aria-hidden="true"></i> for font-awsemo
+        't_cargar' => 'Cargar los datos de la tabla', //title Attribute
+        'c_cargar' => 'btn btn-dark', // class for the Cargar button
         'copy' => '<i class="fa fa-clipboard fa-lg" aria-hidden="true"></i> Copiar', //<i class="fa fa-clipboard" aria-hidden="true"></i> for font-awsome
         't_copy' => 'Copiar', //title Attribute
         'excel' => '<i class="fa fa-file-excel-o fa-lg" aria-hidden="true"></i> Excel', //<i class="fa fa-file-excel-o" aria-hidden="true"></i> for font-awsome

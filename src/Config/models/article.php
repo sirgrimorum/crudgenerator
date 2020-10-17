@@ -9,6 +9,7 @@ return [
     "botones" => "__trans__crudgenerator::article.labels.create", //Overriden if url is Sirgrimorum_CrudAdministrator
     "files" => true,
     "icono" => "<i class='fa fa-commenting-o mr-1'></i>",
+    "ajax" => true,
     "campos" => [
         "lang" => [
             "tipo" => "select",
