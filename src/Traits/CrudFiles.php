@@ -60,6 +60,46 @@ trait CrudFiles
     }
 
     /**
+     * Add get function in a model file
+     * 
+     * @param string $model El nombre del modelo
+     * @param string $path the directory path for the file
+     * @param string $filename the file name
+     * @return boolean If the model file was successfully modified or not
+     */
+    public static function addGetToModel($path, $filename){
+        if (substr($path, strlen($path) - 1) == "/" || substr($path, strlen($path) - 1) == "\\") {
+            $path = substr($path, 0, strlen($path) - 1);
+        }
+        $path = \Illuminate\Support\Str::finish(str_replace(["/"], ["\\"], $path . \Illuminate\Support\Str::start($filename, "/")), '.php');
+        if (file_exists($path)) {
+            $contents = file($path);
+            $ultima = 0;
+            for ($i=count($contents) -1 ; $i>=0 ; $i--) { 
+                if (strpos($contents[$i], '}') !== false) {
+                    $ultima = $i;
+                    $i = -1;
+                }
+            }
+            if ($ultima > 0){
+                $newContent = array_slice($contents, 0, $ultima);
+                $contenido = view("sirgrimorum::templates.getfunction")->render();
+                $newArray = explode(chr(13),$contenido);
+                foreach ($newArray as $newTexto) {
+                    $newContent[] = $newTexto;
+                }
+                foreach (array_slice($contents, $ultima) as $linea) {
+                    $newContent[] = $linea;
+                }
+                $contents = $newContent;
+                $contents = file_put_contents($path, $contents);
+                return $contents;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Register a the routes to a model in the lang/routes.php file
      *
      * @param array $config Array
