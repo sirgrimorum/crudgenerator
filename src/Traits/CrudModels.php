@@ -391,7 +391,6 @@ trait CrudModels
                 $date = new \Carbon\Carbon($dato, $timezone);
                 if (stripos($format, "%") !== false) {
                     setlocale(LC_TIME, App::getLocale(), strtoupper(App::getLocale()), App::getLocale() . "_" . strtoupper(App::getLocale()));
-                    \Carbon\Carbon::setUtf8(true);
                     $dato = $date->formatLocalized($format);
                 } else {
                     $dato = $date->format($format);
@@ -766,15 +765,15 @@ trait CrudModels
      *
      * The values in the $datos object must be strings, if using arrays, use json notation or separate the values with an |.
      *
-     * If not attribute is given, it will compare against the $config('nombre'] attribute
+     * If not attribute is given, it will compare against the $config['nombre'] attribute
      *
      * If $query contains "*%" it will erase them and evaluate if $query is contained in the attribute value.
      * Not aplicable for function or methods returns
      *
      * @param object $registros Collection of elocuent model objects
      * @param array $config Configuration array for the Model
-     * @param boolean|string $orOperation Optional boolean or the key of the or value in $datos. if True: use or operation (just one query must be true), false will use and operation (all the querys must be true).
      * @param array $datos Optional the data. if empty, it will get the current request data.
+     * @param boolean|string $orOperation Optional boolean or the key of the or value in $datos. if True: use or operation (just one query must be true), false will use and operation (all the querys must be true).
      * @param string $queryStr Optional the key of the query in $datos
      * @param string $attriStr Optional the key of the attributes in $datos
      * @param string $aByAStr Optional the key of the value indicating if the $query and $attribute must be evaluated one by one (ej: $query[0] vs $attribute[0] AND $query[1] vs $attribute[1], ...)
