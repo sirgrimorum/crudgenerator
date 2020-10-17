@@ -224,11 +224,11 @@ trait CrudStrings
                         $auxJson = substr($textPiece, $auxLeft, $auxRight - $auxLeft);
                         $textPiece = str_replace($auxJson, "*****", $textPiece);
                         $auxJson = str_replace(["'", ", }"], ['"', "}"], $auxJson);
-                        $auxArr = explode(",", str_replace([" ,", " ,"], [",", ","], $textPiece));
+                        $auxArr = explode(",", str_replace([" ,", ", "], [",", ","], $textPiece));
                         if ($auxIndex = array_search("*****", $auxArr)) {
                             $auxArr[$auxIndex] = json_decode($auxJson, true);
                         } else {
-                            $auxArr[] = json_decode($auxJson);
+                            $auxArr[] = json_decode($auxJson, true);
                         }
                         $piece = call_user_func_array($function, $auxArr);
                     } else {
@@ -321,7 +321,7 @@ trait CrudStrings
                         $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, $prefix, $function);
                     }
                 }
-            } else {
+            } elseif(is_array($item)) {
                 $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateArray($item, $prefix, $function, $close);
             }
         }
@@ -1135,5 +1135,28 @@ trait CrudStrings
         $html = "";
         $html .= "<script>$name('$href','$rel','$type');</script>";
         return $html;
+    }
+
+    /**
+     * Convert array to utf8 array recursively
+     * @param array $dat The array to convert
+     * @return array The converted array
+     */
+    public static function convert_from_latin1_to_utf8_recursively($dat)
+    {
+        if (is_string($dat)) {
+            return mb_convert_encoding($dat, 'UTF-8', 'UTF-8');
+        } elseif (is_array($dat)) {
+            $ret = [];
+            foreach ($dat as $i => $d) $ret[$i] = self::convert_from_latin1_to_utf8_recursively($d);
+
+            return $ret;
+        } elseif (is_object($dat)) {
+            foreach ($dat as $i => $d) $dat->$i = self::convert_from_latin1_to_utf8_recursively($d);
+
+            return $dat;
+        } else {
+            return $dat;
+        }
     }
 }
