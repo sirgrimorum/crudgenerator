@@ -3,8 +3,11 @@
 namespace Sirgrimorum\CrudGenerator\Traits;
 
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use ReflectionClass;
@@ -20,7 +23,7 @@ trait CrudConfig
      * Using the model, it would bring it from the crudgenerator.admin_routes array.
      *
      * If crudgenerator.admin_routes is 'render' or no configuration file with its value is found
-     * it will create automatically a new one based on the \Sirgrimorum\CrudGenerator\CrudGenerator configuration file,
+     * it will create automatically a new one based on the CrudGenerator configuration file,
      * the Model class and the DataBase table for that Model.
      *
      * Use $smartMerge for merging 2 configuration arrays, if no $baseConfig is set, it would smart merge the
@@ -84,7 +87,7 @@ trait CrudConfig
              */
             if ($smartMerge == true && is_array($config)) {
                 if ($trans) {
-                    $preConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::translateConfig($config);
+                    $preConfig = CrudGenerator::translateConfig($config);
                 } else {
                     $preConfig = $config;
                 }
@@ -97,9 +100,9 @@ trait CrudConfig
                     }
                     if (is_array($config)) {
                         if ($trans) {
-                            $config = \Sirgrimorum\CrudGenerator\CrudGenerator::translateConfig($config);
+                            $config = CrudGenerator::translateConfig($config);
                         }
-                        $auxConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::smartMergeConfig($config, $preConfig);
+                        $auxConfig = CrudGenerator::smartMergeConfig($config, $preConfig);
                         if ($auxConfig === false && $$fail == true) {
                             $auxConfig = $config;
                         }
@@ -120,9 +123,9 @@ trait CrudConfig
             /**
              * Auto Generate Config array
              */
-            if (!$modeloClass = \Sirgrimorum\CrudGenerator\CrudGenerator::getModel($modelo, $config)) {
+            if (!$modeloClass = CrudGenerator::getModel($modelo, $config)) {
                 if ($fail) {
-                    abort(500, 'There is no Model class for the model name "' . $modelo . '" ind the \Sirgrimorum\CrudGenerator\CrudGenerator::getConfig(String $modelo)');
+                    abort(500, 'There is no Model class for the model name "' . $modelo . '" ind the CrudGenerator::getConfig(String $modelo)');
                 } else {
                     return false;
                 }
@@ -138,37 +141,37 @@ trait CrudConfig
                 "model" => get_class($modeloE),
                 "tabla" => $tabla,
                 "id" => $modeloE->getKeyName(),
-                "name" => \Sirgrimorum\CrudGenerator\CrudGenerator::getNameAttribute($modeloE),
+                "name" => CrudGenerator::getNameAttribute($modeloE),
                 "attributes" => $modeloE->getConnection()->getSchemaBuilder()->getColumnListing($tabla),
             ];
 
-            if (!$columns = \Sirgrimorum\CrudGenerator\CrudGenerator::getModelDetailsFromDb($tabla, $columns)) {
+            if (!$columns = CrudGenerator::getModelDetailsFromDb($tabla, $columns)) {
                 if ($fail) {
-                    abort(500, 'There is no valid table for the model name "' . $modelo . '" ind the \Sirgrimorum\CrudGenerator\CrudGenerator::getConfig(String $modelo)');
+                    abort(500, 'There is no valid table for the model name "' . $modelo . '" ind the CrudGenerator::getConfig(String $modelo)');
                 } else {
                     return false;
                 }
             }
             //echo "<p><strong>deDb</strong></p><pre>" . print_r($columns, true) . "</pre>";
-            $columns = \Sirgrimorum\CrudGenerator\CrudGenerator::getModelDetailsFromModel($modeloClass, $modeloE, $columns);
+            $columns = CrudGenerator::getModelDetailsFromModel($modeloClass, $modeloE, $columns);
             //echo "<p><strong>deModel</strong></p><pre>" . print_r($columns, true) . "</pre>";
             /**
              * Build the config
              */
-            $config = \Sirgrimorum\CrudGenerator\CrudGenerator::buildConfig($modeloClass, $tabla, $modelo, $columns);
+            $config = CrudGenerator::buildConfig($modeloClass, $tabla, $modelo, $columns);
 
             /**
              * Localize config
              */
             if ($trans) {
-                $config = \Sirgrimorum\CrudGenerator\CrudGenerator::translateConfig($config);
+                $config = CrudGenerator::translateConfig($config);
             }
 
             /**
              * Merge config
              */
             if ($smartMerge == true) {
-                $auxConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::smartMergeConfig($config, $preConfig);
+                $auxConfig = CrudGenerator::smartMergeConfig($config, $preConfig);
                 if ($auxConfig === false) {
                     if (!$fail) {
                         $config = false;
@@ -179,7 +182,7 @@ trait CrudConfig
             }
         } else {
             if ($trans) {
-                $config = \Sirgrimorum\CrudGenerator\CrudGenerator::translateConfig($config);
+                $config = CrudGenerator::translateConfig($config);
             }
         }
         //echo "<pre>" . print_r($config, true) . "</pre>";
@@ -209,12 +212,12 @@ trait CrudConfig
             $parametros = json_decode($request->__parametros, true);
             if (is_array($parametros)) {
                 if ($parametros["modelo"] == $modelo) {
-                    $newConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfig($parametros["modelo"], $parametros["smartMerge"], $parametros["config"], $parametros["baseConfig"], $parametros["trans"], $parametros["fail"], $parametros["override"]);
+                    $newConfig = CrudGenerator::getConfig($parametros["modelo"], $parametros["smartMerge"], $parametros["config"], $parametros["baseConfig"], $parametros["trans"], $parametros["fail"], $parametros["override"]);
                 }
             }
         }
         if ($newConfig == "") {
-            $newConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfig($modelo, $smartMerge, $config, $baseConfig, $trans, $fail, $override);
+            $newConfig = CrudGenerator::getConfig($modelo, $smartMerge, $config, $baseConfig, $trans, $fail, $override);
         }
         return $newConfig;
     }
@@ -261,7 +264,7 @@ trait CrudConfig
             //$singular = substr($relacion['patron'], 0, strlen($relacion['patron']) - 1);
             $singular = \Illuminate\Support\Str::singular($relacion['patron']);
             $columns["belongsto"][$indice]['patron_model_name_single'] = $singular;
-            if (!$columns["belongsto"][$indice]['patron_model'] = \Sirgrimorum\CrudGenerator\CrudGenerator::getModel($singular, "App\\" . ucfirst($singular))) {
+            if (!$columns["belongsto"][$indice]['patron_model'] = CrudGenerator::getModel($singular, "App\\" . ucfirst($singular))) {
                 unset($columns["belongsto"][$indice]);
             }
         }
@@ -281,7 +284,7 @@ trait CrudConfig
                 }
                 //$singular = substr($otro->otro, 0, strlen($otro->otro) - 1);
                 $singular = \Illuminate\Support\Str::singular($otro->otro);
-                if ($otroModel = \Sirgrimorum\CrudGenerator\CrudGenerator::getModel($singular, "App\\" . ucfirst($singular))) {
+                if ($otroModel = CrudGenerator::getModel($singular, "App\\" . ucfirst($singular))) {
                     if ($relacion['cliente'] != $otro->otro && $relacion['key'] != $otro->key) {
                         $pivotColumns = [];
                         foreach ($schema->listTableColumns($relacion['cliente']) as $column) {
@@ -340,7 +343,7 @@ trait CrudConfig
             //$singular = substr($relacion['cliente'], 0, strlen($relacion['cliente']) - 1);
             $singular = \Illuminate\Support\Str::singular($relacion['cliente']);
             $columns["hasmany"][$indice]['cliente_model_name_single'] = $singular;
-            if (!$columns["hasmany"][$indice]['cliente_model'] = \Sirgrimorum\CrudGenerator\CrudGenerator::getModel($singular, "App\\" . ucfirst($singular))) {
+            if (!$columns["hasmany"][$indice]['cliente_model'] = CrudGenerator::getModel($singular, "App\\" . ucfirst($singular))) {
                 unset($columns["hasmany"][$indice]);
             }
         }
@@ -410,7 +413,7 @@ trait CrudConfig
         foreach ($methods as $method) {
             $auxColumn = [];
             if ($method->getNumberOfParameters() == 0) {
-                $methodReturn = \Sirgrimorum\CrudGenerator\CrudGenerator::checkDocBlock($method->getDocComment(), '@return');
+                $methodReturn = CrudGenerator::checkDocBlock($method->getDocComment(), '@return');
                 //echo "<pre>" . print_r([$modeloClass,$method->name=>$methodReturn], true) . "</pre>";
                 if ($methodReturn == "" || $methodReturn == "Illuminate\Database\Eloquent\Relations\Relation" || $methodReturn == "Illuminate\Database\Eloquent\Relations\Model") {
                     if (is_a($modeloE->{$method->name}(), "Illuminate\Database\Eloquent\Relations\Relation")) {
@@ -418,7 +421,7 @@ trait CrudConfig
                         $relations[] = $method->name;
 
                         $related = $modeloE->{$method->name}()->getRelated();
-                        $datosQueryAux = \Sirgrimorum\CrudGenerator\CrudGenerator::splitQueryNames($modeloE->{$method->name}()->getQuery()->toSql());
+                        $datosQueryAux = CrudGenerator::splitQueryNames($modeloE->{$method->name}()->getQuery()->toSql());
                         $tipoRelacion = class_basename(get_class($modeloE->{$method->name}()));
                         switch ($tipoRelacion) {
                             case 'BelongsToMany':
@@ -506,7 +509,7 @@ trait CrudConfig
                                     "model" => get_class($related),
                                     "tabla" => $related->getTable(),
                                     "id" => $related->getKeyName(),
-                                    "name" => \Sirgrimorum\CrudGenerator\CrudGenerator::getNameAttribute($related),
+                                    "name" => CrudGenerator::getNameAttribute($related),
                                     "attributes" => $related->getConnection()->getSchemaBuilder()->getColumnListing($related->getTable()),
                                 ],
                             ],
@@ -529,7 +532,7 @@ trait CrudConfig
      */
     public static function buildConfig($modeloClass, $tabla, $modelo, $columns)
     {
-        $transPrefix = \Sirgrimorum\CrudGenerator\CrudGenerator::getPrefixFromFunction("__",  '__trans__');
+        $transPrefix = CrudGenerator::getPrefixFromFunction("__",  '__trans__');
         $config = [
             "modelo" => $modeloClass,
             "tabla" => $tabla,
@@ -568,15 +571,15 @@ trait CrudConfig
                                 'label' => $campo,
                                 'placeholder' => "",
                             ];
-                            if (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'html')) {
+                            if (CrudGenerator::getTypeByName($campo, 'html')) {
                                 $configCampos[$campo]['tipo'] = "html";
-                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'article')) {
+                            } elseif (CrudGenerator::getTypeByName($campo, 'article')) {
                                 $configCampos[$campo]['tipo'] = "article";
                                 $configCampos[$campo]['scope'] = "$tabla.$campo";
                                 $configCampos[$campo]['es_html'] = true;
                                 $rulesStr .= $prefixRules . 'with_articles';
                                 $prefixRules = "|";
-                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'file') || \Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'image')) {
+                            } elseif (CrudGenerator::getTypeByName($campo, 'file') || CrudGenerator::getTypeByName($campo, 'image')) {
                                 $configCampos[$campo]['tipo'] = "files";
                                 $configCampos[$campo]['pathImage'] = $tabla . "_" . $campo;
                                 $configCampos[$campo]['path'] = $tabla . "_" . $campo;
@@ -584,7 +587,7 @@ trait CrudConfig
                                 $rulesExtraArrayStr .= $prefixRulesExtraArray . 'file';
                                 $prefixRulesExtraArray = "|";
                                 $config['files'] = true;
-                                if (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'image')) {
+                                if (CrudGenerator::getTypeByName($campo, 'image')) {
                                     $rulesExtraArrayStr .= $prefixRulesExtraArray . 'image';
                                     $prefixRulesExtraArray = "|";
                                 }
@@ -648,28 +651,28 @@ trait CrudConfig
                                 'label' => $campo,
                                 'placeholder' => "",
                             ];
-                            if (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'email')) {
+                            if (CrudGenerator::getTypeByName($campo, 'email')) {
                                 $configCampos[$campo]['tipo'] = "email";
                                 $rulesStr .= $prefixRules . 'email';
                                 $prefixRules = "|";
-                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'article')) {
+                            } elseif (CrudGenerator::getTypeByName($campo, 'article')) {
                                 $configCampos[$campo]['tipo'] = "article";
                                 $configCampos[$campo]['scope'] = "$tabla.$campo";
                                 $configCampos[$campo]['es_html'] = true;
                                 $rulesStr .= $prefixRules . 'with_articles';
                                 $prefixRules = "|";
-                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'url')) {
+                            } elseif (CrudGenerator::getTypeByName($campo, 'url')) {
                                 $configCampos[$campo]['tipo'] = "url";
                                 $rulesStr .= $prefixRules . 'url';
                                 $prefixRules = "|";
-                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'color')) {
+                            } elseif (CrudGenerator::getTypeByName($campo, 'color')) {
                                 $configCampos[$campo]['tipo'] = "color";
-                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'password')) {
+                            } elseif (CrudGenerator::getTypeByName($campo, 'password')) {
                                 $configCampos[$campo]['tipo'] = "password";
                                 $configCampos[$campo]['hide'] = ["show", "list", "edit"];
                                 $rulesStr .= $prefixRules . 'alpha_num';
                                 $prefixRules = "|";
-                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'file') || \Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'image')) {
+                            } elseif (CrudGenerator::getTypeByName($campo, 'file') || CrudGenerator::getTypeByName($campo, 'image')) {
                                 $configCampos[$campo]['tipo'] = "file";
                                 $configCampos[$campo]['pathImage'] = $tabla . "_" . $campo;
                                 $configCampos[$campo]['path'] = $tabla . "_" . $campo;
@@ -677,12 +680,12 @@ trait CrudConfig
                                 $rulesStr .= $prefixRules . 'file';
                                 $prefixRules = "|";
                                 $config['files'] = true;
-                                if (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'image')) {
+                                if (CrudGenerator::getTypeByName($campo, 'image')) {
                                     $rulesStr .= $prefixRules . 'image';
                                     $prefixRules = "|";
                                 }
                             }
-                            if ($datos['lenght'] > 0  && $configCampos[$campo]['tipo'] != "article" &&  !(\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'file') || \Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($campo, 'image'))) {
+                            if ($datos['lenght'] > 0  && $configCampos[$campo]['tipo'] != "article" &&  !(CrudGenerator::getTypeByName($campo, 'file') || CrudGenerator::getTypeByName($campo, 'image'))) {
                                 $rulesStr .= $prefixRules . 'max:' . $datos['lenght'];
                                 $prefixRules = "|";
                             }
@@ -806,9 +809,9 @@ trait CrudConfig
                                         case 'text':
                                         case 'blob':
                                             $pivotColumnAux['type'] = 'textarea';
-                                            if (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'html')) {
+                                            if (CrudGenerator::getTypeByName($pivotColumn['name'], 'html')) {
                                                 $pivotColumnAux['type'] = "html";
-                                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || \Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
+                                            } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
                                                 $pivotColumnAux['type'] = "files";
                                                 $pivotColumnAux['pathImage'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
                                                 $pivotColumnAux['path'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
@@ -854,15 +857,15 @@ trait CrudConfig
                                         case 'text':
                                         default:
                                             $pivotColumnAux['type'] = "text";
-                                            if (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'email')) {
+                                            if (CrudGenerator::getTypeByName($pivotColumn['name'], 'email')) {
                                                 $pivotColumnAux['type'] = "email";
-                                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'url')) {
+                                            } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'url')) {
                                                 $pivotColumnAux['type'] = "url";
-                                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'color')) {
+                                            } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'color')) {
                                                 $pivotColumnAux['type'] = "color";
-                                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'password')) {
+                                            } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'password')) {
                                                 $pivotColumnAux['type'] = "password";
-                                            } elseif (\Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || \Sirgrimorum\CrudGenerator\CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
+                                            } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
                                                 $pivotColumnAux['type'] = "file";
                                                 $pivotColumnAux['pathImage'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
                                                 $pivotColumnAux['path'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
@@ -931,7 +934,7 @@ trait CrudConfig
                 foreach ($preConfig as $key => $value) {
                     if (!\Illuminate\Support\Arr::has($config, $key)) {
                         if (is_array($value)) {
-                            if ($auxValue = \Sirgrimorum\CrudGenerator\CrudGenerator::smartMergeConfig("", $value)) {
+                            if ($auxValue = CrudGenerator::smartMergeConfig("", $value)) {
                                 $config[$key] = $auxValue;
                             }
                         } elseif (is_object($value)) {
@@ -941,7 +944,7 @@ trait CrudConfig
                         }
                     } else {
                         if (is_array($value)) {
-                            if ($auxValue = \Sirgrimorum\CrudGenerator\CrudGenerator::smartMergeConfig($config[$key], $value)) {
+                            if ($auxValue = CrudGenerator::smartMergeConfig($config[$key], $value)) {
                                 $config[$key] = $auxValue;
                             } else {
                                 unset($config[$key]);
@@ -964,7 +967,7 @@ trait CrudConfig
                 $config = [];
                 foreach ($preConfig as $key => $value) {
                     if (is_array($value)) {
-                        if ($auxValue = \Sirgrimorum\CrudGenerator\CrudGenerator::smartMergeConfig("", $value)) {
+                        if ($auxValue = CrudGenerator::smartMergeConfig("", $value)) {
                             $config[$key] = $auxValue;
                         }
                     } elseif (is_object($value)) {
@@ -1011,9 +1014,9 @@ trait CrudConfig
         foreach ($array as $key => $item) {
             if (gettype($item) != "Closure Object") {
                 if (is_array($item)) {
-                    $result[$key] = \Sirgrimorum\CrudGenerator\CrudGenerator::translateConfig($item);
+                    $result[$key] = CrudGenerator::translateConfig($item);
                 } elseif (is_string($item)) {
-                    $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateDato($item);
+                    $item = CrudGenerator::translateDato($item);
                     $result[$key] = $item;
                 } else {
                     $result[$key] = $item;
@@ -1090,6 +1093,68 @@ trait CrudConfig
         }
     }
 
+    /**
+     * Get the config array but only with fields with certain value in certain column
+     *
+     * @param array $config Config array
+     * @param string $columna Column
+     * @param string|array $valor Value for the column
+     * @return array The new config array
+     */
+    public static function justWithValor($config, $columna, $valor)
+    {
+        $configValor = array_except($config, ['campos']);
+        $configValor['campos'] = [];
+        foreach ($config['campos'] as $campo => $configCampo) {
+            if (isset($configCampo[$columna])) {
+                if (is_array($valor)) {
+                    if (in_array(strtolower($configCampo[$columna]), $valor)) {
+                        $configValor['campos'][$campo] = $configCampo;
+                    }
+                } elseif (strtolower($configCampo[$columna]) == strtolower($valor)) {
+                    $configValor['campos'][$campo] = $configCampo;
+                }
+            }
+        }
+        return $configValor;
+    }
+
+    /**
+     * Get an array with only the field names from a config array.
+     * If columna and valor are set, return only the ones that have certain value in certain column
+     * 
+     * @param array $config Config array
+     * @param bool $nombreOriginal Optional If true, will use the name of the column in the table, not the one in the config array. Applies for relationship types
+     * @param string $columna Optional Column to look for
+     * @param string|array $valor Optional Value for the column to look for
+     * @return array The new config array 
+     */
+    public static function getCamposNames($config, $nombreOriginal = false, $columna = null, $valor = null){
+        $columns = [];
+        foreach($config['campos'] as $campo => $configCampo){
+            $campoPoner = "";
+            if ($columna == null || $valor == null){
+                $campoPoner = $campo;
+            }elseif (isset($configCampo[$columna])) {
+                if (is_array($valor)) {
+                    if (in_array(strtolower($configCampo[$columna]), $valor)) {
+                        $campoPoner = $campo;
+                    }
+                } elseif (strtolower($configCampo[$columna]) == strtolower($valor)) {
+                    $campoPoner = $campo;
+                }
+            }
+            if ($campoPoner != ""){
+                if ($nombreOriginal){
+                    if ($configCampo['tipo'] == "relationship" && CrudGenerator::hasRelation($config['modelo'], $campo)) {
+                        $campoPoner = (new $config['modelo']())->{$campo}()->getForeignKeyName();
+                    }
+                }
+                $columns[] = $campoPoner;
+            }
+        }
+        return $columns;
+    }
 
     /**
      * Check and load the necesary "todos" option form all fields in a configuration array
@@ -1100,61 +1165,169 @@ trait CrudConfig
     {
         foreach ($config['campos'] as $clave => $relacion) {
             if ($relacion['tipo'] == "relationship" || $relacion['tipo'] == "relationships" || $relacion['tipo'] == "relationshipssel") {
-                if (is_array($config['campos'][$clave]['todos'])) {
-                    if (\Sirgrimorum\CrudGenerator\CrudGenerator::countdim($config['campos'][$clave]['todos']) > 1) {
-                        try {
-                            $modeloM = ucfirst($relacion["modelo"]);
-                            $auxTodos = $modeloM::hydrate($config['campos'][$clave]['todos']);
-                            $config['campos'][$clave]['todos'] = $auxTodos;
-                        } catch (Exception $exc) {
-                        }
+                $config['campos'][$clave] = CrudGenerator::loadTodosForField($relacion, $clave, $config);
+            }
+        }
+        return $config;
+    }
+
+    /**
+     * Check and load the necesary "todos" option for a specific field in a configuration array
+     * 
+     * @param array $relacion The configuration array for that field
+     * @param string $clave The name of the column in the config array
+     * @param array $config Optional The configuration array for the model
+     * @param bool $conAdicional Optional Whether or not to add an aditional option, Default false
+     * @param string $adicionalText Optional The aditional text to show, default is trans("crudgenerator::admin.layout.labels.seleccione")
+     * @param string $adicionalValor Optional The aditional option value, default is "-"
+     * 
+     * @return array The configuration array for the field with "todos" option nomalized
+     */
+    public static function loadTodosForField($relacion, $clave = null, $config = null, $conAdicional = false, $adicionalText = null, $adicionalValor = "-" )
+    {
+        if ($relacion['tipo'] == "relationship" || $relacion['tipo'] == "relationships" || $relacion['tipo'] == "relationshipssel") {
+            if (is_array($relacion['todos'])) {
+                if (CrudGenerator::countdim($relacion['todos']) > 1) {
+                    try {
+                        $modeloM = ucfirst($relacion["modelo"]);
+                        $auxTodos = $modeloM::hydrate($relacion['todos']);
+                        $relacion['todos'] = $auxTodos;
+                    } catch (Exception $exc) {
                     }
                 }
-                if (!is_array($config['campos'][$clave]['todos'])) {
-                    if ($relacion['tipo'] == "relationship") {
-                        //$lista = array("-" => "-");
-                    }
-                    if ($config['campos'][$clave]['todos'] == "") {
-                        $modeloM = ucfirst($relacion["modelo"]);
+            }
+            if (!is_array($relacion['todos'])) {
+                if ($relacion['tipo'] == "relationship") {
+                    //$lista = array("-" => "-");
+                }
+                if (isset($relacion['separador'])) {
+                    $separador = $relacion['separador'];
+                } else {
+                    $separador = "-";
+                }
+                if ($relacion['todos'] == "") {
+                    $modeloM = ucfirst($relacion["modelo"]);
+                    if ($config == null || $clave == null || !($config != null && $clave != null && is_array($config) && array_has($config, 'query') && $config['query'] != null)) {
                         $modelosM = $modeloM::all();
                     } else {
-                        $modelosM = $config['campos'][$clave]['todos'];
+                        $registros = CrudGenerator::getListFromConfig($config);
+                        if ($registros instanceof Collection) {
+                            $modelosM = $registros->map(function ($objeto) use ($relacion, $separador) {
+                                return [$objeto->getKey() => CrudGenerator::getNombreDeLista($objeto, $relacion['campo'], $separador)];
+                            })->values()->unique()->toArray();
+                        }elseif ($registros instanceof Builder) {
+                            if ($relacion['tipo'] == "relationship") {
+                                $foreign = (new $config['modelo']())->{$clave}()->getForeignKeyName();
+                                $foreignQ =(new $config['modelo']())->{$clave}()->getQualifiedForeignKeyName();
+                                $ids = $registros->selectRaw("distinct {$foreignQ}")->get()->map(function ($objeto) use ($foreign) {
+                                    return $objeto->{$foreign};
+                                })->values()->unique()->toArray();
+                                $modelosM = $modeloM::whereIn($relacion['id'],$ids);
+                            }elseif ($relacion['tipo'] == "relationships") {
+                                $foreignQ =(new $config['modelo']())->{$clave}()->getQualifiedForeignKeyName();
+                                $ids = $registros->selectRaw("distinct {$config['id']}")->get()->map(function ($objeto) use ($config) {
+                                    return $objeto->{$config['id']};
+                                })->values()->unique()->toArray();
+                                $modelosM = $modeloM::whereIn($foreignQ, $ids);
+                            }elseif ($relacion['tipo'] == "relationshipssel") {
+                                /**Pendiente */
+                                $modelosM = $modeloM::all();
+                            }else{
+                                $modelosM = $modeloM::all();
+                            }
+                        } else {
+                            $modelosM = $modeloM::all();
+                        }
                     }
-                    if (isset($relacion['separador'])) {
-                        $separador = $relacion['separador'];
-                    } else {
-                        $separador = "-";
-                    }
-                    if (isset($config['campos'][$clave]['groupby'])) {
-                        $groupBy = $config['campos'][$clave]['groupby'];
+                } elseif (is_callable($relacion['todos'])) {
+                    $modelosM = $relacion['todos']();
+                } else {
+                    $modelosM = $relacion['todos'];
+                }
+                if ($modelosM instanceof Builder) {
+                    $modelosM = $modelosM->get();
+                }
+                if ($modelosM instanceof Collection) {
+                    
+                    if (isset($relacion['groupby'])) {
+                        $groupBy = $relacion['groupby'];
                         $modelosM->sortBy(function ($elemento) use ($groupBy, $separador) {
-                            return \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($elemento, $groupBy, $separador);
+                            return CrudGenerator::getNombreDeLista($elemento, $groupBy, $separador);
                         });
                     }
                     $lista = [];
                     $auxlista = [];
                     $groupId = null;
                     foreach ($modelosM as $elemento) {
-                        if (isset($config['campos'][$clave]['groupby'])) {
-                            $nombreGroup = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($elemento, $config['campos'][$clave]['groupby'], $separador);
+                        if (isset($relacion['groupby'])) {
+                            $nombreGroup = CrudGenerator::getNombreDeLista($elemento, $relacion['groupby'], $separador);
                             if ($groupId === null || $groupId <> $nombreGroup) {
                                 if ($groupId !== null) {
                                     $lista[$groupId] = $auxlista;
                                     $auxlista = [];
                                 }
                             }
-                            $auxlista[$elemento->getKey()] = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($elemento, $relacion['campo'], $separador);
+                            $auxlista[$elemento->getKey()] = CrudGenerator::getNombreDeLista($elemento, $relacion['campo'], $separador);
                             $groupId = $nombreGroup;
                         } else {
-                            $lista[$elemento->getKey()] = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($elemento, $relacion['campo'], $separador);
+                            $lista[$elemento->getKey()] = CrudGenerator::getNombreDeLista($elemento, $relacion['campo'], $separador);
                         }
                     }
                     if (count($auxlista) > 0) {
                         $lista[$groupId] = $auxlista;
                     }
-                    $config['campos'][$clave]['todos'] = $lista;
+                    $relacion['todos'] = $lista;
+                } elseif (is_array($modelosM)) {
+                    $relacion['todos'] = $modelosM;
                 }
             }
+        }
+        if ($conAdicional){
+            if ($adicionalText == null){
+                $adicionalText = trans("crudgenerator::admin.layout.labels.seleccione");
+            }
+            $relacion['todos'] = [$adicionalValor => $adicionalText] + $relacion['todos'];
+        }
+        return $relacion;
+    }
+
+    /**
+     * Load default classes missing to a config array
+     * 
+     * @param array $config The current config array
+     * @return array The current config array with the missing default classes loaded
+     */
+    public static function loadDefaultClasses($config)
+    {
+        if (!isset($config['class_form'])) {
+            $config['class_form'] = '';
+        }
+        if (!isset($config['class_labelcont'])) {
+            $config['class_labelcont'] = 'col-xs-12 col-sm-3 col-md-2';
+        }
+        if (!isset($config['class_label'])) {
+            $config['class_label'] = 'col-form-label font-weight-bold mb-0 pb-0';
+        }
+        if (!isset($config['class_divinput'])) {
+            $config['class_divinput'] = 'col-xs-12 col-sm-8 col-md-10';
+        }
+        if (!isset($config['class_input'])) {
+            $config['class_input'] = '';
+        }
+        if (!isset($config['class_offset'])) {
+            $config['class_offset'] = 'offset-xs-0 offset-sm-4 offset-md-2';
+        }
+        if (!isset($config['class_button'])) {
+            $config['class_button'] = 'btn btn-primary';
+        }
+        if (!isset($config['class_formgroup'])) {
+            $config['class_formgroup'] = '';
+        }
+        if (!isset($config['pre_html'])) {
+            $config['pre_html'] = "";
+        }
+        if (!isset($config['post_html'])) {
+            $config['post_html'] = "";
         }
         return $config;
     }

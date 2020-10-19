@@ -3,6 +3,7 @@
 namespace Sirgrimorum\CrudGenerator\Traits;
 
 use Illuminate\Support\Facades\Storage;
+use Sirgrimorum\CrudGenerator\CrudGenerator;
 use Sirgrimorum\CrudGenerator\SuperClosure;
 
 trait CrudFiles
@@ -160,7 +161,7 @@ trait CrudFiles
     {
         $path = base_path('routes');
         if (!$localized) {
-            return \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('routes', $localized, $path, 'web.php', $config, 0764, "append");
+            return CrudGenerator::saveResource('routes', $localized, $path, 'web.php', $config, 0764, "append");
         }
 
         $modeloM = ucfirst(basename($config['modelo']));
@@ -185,7 +186,7 @@ trait CrudFiles
             }
             if ($inicio == -1) {
                 $path = base_path('routes');
-                return \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('routes', $localized, $path, 'web.php', $config, 0764, "append");
+                return CrudGenerator::saveResource('routes', $localized, $path, 'web.php', $config, 0764, "append");
             }
             if ($encontrado >= 0) {
                 return false;
@@ -334,39 +335,39 @@ trait CrudFiles
         if ($type == "controller" || $type == "all") {
 
             $path = app_path('Http/Controllers');
-            $resultController = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('controller', $localized, $path, $modeloM . 'Controller.php', $config);
+            $resultController = CrudGenerator::saveResource('controller', $localized, $path, $modeloM . 'Controller.php', $config);
             $bar->advance();
 
             $path = app_path('Http/Requests');
-            $resultRequest = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('request', $localized, $path, $modeloM . 'Request.php', $config);
+            $resultRequest = CrudGenerator::saveResource('request', $localized, $path, $modeloM . 'Request.php', $config);
             $bar->advance();
 
             $path = app_path('Policies');
-            $resultPolicy = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('policy', $localized, $path, $modeloM . 'Policy.php', $config);
+            $resultPolicy = CrudGenerator::saveResource('policy', $localized, $path, $modeloM . 'Policy.php', $config);
             $bar->advance();
 
             $path = app_path('Repositories');
-            $resultRepository = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('repository', $localized, $path, $modeloM . 'Repository.php', $config);
+            $resultRepository = CrudGenerator::saveResource('repository', $localized, $path, $modeloM . 'Repository.php', $config);
             $bar->advance();
         }
 
         if ($type == "views" || $type == "all") {
             $path = resource_path('views/models/' . $modelo);
-            $resultCreate = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('views.create', $localized, $path, 'create.blade.php', $config);
+            $resultCreate = CrudGenerator::saveResource('views.create', $localized, $path, 'create.blade.php', $config);
             $bar->advance();
 
-            $resultEdit = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('views.edit', $localized, $path, 'edit.blade.php', $config);
+            $resultEdit = CrudGenerator::saveResource('views.edit', $localized, $path, 'edit.blade.php', $config);
             $bar->advance();
 
-            $resultIndex = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('views.index', $localized, $path, 'index.blade.php', $config);
+            $resultIndex = CrudGenerator::saveResource('views.index', $localized, $path, 'index.blade.php', $config);
             $bar->advance();
 
-            $resultShow = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('views.show', $localized, $path, 'show.blade.php', $config);
+            $resultShow = CrudGenerator::saveResource('views.show', $localized, $path, 'show.blade.php', $config);
             $bar->advance();
         }
         if ($type == "routes" || $type == "all") {
             $path = base_path('routes');
-            $resultRoute = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('routes', $localized, $path, 'web.php', $config, 0764, "append");
+            $resultRoute = CrudGenerator::saveResource('routes', $localized, $path, 'web.php', $config, 0764, "append");
         }
         if ($type == "controller") {
             return [$resultController, $resultRequest, $resultPolicy, $resultRepository];
@@ -382,7 +383,7 @@ trait CrudFiles
     }
 
     /**
-     * Register a configuratio array file in the \Sirgrimorum\CrudGenerator\CrudGenerator config file
+     * Register a configuratio array file in the CrudGenerator config file
      * @param array $config Configuration array
      * @param string $path Path to the configuration array file relative to a configuration directory
      * @param string $config_path Optional Configuration directory, if "" use config_path()
@@ -458,7 +459,7 @@ trait CrudFiles
             $config_path = base_path($config_path . \Illuminate\Support\Str::start($path, "/"));
         }
         $path = $config_path;
-        $strConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::arrayToFile($config);
+        $strConfig = CrudGenerator::arrayToFile($config);
         $contents = file_put_contents($path, $strConfig);
         return $contents;
     }
@@ -472,7 +473,7 @@ trait CrudFiles
     public static function arrayToFile($array)
     {
         $strFile = "<?php" . chr(13) . chr(10) . chr(13) . chr(10) . "return [" . chr(13) . chr(10);
-        $strValue = \Sirgrimorum\CrudGenerator\CrudGenerator::arrayToFileWrite($array, 0);
+        $strValue = CrudGenerator::arrayToFileWrite($array, 0);
         $strFile .= $strValue . "];";
         return $strFile;
     }
@@ -492,7 +493,7 @@ trait CrudFiles
         $strArr = "";
         foreach ($array as $key => $value) {
             if (is_array($value)) {
-                $strValue = \Sirgrimorum\CrudGenerator\CrudGenerator::arrayToFileWrite($value, $numParent + 1);
+                $strValue = CrudGenerator::arrayToFileWrite($value, $numParent + 1);
                 $strArr .= $tabs . '"' . $key . '" => [' . chr(13) . chr(10) . $strValue . $tabs . '], ' . chr(13) . chr(10);
             } elseif (is_bool($value)) {
                 if ($value) {
@@ -534,7 +535,7 @@ trait CrudFiles
             'office' => ['application/mspowerpoint', 'application/msword', 'application/excel', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint'],
             'compressed' => ['application/x-compressed', 'application/zip', 'multipart/x-zip', 'application/x-zip-compressed'],
         ];
-        $mimeType = \Sirgrimorum\CrudGenerator\CrudGenerator::fileMime(strtolower($filename), $detalles);
+        $mimeType = CrudGenerator::fileMime(strtolower($filename), $detalles);
         foreach ($allowedMimeTypes as $type => $allowedMimeType) {
             if (in_array($mimeType, $allowedMimeType)) {
                 return $type;

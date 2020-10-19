@@ -9,6 +9,8 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Storage;
 
@@ -49,7 +51,18 @@ class CrudController extends BaseController
     public function show($modelo, $registro, Request $request)
     {
         $config = CrudGenerator::getConfigWithParametros($modelo);
-        return $this->devolver($request, $config, CrudGenerator::checkPermission($config, $registro), $registro);
+        $registroDevolver = $registro;
+        if (isset($config["query"]) && is_object($registro)) {
+            if (is_callable($config['query'])) {
+                $auxQuery = $config['query']();
+            } else {
+                $auxQuery = $config['query'];
+            }
+            if ($auxQuery instanceof Builder  || $auxQuery instanceof Collection || is_array($auxQuery)) {
+                $registroDevolver = $registro->{$config['id']};
+            }
+        }
+        return $this->devolver($request, $config, CrudGenerator::checkPermission($config, $registro), $registroDevolver);
     }
 
     public function edit($modelo, $registro, Request $request)
@@ -221,6 +234,11 @@ class CrudController extends BaseController
         //$plural = $modelo . 's';
         $plural = \Illuminate\Support\Str::plural($modelo);
         $modeloM = ucfirst($modelo);
+        if (!is_object($objeto)) {
+            $registro = $objeto;
+        } else {
+            $registro = $objeto->{$config['id']};
+        }
         $mensajes = [];
         if (is_array(trans("crudgenerator::admin.messages"))) {
             $mensajes = array_merge($mensajes, trans("crudgenerator::admin.messages"));
@@ -228,17 +246,9 @@ class CrudController extends BaseController
         if (is_array(trans("crudgenerator::' . strtolower($modelo) . '.messages"))) {
             $mensajes = array_merge($mensajes, trans("crudgenerator::' . strtolower($modelo) . '.messages"));
         }
-        if (!is_object($objeto)) {
-            $registro = $objeto;
-            if ($registro > 0) {
-                $objeto = $config["modelo"]::find($registro);
-            }
-        } else {
-            $registro = $objeto->{$config['id']};
-        }
         $tipoReturn = "content";
         if ($request->has('_return')) {
-            if (strtolower($request->_return) == 'purejson') {
+            if (strtolower($request->_return) == 'purejson' || strtolower($request->_return) == 'datatablesjson') {
                 $tipoReturn = "json";
             } elseif (strtolower($request->_return) == 'modal') {
                 $tipoReturn = "modal";
@@ -290,16 +300,23 @@ class CrudController extends BaseController
                         ];
                         break;
                     case "index":
-                        $result = CrudGenerator::lists_array($config, null, 'complete');
+                        if (strtolower($request->_return) == 'datatablesjson') {
+                            $result = CrudGenerator::lists_array($config, null, 'todo');
+                        } else {
+                            $result = CrudGenerator::lists_array($config, null, 'complete');
+                        }
                         break;
                     case "show":
                     case "edit":
-                        $result = CrudGenerator::registry_array($config, $registro, 'complete');
+                        $result = CrudGenerator::registry_array($config, $objeto, 'complete');
                         break;
                     case "store":
                     case "update":
                     case "destroy":
                         if ($registro > 0) {
+                            if (!is_object($objeto)) {
+                                $objeto = $config["modelo"]::find($registro);
+                            }
                             $mensajeStr = str_replace([":modelName", ":modelId"], [$objeto->{$config['nombre']}, $objeto->{$config['id']}], $mensajes[$action . "_success"]);
                         } else {
                             if (!is_array($extraDatos)) {
@@ -331,7 +348,7 @@ class CrudController extends BaseController
                             "modelo" => $modeloM,
                             "base_url" => route('sirgrimorum_home'),
                             "plural" => $plural,
-                            "registro" => $registro,
+                            "registro" => $objeto,
                             "config" => $config,
                         ])->render();
                         break;
@@ -339,6 +356,9 @@ class CrudController extends BaseController
                     case "update":
                     case "destroy":
                         if ($registro > 0) {
+                            if (!is_object($objeto)) {
+                                $objeto = $config["modelo"]::find($registro);
+                            }
                             $mensajeStr = str_replace([":modelName", ":modelId"], [$objeto->{$config['nombre']}, $objeto->{$config['id']}], $mensajes[$action . "_success"]);
                         } else {
                             if (!is_array($extraDatos)) {
@@ -363,13 +383,22 @@ class CrudController extends BaseController
                 }
             }
             if ($request->ajax() || $tipoReturn == 'json') {
-
-                $result = [
-                    'status' => 200,
-                    'statusText' => trans("crudgenerator::admin.messages.200"),
-                    'title' => $titulo,
-                    'result' => $result,
-                ];
+                if (strtolower($request->_return) == 'datatablesjson') {
+                    $result = [
+                        "draw"            => intval($request->input('draw')),
+                        "recordsTotal"    => intval($result[2]),
+                        "recordsFiltered" => intval($result[3]),
+                        "data"            => $result[1]
+                    ];
+                    return CrudGenerator::convert_from_latin1_to_utf8_recursively($result);
+                } else {
+                    $result = [
+                        'status' => 200,
+                        'statusText' => trans("crudgenerator::admin.messages.200"),
+                        'title' => $titulo,
+                        'result' => $result,
+                    ];
+                }
                 if ($request->has('callback')) {
                     return response()->json($result, 200)->setCallback($request->callback);
                 } else {

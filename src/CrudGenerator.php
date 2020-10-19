@@ -5,9 +5,12 @@ namespace Sirgrimorum\CrudGenerator;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Response;
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Sirgrimorum\CrudGenerator\CrudController;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use ReflectionClass;
@@ -131,17 +134,21 @@ class CrudGenerator
         //$config = CrudGenerator::translateConfig($config);
         $modelo = strtolower(class_basename($config["modelo"]));
         if ($registro == null) {
-            $modeloM = ucfirst($config['modelo']);
-            if ($id == null) {
-                $registro = $modeloM::first();
-            } elseif (is_object($id)) {
+            if ($id != null && is_object($id)) {
                 $registro = $id;
-                $id = $registro->getKey();
+                $id = $registro->{$config['id']};
             } else {
-                $registro = $modeloM::find($id);
+                $registro = CrudGenerator::registry_array($config, $id, 'complete');
+                $id = $registro[$config['id']];
+            }
+        }elseif($id == null){
+            if (is_array($registro)){
+                $id = $registro[$config['id']];
+            }else{
+                $id = $registro->{$config['id']};
             }
         }
-        if (!CrudGenerator::checkPermission($config, $registro->getKey(), 'show')) {
+        if (!CrudGenerator::checkPermission($config, $id, 'show')) {
             return View::make('sirgrimorum::crudgen.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
         }
         if (!$simple) {
@@ -238,7 +245,7 @@ class CrudGenerator
      * @param array $config Configuration array
      * @param boolean $modales Optional True if you want to use modals for the crud actions
      * @param boolean $simple Optional True for a simple view (just the table)
-     * @param Model() $registros Optional Array of objects to show
+     * @param Collection|Builder $registros Optional Collection of objects or query to show
      * @return HTML Table with the objects
      */
     public static function lists($config, $modales = false, $simple = false, $registros = null)
@@ -248,11 +255,14 @@ class CrudGenerator
             return View::make('sirgrimorum::crudgen.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
         }
         $modeloM = $config['modelo'];
-        if ($registros == null) {
-            $registros = $modeloM::all();
-            //$registros = $modeloM::all();
+        $usarAjax = Arr::get($config, 'ajax', false);
+        $serverSide = Arr::get($config, 'serverSide', false) && $usarAjax;
+        if ($usarAjax == false) {
+            if ($registros == null) {
+                $registros = CrudGenerator::lists_array($config, $registros, 'complete');
+            }
+            //$registros = CrudGenerator::filterWithQuery($registros, $config);
         }
-        $registros = \Sirgrimorum\CrudGenerator\CrudGenerator::filterWithQuery($registros, $config);
         if (!$simple) {
             $js_section = config("sirgrimorum.crudgenerator.js_section");
             $css_section = config("sirgrimorum.crudgenerator.css_section");
@@ -279,13 +289,16 @@ class CrudGenerator
             $config['botones'] = [
                 'show' => "<a class='btn btn-info' href='" . url($base_url . "/" . strtolower($modelo) . "/:modelId") . "' title='" . trans('crudgenerator::datatables.buttons.t_show') . " " . $singulares . "'>" . trans("crudgenerator::datatables.buttons.show") . "</a>",
                 'edit' => "<a class='btn btn-success' href='" . url($base_url . "/" . strtolower($modelo) . "/:modelId/edit") . "' title='" . trans('crudgenerator::datatables.buttons.t_edit') . " " . $singulares . "'>" . trans("crudgenerator::datatables.buttons.edit") . "</a>",
-                'remove' => "<a class='btn btn-danger' href='" . url($base_url . "/" . strtolower($modelo) . "/:modelId/destroy") . "' data-confirm='" . $textConfirm . "' data-yes='" . trans('crudgenerator::admin.layout.labels.yes') . "' data-no='" . trans('crudgenerator::admin.layout.labels.no') . "' data-confirmtheme='" . config('sirgrimorum.crudgenerator.confirm_theme') . "' data-confirmicon='" . config('sirgrimorum.crudgenerator.icons.confirm') . "' data-confirmtitle='' data-method='delete' rel='nofollow' title='" . trans('crudgenerator::datatables.buttons.t_remove') . " " . $plurales . "'>" . trans("crudgenerator::datatables.buttons.remove") . "</a>",
+                'remove' => "<a class='btn btn-danger' href='" . url($base_url . "/" . strtolower($modelo) . "/:modelId/destroy") . "' data-confirm='" . $textConfirm . "' data-yes='" . trans('crudgenerator::admin.layout.labels.yes') . "' data-no='" . trans('crudgenerator::admin.layout.labels.no') . "' data-confirmtheme='" . config('sirgrimorum.crudgenerator.confirm_theme') . "' data-confirmicon='" . config('sirgrimorum.crudgenerator.confirm_icon') . "' data-confirmtitle='' data-method='delete' rel='nofollow' title='" . trans('crudgenerator::datatables.buttons.t_remove') . " " . $plurales . "'>" . trans("crudgenerator::datatables.buttons.remove") . "</a>",
                 'create' => "<a class='btn btn-info' href='" . url($base_url . "/" . strtolower($modelo) . "s/create") . "' title='" . trans('crudgenerator::datatables.buttons.t_create') . " " . $singulares . "'>" . trans("crudgenerator::datatables.buttons.create") . "</a>",
             ];
         }
         $view = View::make('sirgrimorum::crudgen.list', [
             'config' => $config,
             'registros' => $registros,
+            'usarAjax' => $usarAjax,
+            'serverSide' => $serverSide,
+            'tienePrefiltro' => CrudGenerator::hasValor($config, 'datatables', 'prefiltro'),
             'modales' => $modales,
             'js_section' => $js_section,
             'css_section' => $css_section,

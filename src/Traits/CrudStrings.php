@@ -179,9 +179,9 @@ trait CrudStrings
         foreach ($array as $key => $item) {
             if (gettype($item) != "Closure Object") {
                 if (is_array($item)) {
-                    $result[$key] = \Sirgrimorum\CrudGenerator\CrudGenerator::translateArray($array, $prefix, $function, $close);
+                    $result[$key] = CrudGenerator::translateArray($array, $prefix, $function, $close);
                 } elseif (is_string($item)) {
-                    $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, $prefix, $function, $close);
+                    $item = CrudGenerator::translateString($item, $prefix, $function, $close);
                     $result[$key] = $item;
                 } else {
                     $result[$key] = $item;
@@ -284,7 +284,7 @@ trait CrudStrings
      */
     public static function getPrefixFromFunction($function, $default = "")
     {
-        $prefixes = \Sirgrimorum\CrudGenerator\CrudGenerator::getPrefixesTranslateConfig();
+        $prefixes = CrudGenerator::getPrefixesTranslateConfig();
         $encontrado = array_search($function, $prefixes);
         if ($encontrado === false && $function == "__") {
             $encontrado = array_search("trans", $prefixes);
@@ -311,18 +311,18 @@ trait CrudStrings
      */
     public static function translateDato($item, $close = "__")
     {
-        $prefixes = \Sirgrimorum\CrudGenerator\CrudGenerator::getPrefixesTranslateConfig();
+        $prefixes = CrudGenerator::getPrefixesTranslateConfig();
         foreach ($prefixes as $prefix => $function) {
             if (is_string($item)) {
                 if ($function instanceof Closure) {
-                    $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, $prefix, $function);
+                    $item = CrudGenerator::translateString($item, $prefix, $function);
                 } elseif (is_string($function)) {
                     if (function_exists($function)) {
-                        $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, $prefix, $function);
+                        $item = CrudGenerator::translateString($item, $prefix, $function);
                     }
                 }
-            } elseif(is_array($item)) {
-                $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateArray($item, $prefix, $function, $close);
+            } elseif (is_array($item)) {
+                $item = CrudGenerator::translateArray($item, $prefix, $function, $close);
             }
         }
         return $item;
@@ -330,13 +330,19 @@ trait CrudStrings
 
     /**
      * Get if a Model has a relation
-     * @param string $model
+     * @param Object|string $model
      * @param string $key the attribute name for the relation
      * @return boolean Wheter the key attribute is a relation or not
      */
     public static function hasRelation($model, $key)
     {
-        return \Sirgrimorum\CrudGenerator\CrudGenerator::isFunctionOfType($model, $key, "Illuminate\Database\Eloquent\Relations\Relation");
+        if (is_string($model)) {
+            $model = (new $model());
+        }
+        if (is_object($model)) {
+            return CrudGenerator::isFunctionOfType($model, $key, "Illuminate\Database\Eloquent\Relations\Relation");
+        }
+        return false;
     }
 
     /**
@@ -348,11 +354,12 @@ trait CrudStrings
      */
     public static function isFunctionOfType($model, $key, $tipo = "Illuminate\Database\Eloquent\Collection")
     {
-        if (method_exists($model, $key)) {
-            return is_a($model->$key(), $tipo);
-        } else {
-            return false;
+        if (is_object($model)) {
+            if (method_exists($model, $key)) {
+                return is_a($model->$key(), $tipo);
+            }
         }
+        return false;
     }
 
     /**
@@ -387,7 +394,7 @@ trait CrudStrings
     public static function callFunction($model, $key, $args, $numArgs = false, $valorRelleno = false)
     {
         if ($numArgs === false) {
-            $numArgs = \Sirgrimorum\CrudGenerator\CrudGenerator::isFunction($model, $key);
+            $numArgs = CrudGenerator::isFunction($model, $key);
         }
         if ($numArgs !== false) {
             if ($numArgs > count($args)) {
@@ -431,7 +438,7 @@ trait CrudStrings
                                 if (strtolower($modelo) == "paymentpass") {
                                     $modeloClass = "Sirgrimorum\\PaymentPass\\Models\\PaymentPass";
                                     if (!class_exists($modeloClass)) {
-                                        //return 'There is no Model class for the model name "' . $modelo . '" ind the \Sirgrimorum\CrudGenerator\CrudGenerator::getConfig(String $modelo)';
+                                        //return 'There is no Model class for the model name "' . $modelo . '" ind the CrudGenerator::getConfig(String $modelo)';
                                         return false;
                                     }
                                 } else {
@@ -471,11 +478,93 @@ trait CrudStrings
     }
 
     /**
+     * Take a data array or the request with search directives for a given model and normalizes it to work with CrudGenerator filters.
+     * Accept datatables search querys
+     * 
+     * @param array $config Configuration array for the Model
+     * @param array $datos Optional the data. if empty, it will get the current request data.
+     * @param boolean|string $orOperation Optional boolean or the key of the or value in $datos. if True: use or operation (just one query must be true), false will use and operation (all the querys must be true).
+     * @param string $queryStr Optional the key of the query in $datos
+     * @param string $attriStr Optional the key of the attributes in $datos
+     * @param string $aByAStr Optional the key of the value indicating if the $query and $attribute must be evaluated one by one (ej: $query[0] vs $attribute[0] AND $query[1] vs $attribute[1], ...)
+     * @return array the normalize array of search directives
+     */
+    public static function normalizeDataForSearch($config, $datos = [], $orOperation = "_or", $queryStr = "_q", $attriStr = "_a", $aByAStr = "_aByA")
+    {
+        if (count($datos) == 0) {
+            $request = request();
+            if ($request->has($queryStr)) {
+                // Is a crudgenerator query
+                $datos = $request->all();
+            } else {
+                $columnas = CrudGenerator::getCamposNames($config);
+                $datos = $request->only([$orOperation]);
+                $atributos = [];
+                $atributosParaConfig = [];
+                $querys = [];
+                if ($request->has("columns")) {
+                    //is a datatables query
+                    $datos[$orOperation] = false;
+                    foreach ($request->input("columns") as $key => $columna) {
+                        if ($request->input("columns.$key.search.value") != "") {
+                            if (in_array($request->input("columns.$key.data"), $columnas)) {
+                                $attriR = $request->input("columns.$key.data");
+                                $queryR = $request->input("columns.$key.search.value");
+                                $attriFinal = $attriR;
+                                if (isset($config['campos'][$attriR])) {
+                                    if ($config['campos'][$attriR]['tipo'] == "relationship" && CrudGenerator::hasRelation($config['modelo'], $attriR)) {
+                                        $attriFinal = (new $config['modelo']())->{$attriR}()->getForeignKeyName();
+                                    }
+                                }
+                                $atributos[] = $attriFinal;
+                                $atributosParaConfig[] = $attriR;
+                                $querys[] = $queryR;
+                            }
+                        }
+                    }
+                    if (!empty($request->input('search.value'))) {
+                        $search = $request->input('search.value');
+                        foreach ($columnas as $attriR) {
+                            $attriFinal = $attriR;
+                            if (isset($config['campos'][$attriR])) {
+                                $querys[] = "*%{$search}";
+                                $atributos[] = $attriFinal;
+                                $atributosParaConfig[] = $attriFinal;
+                            }
+                        }
+                    }
+                } else {
+                    //are from a regular form
+                    foreach (request()->except(['_token', '_return', $orOperation]) as $attriR => $queryR) {
+                        if (in_array($attriR, $columnas)) {
+                            $attriFinal = $attriR;
+                            if (isset($config['campos'][$attriR])) {
+                                if ($config['campos'][$attriR]['tipo'] == "relationship" && CrudGenerator::hasRelation($config['modelo'], $attriR)) {
+                                    $attriFinal = (new $config['modelo']())->{$attriR}()->getForeignKeyName();
+                                }
+                            }
+                            $atributos[] = $attriFinal;
+                            $atributosParaConfig[] = $attriR;
+                            $querys[] = $queryR;
+                        }
+                    }
+                }
+                $datos[$attriStr] = json_encode($atributos);
+                $datos["{$attriStr}__C"] = json_encode($atributosParaConfig);
+                $datos[$queryStr] = json_encode($querys);
+                $datos[$aByAStr] = true;
+            }
+        }
+        //echo "<p>datos</p><pre>" . print_r($datos, true) . "</pre>";
+        return $datos;
+    }
+
+    /**
      * Know if a field name is of certain type by comparing it with a list of comonly used field names
      * of the same type.
      *
      * @param string $name The field name
-     * @param array|string $options The probable type name or array of options
+     * @param array|string $options The probable type name
      * @return boolean True if the $name is found in the probable names list for $option type
      */
     public static function getTypeByName($name, $options)
@@ -566,7 +655,7 @@ trait CrudStrings
      */
     public static function getOpcionesDeCampo($modelo, $campo, $trans = true)
     {
-        if ($modeloClass = \Sirgrimorum\CrudGenerator\CrudGenerator::getModel($modelo, $modelo)) {
+        if ($modeloClass = CrudGenerator::getModel($modelo, $modelo)) {
             $modelo = strtolower(basename($modeloClass));
             if (is_array($campo)) {
                 $tiene = false;
@@ -617,10 +706,16 @@ trait CrudStrings
      */
     public static function isJsonString($json_string)
     {
-        if (strpos($json_string, "{") === false) {
-            return false;
+        if (is_string($json_string)) {
+            json_decode($json_string);
+            return (json_last_error() == JSON_ERROR_NONE);
+
+            if (strpos($json_string, "{") === false) {
+                return false;
+            }
+            return !preg_match('/[^,:{}\\[\\]0-9.\\-+Eaeflnr-u \\n\\r\\t]/', preg_replace('/"(\\.|[^"\\\\])*"/', '', $json_string));
         }
-        return !preg_match('/[^,:{}\\[\\]0-9.\\-+Eaeflnr-u \\n\\r\\t]/', preg_replace('/"(\\.|[^"\\\\])*"/', '', $json_string));
+        return false;
     }
 
     /**
@@ -754,12 +849,12 @@ trait CrudStrings
     public static function transRoute($route)
     {
         $app = app();
-        $locale = \Sirgrimorum\CrudGenerator\CrudGenerator::setLocale();
+        $locale = CrudGenerator::setLocale();
         //$locale = $app->getLocale();
         $routes = explode(".", $route);
         $base = "";
         if (count($routes) > 1) {
-            $base = \Sirgrimorum\CrudGenerator\CrudGenerator::transRouteModel($routes[0]);
+            $base = CrudGenerator::transRouteModel($routes[0]);
             if ($base != "") {
                 $base .= ".";
             }
@@ -784,7 +879,7 @@ trait CrudStrings
     public static function transRouteExternal($route)
     {
         $app = app();
-        $locale = \Sirgrimorum\CrudGenerator\CrudGenerator::setLocale();
+        $locale = CrudGenerator::setLocale();
         //$locale = $app->getLocale();
         $transroute = $app->translator->get($route, [], $locale);
         return $transroute;
@@ -929,11 +1024,11 @@ trait CrudStrings
 
         for ($i = 0; $i < $numSteps; $i++) {
             $lambda = round(380 + 400 * ($i / ($numSteps - 1)));
-            $rgb = \Sirgrimorum\CrudGenerator\CrudGenerator::setColors($lambda, $rgb);
-            $rgb = \Sirgrimorum\CrudGenerator\CrudGenerator::setFactor($lambda, $rgb);
-            $rgb["r"] = \Sirgrimorum\CrudGenerator\CrudGenerator::adjustColor($rgb["r"], $rgb["f"]);
-            $rgb["g"] = \Sirgrimorum\CrudGenerator\CrudGenerator::adjustColor($rgb["g"], $rgb["f"]);
-            $rgb["b"] = \Sirgrimorum\CrudGenerator\CrudGenerator::adjustColor($rgb["b"], $rgb["f"]);
+            $rgb = CrudGenerator::setColors($lambda, $rgb);
+            $rgb = CrudGenerator::setFactor($lambda, $rgb);
+            $rgb["r"] = CrudGenerator::adjustColor($rgb["r"], $rgb["f"]);
+            $rgb["g"] = CrudGenerator::adjustColor($rgb["g"], $rgb["f"]);
+            $rgb["b"] = CrudGenerator::adjustColor($rgb["b"], $rgb["f"]);
             $redHex = dechex($rgb["r"]);
             $redHex = (strlen($redHex) < 2) ? "0" . $redHex : $redHex;
             $greenHex = dechex($rgb["g"]);
@@ -954,7 +1049,7 @@ trait CrudStrings
     public static function countdim($array)
     {
         if (is_array(reset($array))) {
-            $return = \Sirgrimorum\CrudGenerator\CrudGenerator::countdim(reset($array)) + 1;
+            $return = CrudGenerator::countdim(reset($array)) + 1;
         } else {
             $return = 1;
         }
@@ -1075,7 +1170,7 @@ trait CrudStrings
                 break;
         }
         $icono =  Arr::get(config('sirgrimorum.crudgenerator.icons'), $tipoConfig, $default);
-        if ($conTag){
+        if ($conTag) {
             return "<i class='$icono $classAdicional' aria-hidden='true'></i>";
         }
         return $icono;

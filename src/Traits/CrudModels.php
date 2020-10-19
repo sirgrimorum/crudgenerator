@@ -2,11 +2,19 @@
 
 namespace Sirgrimorum\CrudGenerator\Traits;
 
+use Carbon\Carbon;
 use Error;
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
+use Sirgrimorum\CrudGenerator\CrudGenerator;
+use Illuminate\Support\Str;
+use Sirgrimorum\CrudGenerator\DynamicCompare;
 
 trait CrudModels
 {
@@ -21,9 +29,9 @@ trait CrudModels
     public static function checkPermission(array $config, $registro = 0, $action = "")
     {
         if ($action == "") {
-            if (stripos(request()->route()->getName(), "::") !== false){
+            if (stripos(request()->route()->getName(), "::") !== false) {
                 $action = substr(request()->route()->getName(), stripos(request()->route()->getName(), "::") + 2);
-            }else{
+            } else {
                 $action = substr(request()->route()->getName(), strripos(request()->route()->getName(), ".") + 1);
             }
         }
@@ -58,36 +66,114 @@ trait CrudModels
     }
 
     /**
+     * Get the list of models to use from a config array
+     * 
+     * @param array $config Configuration array
+     * @param Collection|Array|Builder $registros Optional Objects to show if null it will look for the 'query' field in config, if not found, will take all the records of model.
+     * 
+     * @return Collection|Builder The list of registros
+     */
+    public static function getListFromConfig($config, $registros = null)
+    {
+        if ($registros == null) {
+            if (isset($config['query'])) {
+                if (is_callable($config['query'])) {
+                    $auxQuery = $config['query']();
+                } else {
+                    $auxQuery = $config['query'];
+                }
+                if ($auxQuery instanceof Builder || $auxQuery instanceof Collection) {
+                    $registros = $auxQuery;
+                } elseif (is_array($auxQuery)) {
+                    $registros = collect($auxQuery);
+                } else {
+                    $modeloM = ucfirst($config['modelo']);
+                    $registros = $modeloM::whereRaw("(1=1)");
+                }
+            } else {
+                $modeloM = ucfirst($config['modelo']);
+                $registros = $modeloM::whereRaw("(1=1)");
+            }
+        } elseif (is_array($registros)) {
+            $registros = collect($registros);
+        }
+        return $registros;
+    }
+
+    /**
      * Generate a list of objects of a model in array format
      * Could returns an array with 2 arrays in it:
      * Complete, with value, label and data for each field in position 0
      * and Simple, only with value per field at position 1
      *
      * @param array $config Configuration array
-     * @param Model() $registros Optional Array of objects to show
-     * @param boolean|string $solo Optional if false, will return the complete an simple array, if 'simple' only the simple one, if 'complete' only the complete one
+     * @param Collection|Array|Builder $registros Optional Objects to show if null it will look for the 'query' field in config, if not found, will take all the records of model. Use start and length of request to paginate
+     * @param boolean|string $solo Optional if false or 'todo' will return the complete and simple array, if 'todo' will also return numTotal y numFiltrados, if 'simple' only the simple one, if 'complete' only the complete one
+     * @param Request $request Optional The current request
      * @return array with the objects in the config format
      */
-    public static function lists_array($config, $registros = null, $solo = 'complete')
+    public static function lists_array($config, $registros = null, $solo = 'complete', Request $request = null)
     {
-        //$config = \Sirgrimorum\CrudGenerator\CrudGenerator::translateConfig($config);
-        if ($registros == null) {
-            $modeloM = ucfirst($config['modelo']);
-            $registros = $modeloM::all();
+        //$config = CrudGenerator::translateConfig($config);
+        if ($request == null) {
+            $request = request();
         }
-        //if (request()->)
-        $registros = \Sirgrimorum\CrudGenerator\CrudGenerator::filterWithQuery($registros, $config);
+        $registros = CrudGenerator::getListFromConfig($config, $registros);
+        if ($registros instanceof Builder) {
+            $numTotal = DB::query()->fromSub($registros, "conteo")->count();
+            $registros = CrudGenerator::filterWithQuery($registros, $config);
+            $numFiltrados = DB::query()->fromSub($registros, "conteo")->count();
+            if (isset($request)) {
+                if ($request->has('start')) {
+                    $start = $request->input('start');
+                    $registros = $registros->offset($start);
+                }
+                if ($request->has('length')) {
+                    $limit = $request->input('length');
+                    $registros = $registros->limit($limit);
+                }
+            }
+            $registros = $registros->get();
+        } elseif ($registros instanceof Collection) {
+            $numTotal = count($registros);
+            $registros = CrudGenerator::filterWithQuery($registros, $config);
+            $numFiltrados = count($registros);
+            if (isset($request)) {
+                if ($request->has('start')) {
+                    $start = $request->input('start');
+                    if ($request->has('length')) {
+                        $limit = $request->input('length');
+                        $registros = $registros->slice($start, $limit);
+                    } else {
+                        $registros = $registros->slice($start);
+                    }
+                } elseif ($request->has('length')) {
+                    $limit = $request->input('length');
+                    $registros = $registros->slice(0, $limit);
+                }
+            }
+        } else {
+            return false;
+        }
         $return = [];
         $returnSimple = [];
         foreach ($registros as $registro) {
-            list($row, $rowSimple) = \Sirgrimorum\CrudGenerator\CrudGenerator::registry_array($config, $registro);
-            $return[] = $row;
-            $returnSimple[] = $rowSimple;
+            if ($solo == 'simple') {
+                $returnSimple[] = CrudGenerator::registry_array($config, $registro, $solo);
+            } elseif ($solo == 'complete') {
+                $return[] = CrudGenerator::registry_array($config, $registro, $solo);
+            } else {
+                list($row, $rowSimple) = CrudGenerator::registry_array($config, $registro, $solo);
+                $return[] = $row;
+                $returnSimple[] = $rowSimple;
+            }
         }
         if ($solo == 'simple') {
             return $returnSimple;
         } elseif ($solo == 'complete') {
             return $return;
+        } elseif ($solo == 'todo') {
+            return [$return, $returnSimple, $numTotal, $numFiltrados];
         } else {
             return [$return, $returnSimple];
         }
@@ -100,21 +186,27 @@ trait CrudModels
      * and Simple, only with value per field at position 1
      *
      * @param array $config Configuration array
-     * @param Model() $registro Optional object to show
+     * @param Model|int $registro Optional object or id of object (will look for it in config['query'] or model) to show if null or 0, it will look for config['query] or the model and get the first record
      * @param boolean|string $solo Optional if false, will return the complete an simple array, if 'simple' only the simple one, if 'complete' only the complete one
      * @return array with the attributes in the config format
      */
     public static function registry_array($config, $registro = null, $solo = false)
     {
         $modeloM = ucfirst($config['modelo']);
-        if ($registro == null) {
-            $value = $modeloM::first();
+        if ($registro != null && is_object($registro)) {
+            $value = $registro;
+            $registro = $value->{$config['id']};
         } else {
-            if (!is_object($registro)) {
-                $modeloM = ucfirst($config['modelo']);
-                $value = $modeloM::find($registro);
+            $query = CrudGenerator::getListFromConfig($config);
+            if ($registro == null || $registro == 0) {
+                $value = $query->first();
+                $registro = $value->{$config['id']};
             } else {
-                $value = $registro;
+                if ($query instanceof Collection) {
+                    $value = $query->firstWhere($config['id'], $registro);
+                } else {
+                    $value = $query->where($config['tabla'] . "." . $config['id'], "=", $registro)->first();
+                }
             }
         }
         $campos = $config['campos'];
@@ -142,7 +234,7 @@ trait CrudModels
             $value->getKeyName() => $value->getKey()
         ];
         foreach ($campos as $columna => $datos) {
-            $celda = \Sirgrimorum\CrudGenerator\CrudGenerator::field_array($value, $columna, $datos);
+            $celda = CrudGenerator::field_array($value, $columna, $datos);
             $row[$columna] = $celda;
             $rowSimple[$columna] = $celda['value'];
         }
@@ -173,7 +265,7 @@ trait CrudModels
      *      value: with the formated value of the field
      *
      * @param array $config Configuration array
-     * @param Model() $value The object
+     * @param Model $value The object
      * @param string $columna The field to show
      * @param array $config Optional The configuration array for the field
      * @return array with the values in the config format
@@ -183,7 +275,7 @@ trait CrudModels
         $config = [];
         $modelo = strtolower(class_basename(get_class($value)));
         if ($datos == "") {
-            $config = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfigWithParametros($modelo);
+            $config = CrudGenerator::getConfigWithParametros($modelo);
             if (isset($config['campos'][$columna])) {
                 if (is_array($config['campos'][$columna])) {
                     $datos = $config['campos'][$columna];
@@ -191,7 +283,7 @@ trait CrudModels
                     $celda = [
                         "data" => $value->{$columna},
                         "label" => $columna,
-                        "value" =>\Sirgrimorum\CrudGenerator\CrudGenerator::translateDato($value->{$columna})
+                        "value" => CrudGenerator::translateDato($value->{$columna})
                     ];
                     return $celda;
                 }
@@ -199,7 +291,7 @@ trait CrudModels
                 $celda = [
                     "data" => $value->{$columna},
                     "label" => $columna,
-                    "value" => \Sirgrimorum\CrudGenerator\CrudGenerator::translateDato($value->{$columna})
+                    "value" => CrudGenerator::translateDato($value->{$columna})
                 ];
                 return $celda;
             }
@@ -211,33 +303,75 @@ trait CrudModels
             $celdaData["pre"] = $datos["pre"];
         }
         if ($datos['tipo'] == "relationship") {
-            if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($value, $columna)) {
+            if (CrudGenerator::hasRelation($value, $columna)) {
                 if (array_key_exists('enlace', $datos)) {
-                    $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}], str_replace([urlencode(":modelId"), urlencode(": modelName")], [$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}], $datos['enlace'])) . '">';
+                    if (isset($datos['id'])) {
+                        $idField = $datos['id'];
+                    } else {
+                        $idField = "";
+                    }
+                    if (isset($datos['campo'])) {
+                        $nombreField = $datos['campo'];
+                    } else {
+                        $nombreField = "";
+                    }
+                    if ($idField != "" && isset($value->{$columna}->{$idField})) {
+                        $idValor = $value->{$columna}->{$idField};
+                    } else {
+                        $idValor = 0;
+                    }
+                    if ($nombreField != "" && isset($value->{$columna}->{$nombreField})) {
+                        $nombreValor = $value->{$columna}->{$nombreField};
+                    } else {
+                        $nombreValor = "";
+                    }
+                    $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$idValor, $nombreValor], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$idValor, $nombreValor], $datos['enlace'])) . '">';
+                } else {
+                    $auxcelda = '';
                 }
-                $celda['data'] = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
+                $celda['data'] = CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
                 $celda['label'] = $datos['label'];
-                $auxcelda = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
+                $auxcelda .= CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
                 if (array_key_exists('enlace', $datos)) {
-                    $auxcelda = '< / a>';
+                    $auxcelda .= '</a>';
                 }
                 $celda['value'] = $auxcelda;
             } else {
                 $celda = '-';
             }
         } elseif ($datos['tipo'] == "relationships") {
-            if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($value, $columna)) {
+            if (CrudGenerator::hasRelation($value, $columna)) {
                 $celda = [];
                 $auxcelda2 = "";
                 $prefijo = "<ul><li>";
                 foreach ($value->{$columna}()->get() as $sub) {
                     $auxcelda = "";
                     if (array_key_exists('enlace', $datos)) {
-                        $auxcelda2 .= $prefijo . '<a href = "' . str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre']}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}], $datos['enlace'])) . '">';
+                        if (isset($datos['id'])) {
+                            $idField = $datos['id'];
+                        } else {
+                            $idField = "";
+                        }
+                        if (isset($datos['campo'])) {
+                            $nombreField = $datos['campo'];
+                        } else {
+                            $nombreField = "";
+                        }
+                        if ($idField != "" && isset($sub->{$idField})) {
+                            $idValor = $sub->{$idField};
+                        } else {
+                            $idValor = 0;
+                        }
+                        if ($nombreField != "" && isset($sub->{$nombreField})) {
+                            $nombreValor = $sub->{$nombreField};
+                        } else {
+                            $nombreValor = "";
+                        }
+                        $auxcelda2 .= $prefijo . '<a href = "' . str_replace([":modelId", ":modelName"], [$idValor, $nombreValor], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$idValor, $nombreValor], $datos['enlace'])) . '">';
                     } else {
                         $auxcelda2 .= $prefijo;
                     }
-                    $auxcelda = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($sub, $datos['campo']);
+                    $auxcelda = CrudGenerator::getNombreDeLista($sub, $datos['campo']);
                     $auxcelda2 .= $auxcelda;
                     if (array_key_exists('enlace', $datos)) {
                         $auxcelda2 .= '</a>';
@@ -256,29 +390,57 @@ trait CrudModels
                 ];
             }
         } elseif ($datos['tipo'] == "relationshipssel") {
-            if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($value, $columna)) {
+            if (CrudGenerator::hasRelation($value, $columna)) {
                 $celda = [];
                 $auxcelda3 = "";
                 $prefijo = "<ul><li>";
+                $htmlShow = '<dl class="row border-top border-secondary">';
                 foreach ($value->{$columna}()->get() as $sub) {
                     $celda[$sub->getKey()] = [];
                     $auxcelda = "";
+                    $htmlShow .= '<dt class="col-sm-3 border-bottom border-secondary pt-2">';
                     if (array_key_exists('enlace', $datos)) {
-                        $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre']}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}], $datos['enlace'])) . '">';
+                        if (isset($datos['id'])) {
+                            $idField = $datos['id'];
+                        } else {
+                            $idField = "";
+                        }
+                        if (isset($datos['campo'])) {
+                            $nombreField = $datos['campo'];
+                        } else {
+                            $nombreField = "";
+                        }
+                        if ($idField != "" && isset($sub->{$idField})) {
+                            $idValor = $sub->{$idField};
+                        } else {
+                            $idValor = 0;
+                        }
+                        if ($nombreField != "" && isset($sub->{$nombreField})) {
+                            $nombreValor = $sub->{$nombreField};
+                        } else {
+                            $nombreValor = "";
+                        }
+                        $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$idValor, $nombreValor], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$idValor, $nombreValor], $datos['enlace'])) . '">';
+                        $htmlShow .= $auxcelda;
                     }
-                    $auxcelda2 = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($sub, $datos['campo']);
+                    $auxcelda2 = CrudGenerator::getNombreDeLista($sub, $datos['campo']);
+                    $htmlShow .= CrudGenerator::getNombreDeLista($sub, $datos['campo']);
                     $auxcelda .= $auxcelda2;
                     if (array_key_exists('enlace', $datos)) {
                         $auxcelda .= '</a>';
+                        $htmlShow .= '</a>';
                     }
                     $auxcelda3 .= $prefijo . $auxcelda;
                     $auxcelda4 = "";
                     $auxcelda5 = "";
                     $prefijo2 = "<ul><li>";
+                    $htmlShow .= '</dt>';
                     if (array_key_exists('columnas', $datos)) {
                         if (is_array($datos['columnas'])) {
                             if (is_object($sub->pivot)) {
                                 $celda[$sub->getKey()]['data'] = [];
+                                $htmlShow .= '<dd class="col-sm-9 border-bottom border-secondary mb-0 pb-2">' .
+                                    '<ul class="mb-0">';
                                 foreach ($datos['columnas'] as $infoPivote) {
                                     if ($infoPivote['type'] != "hidden" && $infoPivote['type'] != "label") {
                                         $celda[$sub->getKey()]['data'][$infoPivote['campo']] = ['label' => $infoPivote['label']];
@@ -291,14 +453,19 @@ trait CrudModels
                                         }
                                         $auxcelda4 .= $prefijo2 . $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] . "</li>";
                                         $prefijo2 = "<li>";
+                                        $htmlShow .= '<li>' .
+                                            $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] .
+                                            '</li>';
                                     } elseif ($infoPivote['type'] == "label") {
                                         if (isset($infoPivote['campo'])) {
-                                            $auxcelda5 = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($sub, $infoPivote['campo']);
+                                            $auxcelda5 = CrudGenerator::getNombreDeLista($sub, $infoPivote['campo']);
                                         } else {
                                             $auxcelda5 = $infoPivote['label'];
                                         }
                                     }
                                 }
+                                $htmlShow .= '</ul>' .
+                                    '</dd>';
                             }
                         }
                     }
@@ -314,10 +481,12 @@ trait CrudModels
                 if ($auxcelda3 != "") {
                     $auxcelda3 .= "</ul>";
                 }
+                $htmlShow .= '</dl>';
                 $celda = [
                     "data" => $celda,
                     "label" => $datos['label'],
-                    "value" => $auxcelda3
+                    "value" => $auxcelda3,
+                    "html_show" => $htmlShow,
                 ];
             } else {
                 $celda = '-';
@@ -406,13 +575,22 @@ trait CrudModels
                 'value' => $value->{$columna},
                 'data' => $value->{$columna},
             ];
-            if (\Sirgrimorum\CrudGenerator\CrudGenerator::urlType($value->{$columna}) == "youtube") {
-                $youtubeId = \Sirgrimorum\CrudGenerator\CrudGenerator::getYoutubeId($value->{$columna});
+            if (CrudGenerator::urlType($value->{$columna}) == "youtube") {
+                $youtubeId = CrudGenerator::getYoutubeId($value->{$columna});
                 $celda['embed'] = "https://www.youtube.com/embed/" . $youtubeId;
+                $celda['html_show'] = '<div class="card text-center" >' .
+                    '<iframe class="card-img-top" height="400" src="https://www.youtube.com/embed/' . $youtubeId . '" style="border: none;"></iframe>' .
+                    '<div clas="card-body" >' .
+                    '<h5 class="card-title">' . $value->{$columna} . '</h5>' .
+                    '</div>' .
+                    '</div>';
             } else {
                 $celda['embed'] = $value->{$columna};
+                $celda['html_show'] = "<a class='btn' href='{$value->{$columna}}' target='_blank'><i class='mt-2 " . CrudGenerator::getIcon('url') . "' aria-hidden='true'></i></a> {$value->{$columna}}";
             }
             $celda['label'] = $datos['label'];
+            $celda['html'] = "<a href='{{ $value->{$columna} }}' target='_blank'><i class='mt-2 " . CrudGenerator::getIcon('url') . "' aria-hidden='true'></i></a>";
+            $celda['html_cell'] = $celda['html'];
         } elseif ($datos['tipo'] == "article" && class_exists(config('sirgrimorum.transarticles.default_articles_model'))) {
             $modelClass = config('sirgrimorum.transarticles.default_articles_model');
             $langColumn = config('sirgrimorum.transarticles.default_lang_column');
@@ -435,6 +613,7 @@ trait CrudModels
             $celda = [
                 'value' => $strArticle,
                 'label' => $datos['label'],
+                'html_cell' => '<div style="max-height:200px;overflow-y:scroll;">' . $strArticle . '</div>',
             ];
             $celda['data'] = [];
             foreach (config("sirgrimorum.crudgenerator.list_locales") as $localeCode) {
@@ -450,19 +629,67 @@ trait CrudModels
                 }
             }
         } elseif ($datos['tipo'] == "json") {
-            $celda['data'] = json_decode($value->{$columna});
+            $celda['data'] = json_decode($value->{$columna}, true);
             $celda['label'] = $datos['label'];
             $celda['value'] = $value->{$columna};
+            $celda['html'] = "<pre>" . print_r($celda['data'], true) . "</pre>";
+            $celda['html_cell'] = '<div style="max-height:200px;overflow-y:scroll;">' . $celda['html'] . '</div>';
         } elseif ($datos['tipo'] == "file") {
             if ($value->{$columna} == "") {
                 $celda = '';
             } else {
                 $filename = \Illuminate\Support\Str::start($value->{$columna}, \Illuminate\Support\Str::finish($datos['path'], '\\'));
-                $tipoFile = \Sirgrimorum\CrudGenerator\CrudGenerator::filenameIs($value->{$columna}, $datos);
+                $tipoFile = CrudGenerator::filenameIs($value->{$columna}, $datos);
                 $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
                 $urlFile = route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
-                $tipoMime = \Sirgrimorum\CrudGenerator\CrudGenerator::fileMime(strtolower($filename), $datos);
-                $fileHtml = \Sirgrimorum\CrudGenerator\CrudGenerator::getHtmlParaFile($tipoFile, $urlFile, $auxprevioName, $tipoMime);
+                $tipoMime = CrudGenerator::fileMime(strtolower($filename), $datos);
+                $fileHtml = '<div class="card text-center">';
+                $titleFileHtml = $auxprevioName;
+                if ($value->{$columna} == "") {
+                    $fileHtmlCell = '-';
+                    $fileHtml = '-';
+                } elseif ($tipoFile == 'image') {
+                    $fileHtmlCell = '<figure class="figure">' .
+                        '<a class="text-secondary" href="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" target="_blank" >' .
+                        '<img src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" class="figure-img img-fluid rounded" alt="' . $auxprevioName . '">' .
+                        '<figcaption class="figure-caption">' . $auxprevioName . '</figcaption>' .
+                        '</a>' .
+                        '</figure>';
+                    $fileHtml .= '<a class="text-secondary" href="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" target="_blank" >' .
+                        '<img class="card-img-top" src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" alt="' . $auxprevioName . '">' .
+                        '</a>';
+                } else {
+                    $fileHtmlCell = '<ul class="fa-ul">' .
+                        '<li class="pl-2">' .
+                        CrudGenerator::getIcon($tipoFile, true, 'fa-li') .
+                        '<a class="text-secondary" href="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" target="_blank" >' .
+                        $auxprevioName .
+                        '</a>' .
+                        '</li>' .
+                        '</ul>';
+                    if ($tipoFile == 'video') {
+                        $fileHtml .= '<video class="card-img-top" controls preload="auto" height="300" >' .
+                            '<source src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" type="video/mp4" />' .
+                            '</video>';
+                    } elseif ($tipoFile == 'audio') {
+                        $fileHtml .= '<audio class="card-img-top" controls preload="auto" >' .
+                            '<source src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" type="audio/mpeg" />' .
+                            '</audio>';
+                    } elseif ($tipoFile == 'pdf') {
+                        $fileHtml .= '<iframe class="card-img-top" height="300" src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" style="border: none;"></iframe>';
+                    } else {
+                        $fileHtml .= '<div class="card-header">' .
+                            CrudGenerator::getIcon($tipoFile, true, 'fa-3x') .
+                            '</div>';
+                        $titleFileHtml = '<a class="text-secondary" href="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" target="_blank" >' .
+                            "{$titleFileHtml}" .
+                            '</a>';
+                    }
+                }
+                $fileHtml .= '<div class="card-body" >' .
+                    '<h5 class="card-title">' . $titleFileHtml . '</h5>' .
+                    '</div>' .
+                    '</div>';
                 $celda = [
                     "name" => $auxprevioName,
                     "value" => $filename,
@@ -470,7 +697,9 @@ trait CrudModels
                     "url" => $urlFile,
                     "label" => $datos['label'],
                     "type" => $tipoFile,
-                    "html" => $fileHtml,
+                    "html" => CrudGenerator::getHtmlParaFile($tipoFile, $urlFile, $auxprevioName, $tipoMime),
+                    "html_cell" => $fileHtmlCell,
+                    "html_show" => $fileHtmlCell,
                 ];
             }
         } elseif ($datos['tipo'] == "files") {
@@ -488,49 +717,113 @@ trait CrudModels
                 $celda['data'] = [];
                 $celda['label'] = $datos['label'];
                 $celda['value'] = $value->{$columna};
+                $fileHtml = '<div class="row">';
+                $fileHtmlCell = '<ul class="fa-ul">';
                 foreach ($auxprevios as $datoReg) {
-                    $filename =  \Illuminate\Support\Str::start($datoReg->file, \Illuminate\Support\Str::finish($datos['path'], '\\'));
-                    $tipoFile = \Sirgrimorum\CrudGenerator\CrudGenerator::filenameIs($datoReg->file, $datos);
-                    $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
-                    $urlFile = route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
-                    $tipoMime = \Sirgrimorum\CrudGenerator\CrudGenerator::fileMime(strtolower($filename), $datos);
-                    $fileHtml = \Sirgrimorum\CrudGenerator\CrudGenerator::getHtmlParaFile($tipoFile, $urlFile, $auxprevioName, $tipoMime);
-                    $celda['data'][] = [
-                        "name" => $datoReg->name,
-                        "value" => $filename,
-                        "url_public" => Storage::disk(\Illuminate\Support\Arr::get($datos, "disk", "local"))->url($filename),
-                        "url" => $urlFile,
-                        "type" => $tipoFile,
-                        "html" => $fileHtml,
-                    ];
+                    if (is_object($datoReg)) {
+                        $filename =  \Illuminate\Support\Str::start($datoReg->file, \Illuminate\Support\Str::finish($datos['path'], '\\'));
+                        $tipoFile = CrudGenerator::filenameIs($datoReg->file, $datos);
+                        $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
+                        $urlFile = route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
+                        $tipoMime = CrudGenerator::fileMime(strtolower($filename), $datos);
+                        $fileHtml = CrudGenerator::getHtmlParaFile($tipoFile, $urlFile, $auxprevioName, $tipoMime);
+                        $celda['data'][] = [
+                            "name" => $datoReg->name,
+                            "value" => $filename,
+                            "url_public" => Storage::disk(\Illuminate\Support\Arr::get($datos, "disk", "local"))->url($filename),
+                            "url" => $urlFile,
+                            "type" => $tipoFile,
+                            "html" => $fileHtml,
+                        ];
+                        $fileHtmlCell .= '<li class="pl-2">';
+                        if ($tipoFile == 'image') {
+                            $fileHtmlCell .= '<i class="' . CrudGenerator::getIcon('empty') . ' fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '"></i>';
+                        } else {
+                            $fileHtmlCell .= CrudGenerator::getIcon($tipoFile, true, 'fa-li');
+                        }
+                        $fileHtmlCell .= '<a class="text-secondary" href="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" target="_blank" >' .
+                            $datoReg->name .
+                            '</a>' .
+                            '</li>';
+                        $fileHtml .= '<div class="col-md-6 col-sm-12 col-xs-12">' .
+                            '<div class="card text-center">';
+                        $titleFileHtml = $datoReg->name;
+                        if ($tipoFile == 'image') {
+                            $fileHtml .= '<a class="text-secondary" href="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" target="_blank" >' .
+                                '<img class="card-img-top" src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '">' .
+                                '</a>';
+                        } elseif ($tipoFile == 'video') {
+                            $fileHtml .= '<video class="card-img-top" controls preload="auto" height="300" >' .
+                                '<source src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" type="video/mp4" />' .
+                                '</video>';
+                        } elseif ($tipoFile == 'audio') {
+                            $fileHtml .= '<audio class="card-img-top" controls preload="auto" >' .
+                                '<source src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" type="audio/mpeg" />' .
+                                '</audio>';
+                        } elseif ($tipoFile == 'pdf') {
+                            $fileHtml .= '<iframe class="card-img-top" height="300" src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" style="border: none;"></iframe>';
+                        } else {
+                            $fileHtml .= '<div class="card-header">' .
+                                CrudGenerator::getIcon($tipoFile, true, 'fa-3x') .
+                                '</div>';
+                            $titleFileHtml = '<a class="text-secondary" href="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" target="_blank" >' .
+                                "{$titleFileHtml}" .
+                                '</a>';
+                        }
+                        $fileHtml .= '<div class="card-body" >' .
+                            '<h5 class="card-title">' . $titleFileHtml . '</h5>' .
+                            '</div>' .
+                            '</div>' .
+                            '</div>';
+                    }
                 }
+                if (count($auxprevios) == 0) {
+                    $fileHtmlCell = "-";
+                    $fileHtml = "-";
+                } else {
+                    $fileHtmlCell .= '</ul>';
+                    $fileHtml .= '</div>';
+                }
+                $celda['html'] = $fileHtml;
+                $celda['html_cell'] = $fileHtmlCell;
             }
         } else {
             if (array_key_exists('enlace', $datos)) {
                 if (count($config) <= 0) {
                     $modelo = strtolower(class_basename(get_class($value)));
-                    $config = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfigWithParametros($modelo);
+                    $config = CrudGenerator::getConfigWithParametros($modelo);
                     $identificador = array_get($config, 'id', 'id');
                     $nombre = array_get($config, 'nombre', 'id');
                 }
                 $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $datos['enlace'])) . '">';
             }
+            $htmlCell = $auxcelda;
             if ($datos['tipo'] == "number" && isset($datos['format'])) {
                 if (is_array($datos['format'])) {
                     $auxcelda .= number_format($value->{$columna}, $datos['format'][0], $datos['format'][1], $datos['format'][2]);
                 } else {
                     $auxcelda .= number_format($value->{$columna});
                 }
+                $htmlCell = $auxcelda;
             } else {
                 $auxcelda .= $value->{$columna};
+                if ($datos['tipo'] == "html") {
+                    $htmlCell = '<div style="max-height:200px;overflow-y:scroll;">' . $value->{$columna} . '</div>';
+                } else {
+                    $htmlCell .= CrudGenerator::truncateText($value->{$columna});
+                }
             }
             $celda['data'] = $value->{$columna};
             $celda['label'] = $datos['label'];
 
             if (array_key_exists('enlace', $datos)) {
-                $auxcelda = '</a>';
+                $auxcelda .= '</a>';
+                if ($datos['tipo'] != "html") {
+                    $htmlCell .= '</a>';
+                }
             }
             $celda['value'] = $auxcelda;
+            $celda['html_cell'] = $htmlCell;
         }
         if (isset($datos["post"])) {
             $celdaData['post'] = $datos["post"];
@@ -545,12 +838,362 @@ trait CrudModels
         }
         if (isset($celda['pre']) && is_string($celda['value'])) {
             $celda['value'] = $celda['pre'] . $celda['value'];
+            if (isset($celda['html_show'])) {
+                $celda['html_show'] = $celda['pre'] . $celda['html_show'];
+            } elseif (isset($celda['html'])) {
+                $celda['html_show'] = $celda['pre'] . $celda['html'];
+            }
+            if (isset($celda['html_cell'])) {
+                $celda['html_cell'] = $celda['pre'] . $celda['html_cell'];
+            }
         }
         if (isset($celda['post']) && is_string($celda['value'])) {
             $celda['value'] = $celda['value'] . \Illuminate\Support\Str::start($celda['post'], " ");
+            if (isset($celda['html_show'])) {
+                $celda['html_show'] = $celda['html_show'] . \Illuminate\Support\Str::start($celda['post'], " ");
+            } elseif (isset($celda['html'])) {
+                $celda['html_show'] = $celda['html'] . \Illuminate\Support\Str::start($celda['post'], " ");
+            }
+            if (isset($celda['html_cell'])) {
+                $celda['html_cell'] = $celda['html_cell'] . \Illuminate\Support\Str::start($celda['post'], " ");
+            }
         }
-        $celda['value'] = \Sirgrimorum\CrudGenerator\CrudGenerator::translateDato($celda['value']);
+        $celda['value'] = CrudGenerator::translateDato($celda['value']);
+        if (isset($celda['html'])) {
+            $celda['html'] = CrudGenerator::translateDato($celda['html']);
+        }
+        if (isset($celda['html_show'])) {
+            $celda['html_show'] = CrudGenerator::translateDato($celda['html_show']);
+        }
+        if (isset($celda['html_cell'])) {
+            $celda['html_cell'] = CrudGenerator::translateDato($celda['html_cell']);
+        }
         return $celda;
+    }
+
+    /**
+     * Executes a filter query over a data using diferent operators
+     * 
+     * @param mixed $dato The data to compare
+     * @param string $query The query to execute, includes >, <, =, !=, null, not null, set:, notset:, contiene:, nocontiene:
+     * @param bool $negado Optional If true, will negate all the query operators, default false
+     * @return bool If the data complies with the query or not
+     */
+    public static function execFilterQuery($dato, $query, $negado = false)
+    {
+        $contiene = false;
+        if (stripos($query, "*%") !== false) {
+            $contiene = true;
+            $buscar = str_replace("*%", "", $query);
+        } else {
+            $buscar = $query;
+        }
+        $buscarExtra = null;
+        $operador = "";
+        if ($buscar == "else") {
+            $operador = "else";
+        } elseif (str_contains($buscar, "|")) {
+            $auxDatos = explode("|", $buscar);
+            if ($auxDatos[0] == "<" && $auxDatos[1] != ">") {
+                if ($negado) {
+                    $operador = ">";
+                } else {
+                    $operador = "<=";
+                }
+                $buscar = $auxDatos[1];
+            } elseif ($auxDatos[0] != "<" && $auxDatos[1] == ">") {
+                if ($negado) {
+                    $operador = "<";
+                } else {
+                    $operador = ">=";
+                }
+                $buscar = $auxDatos[0];
+            } elseif ($auxDatos[0] != "<" && $auxDatos[1] != ">") {
+                $buscar = $auxDatos[0];
+                if ($negado) {
+                    $operador = "noentre";
+                } else {
+                    $operador = "entre";
+                }
+                $buscarExtra = $auxDatos[1];
+            }
+        } elseif ((($buscar == "null" || Str::contains($buscar, "notset:")) && !$negado) || (($buscar == "not null" || Str::contains($buscar, "set:")) && $negado)) {
+            $buscar = str_replace(["notset:", "set:"], "", $buscar);
+            $operador = "notset";
+        } elseif ((($buscar == "null" || Str::contains($buscar, "notset:")) && $negado) || (($buscar == "not null" || Str::contains($buscar, "set:")) && !$negado)) {
+            $buscar = str_replace(["notset:", "set:"], "", $buscar);
+            $operador = "set";
+        } elseif (Str::contains($buscar, ">=")) {
+            $buscar = str_replace(">=", "", $buscar);
+            if ($negado) {
+                $operador = "<";
+            } else {
+                $operador = ">=";
+            }
+        } elseif (Str::contains($buscar, "<=")) {
+            $buscar = str_replace("<=", "", $buscar);
+            if ($negado) {
+                $operador = ">";
+            } else {
+                $operador = "<=";
+            }
+        } elseif (Str::contains($buscar, ">")) {
+            $buscar = str_replace(">", "", $buscar);
+            if ($negado) {
+                $operador = "<=";
+            } else {
+                $operador = ">";
+            }
+        } elseif (Str::contains($buscar, "<")) {
+            $buscar = str_replace("<", "", $buscar);
+            if ($negado) {
+                $operador = ">=";
+            } else {
+                $operador = "<";
+            }
+        } elseif ((Str::contains($buscar, "!=") && !$negado) || (Str::contains($buscar, "=") && $negado)) {
+            $buscar = str_replace(["!=", "="], "", $buscar);
+            $operador = "!=";
+        } elseif ((Str::contains($buscar, "!=") && $negado) || (Str::contains($buscar, "=") && !$negado)) {
+            $buscar = str_replace(["!=", "="], "", $buscar);
+            $operador = "==";
+        } elseif ((Str::contains($buscar, "contiene:") && !$negado) || (Str::contains($buscar, "nocontiene:") && $negado)) {
+            $buscar = str_replace(["nocontiene:", "contiene:"], "", $buscar);
+            $operador = "contiene";
+        } elseif ((Str::contains($buscar, "contiene:") && $negado) || (Str::contains($buscar, "nocontiene:") && !$negado)) {
+            $buscar = str_replace(["nocontiene:", "contiene:"], "", $buscar);
+            $operador = "nocontiene";
+        } else {
+            if (!$contiene) {
+                if ($negado) {
+                    $operador = "!=";
+                } else {
+                    $operador = "==";
+                }
+            } else {
+                if ($negado) {
+                    $operador = "nocontiene";
+                } else {
+                    $operador = "contiene";
+                }
+            }
+        }
+        //echo "<p>ejecutando comparación</p><pre>" . print_r([$dato, $buscar, $operador, $buscarExtra], true) . "</pre>";
+        $comparador = new DynamicCompare($dato, $buscar, $operador, $buscarExtra);
+        return $comparador->es();
+    }
+
+    /**
+     * Executes a filter query over a query Builder using diferent operators
+     * 
+     * @param array $config The configuration array
+     * @param string $campo The name of the field
+     * @param Builder $query The original Query Builder
+     * @param boolean $orOperation Optional (only when $registro is Builder), if use or operation, false will use and operation.
+     * @param bool $negado Optional If true, will negate all the query operators, default false
+     * @return Builder The new query Builder
+     */
+    public static function execQueryFilterQuery($config, $campo, $query, $buscar, $orOperation = true, $negado = false)
+    {
+        $columna = $config['campos'][$campo];
+        if ($columna['tipo'] == "relationship" && CrudGenerator::hasRelation($config['modelo'], $campo)) {
+            $campo = (new $config['modelo']())->{$campo}()->getForeignKeyName();
+        }
+        $contiene = false;
+        if (stripos($buscar, "*%") !== false) {
+            $contiene = true;
+            $buscar = str_replace("*%", "", $buscar);
+        } else {
+            $buscar = $buscar;
+        }
+        $operador = "";
+        if ($buscar == "else") {
+            //Pendiente
+        } elseif (str_contains($buscar, "|")) {
+            $auxDatos = explode("|", $buscar);
+            if ($columna["tipo"] == "date") {
+                $datos = [
+                    Carbon::parse($auxDatos[0])->toDateString(),
+                    Carbon::parse($auxDatos[1])->toDateString(),
+                ];
+                if ($negado) {
+                    if ($orOperation) {
+                        $query = $query->orWhereNotBetween($campo, $datos);
+                    } else {
+                        $query = $query->whereNotBetween($campo, $datos);
+                    }
+                } else {
+                    if ($orOperation) {
+                        $query = $query->orWhereBetween($campo, $datos);
+                    } else {
+                        $query = $query->whereBetween($campo, $datos);
+                    }
+                }
+            } elseif ($columna["tipo"] == "datetime") {
+                $datos = [
+                    Carbon::parse($auxDatos[0])->toDateTimeString(),
+                    Carbon::parse($auxDatos[1])->toDateTimeString(),
+                ];
+                if ($negado) {
+                    if ($orOperation) {
+                        $query = $query->orWhereNotBetween($campo, $datos);
+                    } else {
+                        $query = $query->whereNotBetween($campo, $datos);
+                    }
+                } else {
+                    if ($orOperation) {
+                        $query = $query->orWhereBetween($campo, $datos);
+                    } else {
+                        $query = $query->whereBetween($campo, $datos);
+                    }
+                }
+            } elseif ($columna["tipo"] == "time") {
+                $datos = [
+                    Carbon::parse($auxDatos[0])->toTimeString(),
+                    Carbon::parse($auxDatos[1])->toTimeString(),
+                ];
+                if ($negado) {
+                    if ($orOperation) {
+                        $query = $query->orWhereNotBetween($campo, $datos);
+                    } else {
+                        $query = $query->whereNotBetween($campo, $datos);
+                    }
+                } else {
+                    if ($orOperation) {
+                        $query = $query->orWhereBetween($campo, $datos);
+                    } else {
+                        $query = $query->whereBetween($campo, $datos);
+                    }
+                }
+            } elseif ($auxDatos[0] == "<" && $auxDatos[1] != ">") {
+                if ($negado) {
+                    $operador = ">";
+                } else {
+                    $operador = "<=";
+                }
+                $buscar = $auxDatos[1];
+                if ($orOperation) {
+                    $query = $query->orWhereRaw("($campo $operador '$buscar' or $campo is null)");
+                } else {
+                    $query = $query->whereRaw("($campo $operador '$buscar' or $campo is null)");
+                }
+                $operador = "";
+            } elseif ($auxDatos[0] != "<" && $auxDatos[1] == ">") {
+                if ($negado) {
+                    $operador = "<";
+                } else {
+                    $operador = ">=";
+                }
+                $buscar = $auxDatos[0];
+            } elseif ($auxDatos[0] != "<" && $auxDatos[1] != ">") {
+                $buscar = $auxDatos[0];
+                if ($negado) {
+                    if ($orOperation) {
+                        $query = $query->orWhereNotBetween($campo, $auxDatos);
+                    } else {
+                        $query = $query->whereNotBetween($campo, $auxDatos);
+                    }
+                } else {
+                    if ($orOperation) {
+                        $query = $query->orWhereBetween($campo, $auxDatos);
+                    } else {
+                        $query = $query->whereBetween($campo, $auxDatos);
+                    }
+                }
+            }
+        } elseif ((($buscar == "null" || Str::contains($buscar, "notset:")) && !$negado) || (($buscar == "not null" || Str::contains($buscar, "set:")) && $negado)) {
+            $buscar = str_replace(["notset:", "set:"], "", $buscar);
+            if ($orOperation) {
+                $query = $query->orWhereNull($campo);
+            } else {
+                $query = $query->whereNull($campo);
+            }
+        } elseif ((($buscar == "null" || Str::contains($buscar, "notset:")) && $negado) || (($buscar == "not null" || Str::contains($buscar, "set:")) && !$negado)) {
+            $buscar = str_replace(["notset:", "set:"], "", $buscar);
+            if ($orOperation) {
+                $query = $query->orWhereNotNull($campo);
+            } else {
+                $query = $query->whereNotNull($campo);
+            }
+        } elseif (Str::contains($buscar, ">=")) {
+            $buscar = str_replace(">=", "", $buscar);
+            if ($negado) {
+                $operador = "<";
+            } else {
+                $operador = ">=";
+            }
+        } elseif (Str::contains($buscar, "<=")) {
+            $buscar = str_replace("<=", "", $buscar);
+            if ($negado) {
+                $operador = ">";
+            } else {
+                $operador = "<=";
+            }
+        } elseif (Str::contains($buscar, ">")) {
+            $buscar = str_replace(">", "", $buscar);
+            if ($negado) {
+                $operador = "<=";
+            } else {
+                $operador = ">";
+            }
+        } elseif (Str::contains($buscar, "<")) {
+            $buscar = str_replace("<", "", $buscar);
+            if ($negado) {
+                $operador = ">=";
+            } else {
+                $operador = "<";
+            }
+        } elseif ((Str::contains($buscar, "!=") && !$negado) || (Str::contains($buscar, "=") && $negado)) {
+            $buscar = str_replace(["!=", "="], "", $buscar);
+            $operador = "<>";
+        } elseif ((Str::contains($buscar, "!=") && $negado) || (Str::contains($buscar, "=") && !$negado)) {
+            $buscar = str_replace(["!=", "="], "", $buscar);
+            $operador = "=";
+        } elseif ((Str::contains($buscar, "contiene:") && !$negado) || (Str::contains($buscar, "nocontiene:") && $negado)) {
+            $buscar = str_replace(["nocontiene:", "contiene:"], "", $buscar);
+            if ($orOperation) {
+                $query = $query->orWhereRaw("$campo LIKE '%$buscar%'");
+            } else {
+                $query = $query->whereRaw("$campo LIKE '%$buscar%'");
+            }
+        } elseif ((Str::contains($buscar, "contiene:") && $negado) || (Str::contains($buscar, "nocontiene:") && !$negado)) {
+            $buscar = str_replace(["nocontiene:", "contiene:"], "", $buscar);
+            if ($orOperation) {
+                $query = $query->orWhereRaw("$campo NOT LIKE '%$buscar%'");
+            } else {
+                $query = $query->whereRaw("$campo NOT LIKE '%$buscar%'");
+            }
+        } else {
+            if (!$contiene) {
+                if ($negado) {
+                    $operador = "<>";
+                } else {
+                    $operador = "=";
+                }
+            } else {
+                if ($negado) {
+                    if ($orOperation) {
+                        $query = $query->orWhereRaw("$campo NOT LIKE '%$buscar%'");
+                    } else {
+                        $query = $query->whereRaw("$campo NOT LIKE '%$buscar%'");
+                    }
+                } else {
+                    if ($orOperation) {
+                        $query = $query->orWhereRaw("$campo LIKE '%$buscar%'");
+                    } else {
+                        $query = $query->whereRaw("$campo LIKE '%$buscar%'");
+                    }
+                }
+            }
+        }
+        if ($operador != "") {
+            if ($orOperation) {
+                $query = $query->orWhereRaw("$campo $operador '$buscar'");
+            } else {
+                $query = $query->whereRaw("$campo $operador '$buscar'");
+            }
+        }
+        return $query;
     }
 
     /**
@@ -567,52 +1210,118 @@ trait CrudModels
      * Not aplicable for function or methods returns
      *
      * @param object $registro The model object
-     * @param string $query The query to evaluate
+     * @param string|array $query The query to evaluate
      * @param string $attri The attribute to compare
+     * @param boolean $orOperation Optional (only when $registro is Builder), if use or operation, false will use and operation.
      * @return boolean
      */
-    public static function evaluateFilterWithSingleQuery($registro, $query, $attri)
+    public static function evaluateFilterWithSingleQuery($registro, $query, $attri, $orOperation = true)
     {
-        //echo "<p>evaluando {$registro->name}</p><pre>" . print_r([$query, $attri], true) . "</pre>";
-        $contiene = false;
-        if (stripos($query, "*%") !== false) {
-            $contiene = true;
-            $query = str_replace("*%", "", $query);
-        }
-
-        if (($numArgs = \Sirgrimorum\CrudGenerator\CrudGenerator::isFunction($registro, $attri)) !== false) {
+        if (($numArgs = CrudGenerator::isFunction($registro, $attri)) !== false) {
             //echo "<p>NumArgs $numArgs</p>";
-            if (\Sirgrimorum\CrudGenerator\CrudGenerator::isJsonString($query)) {
+            if (CrudGenerator::isJsonString($query)) {
                 $queryArr = json_decode($query, true);
+            } elseif (is_array($query)) {
+                $queryArr = $query;
             } else {
                 $queryArr = [$query];
             }
-            $result = \Sirgrimorum\CrudGenerator\CrudGenerator::callFunction($registro, $attri, $queryArr, $numArgs);
-            if ($result === false || $result === null) {
+            $result = CrudGenerator::callFunction($registro, $attri, $queryArr, $numArgs);
+            //echo "<p>evaluando function {$registro->id}</p><pre>" . print_r([$query, $attri, $result], true) . "</pre>";
+            if ($result === false) {
                 return false;
+            } elseif ($result === true) {
+                return true;
             } else {
-                $queryObj = array_pop($queryArr);
-                if ($result != $queryObj) {
-                    return false;
-                }
-            }
-        } elseif (is_string($registro->{$attri})) {
-            //echo "<p> stripos es " . stripos($registro->{$attri}, $query) . " jajaj</p>";
-            if ($contiene) {
-                if (stripos($registro->{$attri}, $query) === false) {
-                    return false;
-                }
-            } else {
-                if ($registro->{$attri} != $query) {
-                    return false;
-                }
+                $query = array_pop($queryArr);
+                $dato = $result;
             }
         } else {
-            if ((string) $registro->{$attri} != $query) {
+            $dato = $registro->{$attri};
+        }
+        if (CrudGenerator::isJsonString($query)) {
+            $query = json_decode($query, true);
+        }
+        //echo "<p>comparando {$registro->id}</p><pre>" . print_r([$dato, $query, $orOperation], true) . "</pre>";
+        if (is_array($query)) {
+            foreach ($query as $queryStr) {
+                $result = CrudGenerator::execFilterQuery($dato, $queryStr);
+                if ($result === true) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            if (!CrudGenerator::execFilterQuery($dato, $query)) {
                 return false;
             }
         }
         return true;
+    }
+
+    /**
+     * Filter a query Builder with a single query.
+     *
+     * @param Builder $query The original Query Builder
+     * @param string|array $query The query to evaluate
+     * @param string $attri The attribute to compare
+     * @param array $config The configuration array
+     * @param boolean $orOperation Optional (only when $registro is Builder), if use or operation, false will use and operation.
+     * @return boolean
+     */
+    public static function evaluateQueryFilterWithSingleQuery($queryBuilder, $query, $attri, $config, $orOperation = true)
+    {
+        if (CrudGenerator::isJsonString($query)) {
+            $query = json_decode($query, true);
+        }
+        if (is_array($query)) {
+            if ($orOperation) {
+                $queryBuilder = $queryBuilder->orWhere(function ($subQuery) use ($query, $attri, $config) {
+                    foreach ($query as $queryStr) {
+                        $subQuery = CrudGenerator::execQueryFilterQuery($config, $attri, $subQuery, $queryStr, true);
+                    }
+                });
+            } else {
+                $queryBuilder = $queryBuilder->where(function ($subQuery) use ($query, $attri, $config) {
+                    foreach ($query as $queryStr) {
+                        $subQuery = CrudGenerator::execQueryFilterQuery($config, $attri, $subQuery, $queryStr, true);
+                    }
+                });
+            }
+        } else {
+            $queryBuilder = CrudGenerator::execQueryFilterQuery($config, $attri, $queryBuilder, $query, $orOperation);
+        }
+        return $queryBuilder;
+    }
+
+    /**
+     * Filter an object of a model with a query comparing against an attribute value.
+     *
+     *
+     * @param object|Builder $registro The model object or a Query Builder
+     * @param string|array $query The query or querys to compare
+     * @param string|array $attri The attribute or attributes to compare with. Could evaluate methods and functions.
+     * @param array $config Optional (only when $registro is Builder) Configuration array for the Model
+     * @param boolean $orOperation Optional (only when $registro is Builder), if use or operation, false will use and operation.
+     * @return boolean|Builder if $registro is a model, will return true or false, else will return a Builder with the necessary operations
+     */
+    public static function subEvaluateFilter($registro, $query, $attri, $config = null, $orOperation = true)
+    {
+        if (is_array($attri) || is_object($attri)) {
+            $attriStr = json_encode($attri);
+        } else {
+            $attriStr = $attri;
+        }
+        if (is_object($query)) {
+            $queryStr = json_encode($query);
+        } else {
+            $queryStr = $query;
+        }
+        if ($registro instanceof Builder) {
+            return CrudGenerator::evaluateQueryFilterWithSingleQuery($registro, $queryStr, $attriStr, $config, $orOperation);
+        } else {
+            return CrudGenerator::evaluateFilterWithSingleQuery($registro, $queryStr, $attriStr, $orOperation);
+        }
     }
 
     /**
@@ -623,137 +1332,115 @@ trait CrudModels
      * If $query contains "*%" it will erase them and evaluate if $query is contained in the attribute value.
      * Not aplicable for function or methods returns
      *
-     * @param object $registro The model object
+     * @param object|Builder $registro The model object or a Query Builder
      * @param string|array $query The query or querys to compare
      * @param string|array $attri The attribute or attributes to compare with. Could evaluate methods and functions.
      * @param boolean $orOperation Optional, if use or operation (just one query must be true), false will use and operation (all the querys must be true).
      * @param boolean $fbf Optional, default false. If the query and attributes arrays must be evaluated one by one (ej: $query[0] vs $attribute[0] AND $query[1] vs $attribute[1], ...) The size of $attri and $query must be the same
-     * @return boolean
+     * @param array $config Optional (only when $registro is Builder) Configuration array for the Model
+     * @return boolean|Builder if $registro is a model, will return true or false, else will return a Builder with the necessary operations
      */
-    public static function evaluateFilter($registro, $query, $attri, $orOperation = true, $fbf = false)
+    public static function evaluateFilter($registro, $query, $attri, $orOperation = true, $fbf = false, $config = null)
     {
         if ($fbf && isset($attri) == isset($query)) {
-            if (!count($attri) == count($query)) {
+            if (count($attri) != count($query)) {
                 $fbf = false;
             }
         } else {
             $fbf = false;
         }
-
+        //echo "<p>Evaluando filtro</p><pre>" . print_r([$fbf, $query, $attri, $orOperation, $config], true) . "</pre>";
         if ($fbf) {
-            for ($index = 0; $index < count($query); $index++) {
-                if (is_array($attri[$index]) || is_object($attri[$index])) {
-                    $attriStr = json_encode($attri[$index]);
-                } else {
-                    $attriStr = $attri[$index];
-                }
-                if (is_array($query[$index]) || is_object($query[$index])) {
-                    $queryStr = json_encode($query[$index]);
-                } else {
-                    $queryStr = $query[$index];
-                }
-                if (!\Sirgrimorum\CrudGenerator\CrudGenerator::evaluateFilterWithSingleQuery($registro, $queryStr, $attriStr)) {
-                    //echo "<p><strong>No</strong></p>";
-                    if (!$orOperation) {
-                        return false;
+            if ($registro instanceof Builder && $orOperation) {
+                $registro = $registro->where(function ($subQuery) use ($query, $attri, $config, $orOperation) {
+                    for ($index = 0; $index < count($query); $index++) {
+                        $subQuery = CrudGenerator::subEvaluateFilter($subQuery, $query[$index], $attri[$index], $config, $orOperation);
                     }
-                } else {
-                    //echo "<p><strong>Si</strong></p>";
-                    if ($orOperation) {
+                });
+            } else {
+                for ($index = 0; $index < count($query); $index++) {
+                    $result = CrudGenerator::subEvaluateFilter($registro, $query[$index], $attri[$index], $config, $orOperation);
+                    if ($result === false && !$orOperation) {
+                        return false;
+                    } elseif ($result === true && $orOperation) {
                         return true;
+                    } elseif ($result instanceof Builder) {
+                        $registro = $result;
                     }
                 }
             }
         } elseif (is_array($attri)) {
-            foreach ($attri as $attribute) {
-                if (is_array($attribute) || is_object($attribute)) {
-                    $attriStr = json_encode($attribute);
-                } else {
-                    $attriStr = $attribute;
-                }
-                if (is_array($query)) {
-                    foreach ($query as $singleQuery) {
-                        if (is_array($singleQuery) || is_object($singleQuery)) {
-                            $queryStr = json_encode($singleQuery);
+            if ($registro instanceof Builder && $orOperation) {
+                $registro = $registro->where(function ($subQuery) use ($query, $attri, $config, $orOperation) {
+                    foreach ($attri as $attribute) {
+                        if (is_array($query)) {
+                            foreach ($query as $singleQuery) {
+                                $subQuery = CrudGenerator::subEvaluateFilter($subQuery, $singleQuery, $attribute, $config, $orOperation);
+                            }
                         } else {
-                            $queryStr = $singleQuery;
+                            $subQuery = CrudGenerator::subEvaluateFilter($subQuery, $query, $attribute, $config, $orOperation);
                         }
-                        if (!\Sirgrimorum\CrudGenerator\CrudGenerator::evaluateFilterWithSingleQuery($registro, $queryStr, $attriStr)) {
-                            //echo "<p><strong>No</strong></p>";
-                            if (!$orOperation) {
+                    }
+                });
+            } else {
+                foreach ($attri as $attribute) {
+                    if (is_array($query)) {
+                        foreach ($query as $singleQuery) {
+                            $result = CrudGenerator::subEvaluateFilter($registro, $singleQuery, $attribute, $config, $orOperation);
+                            if ($result === false && !$orOperation) {
                                 return false;
-                            }
-                        } else {
-                            //echo "<p><strong>Si</strong></p>";
-                            if ($orOperation) {
+                            } elseif ($result === true && $orOperation) {
                                 return true;
+                            } elseif ($result instanceof Builder) {
+                                $registro = $result;
                             }
                         }
-                    }
-                } else {
-                    if (is_array($query) || is_object($query)) {
-                        $queryStr = json_encode($query);
                     } else {
-                        $queryStr = $query;
-                    }
-                    if (!\Sirgrimorum\CrudGenerator\CrudGenerator::evaluateFilterWithSingleQuery($registro, $queryStr, $attriStr)) {
-                        //echo "<p><strong>No</strong></p>";
-                        if (!$orOperation) {
+                        $result = CrudGenerator::subEvaluateFilter($registro, $query, $attribute, $config, $orOperation);
+                        if ($result === false && !$orOperation) {
                             return false;
-                        }
-                    } else {
-                        //echo "<p><strong>Si</strong></p>";
-                        if ($orOperation) {
+                        } elseif ($result === true && $orOperation) {
                             return true;
+                        } elseif ($result instanceof Builder) {
+                            $registro = $result;
                         }
                     }
                 }
             }
         } else {
-            if (is_array($attri) || is_object($attri)) {
-                $attriStr = json_encode($attri);
-            } else {
-                $attriStr = $attri;
-            }
             if (is_array($query)) {
-                foreach ($query as $singleQuery) {
-                    if (is_array($singleQuery) || is_object($singleQuery)) {
-                        $queryStr = json_encode($singleQuery);
-                    } else {
-                        $queryStr = $singleQuery;
-                    }
-                    if (!\Sirgrimorum\CrudGenerator\CrudGenerator::evaluateFilterWithSingleQuery($registro, $queryStr, $attriStr)) {
-                        //echo "<p><strong>No</strong></p>";
-                        if (!$orOperation) {
-                            return false;
+                if ($registro instanceof Builder && $orOperation) {
+                    $registro = $registro->where(function ($subQuery) use ($query, $attri, $config, $orOperation) {
+                        foreach ($query as $singleQuery) {
+                            $subQuery = CrudGenerator::subEvaluateFilter($subQuery, $singleQuery, $attri, $config, $orOperation);
                         }
-                    } else {
-                        //echo "<p><strong>Si</strong></p>";
-                        if ($orOperation) {
+                    });
+                } else {
+                    foreach ($query as $singleQuery) {
+                        $result = CrudGenerator::subEvaluateFilter($registro, $singleQuery, $attri, $config, $orOperation);
+                        if ($result === false && !$orOperation) {
+                            return false;
+                        } elseif ($result === true && $orOperation) {
                             return true;
+                        } elseif ($result instanceof Builder) {
+                            $registro = $result;
                         }
                     }
                 }
             } else {
-                if (is_array($query) || is_object($query)) {
-                    $queryStr = json_encode($query);
-                } else {
-                    $queryStr = $query;
-                }
-                if (!\Sirgrimorum\CrudGenerator\CrudGenerator::evaluateFilterWithSingleQuery($registro, $queryStr, $attriStr)) {
-                    //echo "<p><strong>No</strong></p>";
-                    if (!$orOperation) {
-                        return false;
-                    }
-                } else {
-                    //echo "<p><strong>Si</strong></p>";
-                    if ($orOperation) {
-                        return true;
-                    }
+                $result = CrudGenerator::subEvaluateFilter($registro, $query, $attri, $config, $orOperation);
+                if ($result === false && !$orOperation) {
+                    return false;
+                } elseif ($result === true && $orOperation) {
+                    return true;
+                } elseif ($result instanceof Builder) {
+                    $registro = $result;
                 }
             }
         }
-        if ($orOperation) {
+        if ($registro instanceof Builder) {
+            return $registro;
+        }elseif ($orOperation) {
             return false;
         } else {
             return true;
@@ -770,21 +1457,18 @@ trait CrudModels
      * If $query contains "*%" it will erase them and evaluate if $query is contained in the attribute value.
      * Not aplicable for function or methods returns
      *
-     * @param object $registros Collection of elocuent model objects
+     * @param Collection|Builder $registros Collection of elocuent model objects or a Query Builder
      * @param array $config Configuration array for the Model
      * @param array $datos Optional the data. if empty, it will get the current request data.
      * @param boolean|string $orOperation Optional boolean or the key of the or value in $datos. if True: use or operation (just one query must be true), false will use and operation (all the querys must be true).
      * @param string $queryStr Optional the key of the query in $datos
      * @param string $attriStr Optional the key of the attributes in $datos
      * @param string $aByAStr Optional the key of the value indicating if the $query and $attribute must be evaluated one by one (ej: $query[0] vs $attribute[0] AND $query[1] vs $attribute[1], ...)
-     * @return array Collection filtered
+     * @return Collection|Builder Collection filtered or Query Builder with the necesario operations performed
      */
     public static function filterWithQuery($registros, $config, $datos = [], $orOperation = "_or", $queryStr = "_q", $attriStr = "_a", $aByAStr = "_aByA")
     {
-        if (count($datos) == 0) {
-            $datos = request()->all();
-        }
-        //echo "<pre>" . print_r($datos, true) . "</pre>";
+        $datos = CrudGenerator::normalizeDataForSearch($config, $datos, $orOperation, $queryStr, $attriStr, $aByAStr);
         if (!is_bool($orOperation)) {
             if (isset($datos[$orOperation])) {
                 $orOperation = !($datos[$orOperation] === 'false');
@@ -794,25 +1478,45 @@ trait CrudModels
         }
         if (isset($datos[$queryStr])) {
             $query = $datos[$queryStr];
-            if (\Sirgrimorum\CrudGenerator\CrudGenerator::isJsonString($query)) {
+            if (CrudGenerator::isJsonString($query)) {
                 $query = json_decode($query, true);
             } elseif (stripos($query, "|")) {
                 $query = explode("|", $query);
             }
-            if (isset($datos[$attriStr])) {
-                $attri = $datos[$attriStr];
-                if (\Sirgrimorum\CrudGenerator\CrudGenerator::isJsonString($attri)) {
-                    $attri = json_decode($attri, true);
-                } elseif (stripos($attri, "|")) {
-                    $attri = explode("|", $attri);
-                }
-            } else {
-                $attri = $config['nombre'];
-            }
             $fbf = isset($datos[$aByAStr]);
-            $registros = $registros->filter(function ($registro) use ($query, $attri, $fbf, $orOperation) {
-                return \Sirgrimorum\CrudGenerator\CrudGenerator::evaluateFilter($registro, $query, $attri, $orOperation, $fbf);
-            });
+            if (is_array($registros)) {
+                $registros = collect($registros);
+            }
+            if ($registros instanceof Collection) {
+                if (isset($datos[$attriStr])) {
+                    $attri = $datos[$attriStr];
+                    if (CrudGenerator::isJsonString($attri)) {
+                        $attri = json_decode($attri, true);
+                    } elseif (stripos($attri, "|")) {
+                        $attri = explode("|", $attri);
+                    }
+                } else {
+                    $attri = $config['nombre'];
+                }
+                $registros = $registros->filter(function ($registro) use ($query, $attri, $fbf, $orOperation) {
+                    return CrudGenerator::evaluateFilter($registro, $query, $attri, $orOperation, $fbf);
+                });
+            } elseif ($registros instanceof Builder) {
+                if (isset($datos[$attriStr])) {
+                    $attri = $datos[$attriStr];
+                    if (isset($datos["{$attriStr}__C"])) {
+                        $attri = $datos["{$attriStr}__C"];
+                    }
+                    if (CrudGenerator::isJsonString($attri)) {
+                        $attri = json_decode($attri, true);
+                    } elseif (stripos($attri, "|")) {
+                        $attri = explode("|", $attri);
+                    }
+                } else {
+                    $attri = $config['nombre'];
+                }
+                $registros = CrudGenerator::evaluateFilter($registros, $query, $attri, $orOperation, $fbf, $config);
+            }
         }
         return $registros;
     }
@@ -879,7 +1583,7 @@ trait CrudModels
         }
         $auxIdCambio = $request->get($config["id"]);
 
-        $rules = \Sirgrimorum\CrudGenerator\CrudGenerator::translateArray($rules, ":model", function ($string) use ($auxIdCambio) {
+        $rules = CrudGenerator::translateArray($rules, ":model", function ($string) use ($auxIdCambio) {
             return $auxIdCambio;
         }, "Id");
         if (count($rules) > 0) {
@@ -973,7 +1677,7 @@ trait CrudModels
                             break;
                         case 'hidden':
                             if ($input->has($campo)) {
-                                if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($objModelo, $campo) && \Sirgrimorum\CrudGenerator\CrudGenerator::isJsonString($input->input($campo))) {
+                                if (CrudGenerator::hasRelation($objModelo, $campo) && CrudGenerator::isJsonString($input->input($campo))) {
                                     if (isset($detalles['id'])) {
                                         $idKeyName = $detalles['id'];
                                     } else {
@@ -989,13 +1693,13 @@ trait CrudModels
                             break;
                         case 'relationship':
                             if ($input->has($campo)) {
-                                if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($objModelo, $campo)) {
+                                if (CrudGenerator::hasRelation($objModelo, $campo)) {
                                     $objModelo->{$campo}()->associate($input->input($campo));
                                 } else {
                                     $objModelo->{$campo} = $input->input($campo);
                                 }
                             } elseif (isset($detalles['valor'])) {
-                                if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($objModelo, $campo)) {
+                                if (CrudGenerator::hasRelation($objModelo, $campo)) {
                                     $objModelo->{$campo}()->associate($detalles['valor']);
                                 } else {
                                     $objModelo->{$campo} = $detalles['valor'];
@@ -1040,11 +1744,11 @@ trait CrudModels
                             $existFile = $objModelo->{$campo};
                             $filename = "";
                             if ($input->has($campo)) {
-                                $filename = \Sirgrimorum\CrudGenerator\CrudGenerator::saveFileFromRequest($input, $campo, $detalles);
+                                $filename = CrudGenerator::saveFileFromRequest($input, $campo, $detalles);
                                 if ($filename !== false) {
                                     $objModelo->{$campo} = $filename;
                                     if ($existFile != "") {
-                                        \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile, \Illuminate\Support\Str::finish($detalles['path'], '\\')), \Illuminate\Support\Arr::get($detalles, "disk", "local"));
+                                        CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile, \Illuminate\Support\Str::finish($detalles['path'], '\\')), \Illuminate\Support\Arr::get($detalles, "disk", "local"));
                                     }
                                 } else {
                                     $filename = "";
@@ -1052,7 +1756,7 @@ trait CrudModels
                                 }
                             } else {
                                 if (!$input->has($campo . "_filereg") && $existFile != "") {
-                                    \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile, \Illuminate\Support\Str::finish($detalles['path'], '\\')), \Illuminate\Support\Arr::get($detalles, "disk", "local"));
+                                    CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile, \Illuminate\Support\Str::finish($detalles['path'], '\\')), \Illuminate\Support\Arr::get($detalles, "disk", "local"));
                                 } elseif ($input->has($campo . "_filereg") && $existFile != "") {
                                     $filename = $existFile;
                                 }
@@ -1070,7 +1774,7 @@ trait CrudModels
                             if ($input->has($campo)) {
                                 $paraGuardar = [];
                                 for ($index = 0; $index < count($input->$campo); $index++) {
-                                    $filename = \Sirgrimorum\CrudGenerator\CrudGenerator::saveFileFromRequest($input, $campo . "." . $index, $detalles);
+                                    $filename = CrudGenerator::saveFileFromRequest($input, $campo . "." . $index, $detalles);
                                     if ($filename !== false) {
                                         $paraGuardar[] = [
                                             "name" => $input->input($campo . "_name." . $index),
@@ -1103,7 +1807,7 @@ trait CrudModels
                                         }
                                     }
                                     if (!$esta) {
-                                        \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile['file'], \Illuminate\Support\Str::finish($detalles['path'], '\\')), \Illuminate\Support\Arr::get($detalles, "disk", "local"));
+                                        CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile['file'], \Illuminate\Support\Str::finish($detalles['path'], '\\')), \Illuminate\Support\Arr::get($detalles, "disk", "local"));
                                     }
                                 }
                                 $finalFiles = array_merge($finalFiles, $masFiles);
@@ -1174,11 +1878,11 @@ trait CrudModels
                             case 'relationships':
                                 if ($input->has($campo)) {
                                     //Cuidado porque elimina y crea objetos de tipo $campo
-                                    \Sirgrimorum\CrudGenerator\CrudGenerator::syncHasMany($objModelo, $campo, $input->input($campo), $config);
+                                    CrudGenerator::syncHasMany($objModelo, $campo, $input->input($campo), $config);
                                     //$objModelo->{$campo}()->sync($input->input($campo));
                                 } elseif (isset($detalles['valor'])) {
                                     //Cuidado porque elimina y crea objetos de tipo $campo
-                                    \Sirgrimorum\CrudGenerator\CrudGenerator::syncHasMany($objModelo, $campo, $detalles['valor'], $config);
+                                    CrudGenerator::syncHasMany($objModelo, $campo, $detalles['valor'], $config);
                                     //$objModelo->{$campo}()->sync($detalles['valor']);
                                 }
                                 break;
@@ -1333,7 +2037,7 @@ trait CrudModels
         $validadores = [];
         $tabla = $config['tabla'];
         foreach ($config['campos'] as $campo => $datos) {
-            if (\Sirgrimorum\CrudGenerator\CrudGenerator::inside_array($datos, "hide", $action) === false) {
+            if (CrudGenerator::inside_array($datos, "hide", $action) === false) {
                 if (isset($datos['conditional'])) {
                     if (is_array($datos['conditional'])) {
                         $validadores["{$tabla}_{$campo}"] = [];
