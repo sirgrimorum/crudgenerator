@@ -30,36 +30,7 @@ if (isset($config['relaciones'])) {
     $relaciones = $config['relaciones'];
 }
 $url = $config['url'];
-if (!isset($config['class_form'])) {
-    $config['class_form'] = '';
-}
-if (!isset($config['class_labelcont'])) {
-    $config['class_labelcont'] = 'col-xs-12 col-sm-3 col-md-2';
-}
-if (!isset($config['class_label'])) {
-    $config['class_label'] = 'col-form-label font-weight-bold mb-0 pb-0';
-}
-if (!isset($config['class_divinput'])) {
-    $config['class_divinput'] = 'col-xs-12 col-sm-8 col-md-10';
-}
-if (!isset($config['class_input'])) {
-    $config['class_input'] = '';
-}
-if (!isset($config['class_offset'])) {
-    $config['class_offset'] = 'offset-xs-0 offset-sm-4 offset-md-2';
-}
-if (!isset($config['class_button'])) {
-    $config['class_button'] = 'btn btn-primary';
-}
-if (!isset($config['class_formgroup'])) {
-    $config['class_formgroup'] = '';
-}
-if (!isset($config['pre_html'])){
-    $config['pre_html']="";
-}
-if (!isset($config['post_html'])){
-    $config['post_html']="";
-}
+$config = CrudGenerator::loadDefaultClasses($config);
 $action = 'create';
 ?>
 @include("sirgrimorum::crudgen.includes")
