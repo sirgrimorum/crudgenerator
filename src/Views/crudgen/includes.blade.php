@@ -1,5 +1,5 @@
 <?php
-if ($tieneSlider || $tieneDate || $tieneSelect || $tieneSearch || $tieneFile || $tieneJson) {
+if ($tieneSlider || $tieneDate || $tieneSelect || $tieneSearch || $tieneColor || $tieneFile || $tieneJson) {
     if ($css_section != "") {
         ?>
         @push($css_section)
@@ -100,7 +100,7 @@ if ($tieneSlider || $tieneDate || $tieneSelect || $tieneSearch || $tieneFile || 
 }
 list($condiciones,$validadores)= Sirgrimorum\CrudGenerator\CrudGenerator::buildConditionalArray($config,$action);
 //echo "<p>Condiciones</p><pre>" . print_r([$condiciones,$validadores], true) . "</pre>";
-if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || $tieneFile || $tieneJson || count($condiciones)>0) {
+if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || $tieneColor || $tieneFile || $tieneJson || count($condiciones)>0) {
     if ($js_section != "") {
         ?>
         @push($js_section)
