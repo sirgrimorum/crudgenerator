@@ -31,6 +31,15 @@ $valor_unchecked = 0;
 if (isset($datos['unchecked'])){
     $valor_unchecked = $datos['unchecked'];
 }
+if (isset($datos["readonly"])) {
+    if ($datos["readonly"] == "readonly"){
+        $readonly = "disabled='disabled'";
+    }else{
+        $readonly = $datos["readonly"];
+    }
+} else {
+    $readonly = "";
+}
 ?>
 <div class="form-group row {{$config['class_formgroup']}}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class="{{ $config['class_offset'] }} {{ $config['class_divinput'] }}">
@@ -47,7 +56,7 @@ if (isset($datos['unchecked'])){
         <div class="input-group mb-3">
             <div class="input-group-prepend">
                 <div class="input-group-text">
-                    {{ Form::radio($extraId, $valor, array('class' => 'form-check-input ' .$claseError, 'id' => $tabla . '_' . $extraId . '_' . $valor),$checked) }}
+                    {{ Form::radio($extraId, $valor, array('class' => 'form-check-input ' .$claseError, 'id' => $tabla . '_' . $extraId . '_' . $valor, $readonly),$checked) }}
                 </div>
             </div>
             <label class='form-control' for='{{$tabla . '_' . $extraId . '_' . $valor}}'>
@@ -75,7 +84,7 @@ if (isset($datos['unchecked'])){
         <div class="input-group mb-3">
             <div class="input-group-prepend">
                 <div class="input-group-text">
-                    {{ Form::radio($extraId, $datos['valor'], array('class' => 'form-check-input '  . $claseError, 'id' => $tabla . '_' . $extraId),$checked) }}
+                    {{ Form::radio($extraId, $datos['valor'], array('class' => 'form-check-input '  . $claseError, 'id' => $tabla . '_' . $extraId, $readonly),$checked) }}
                 </div>
             </div>
             <label class='form-control' for='{{$tabla . '_' . $extraId }}'>
