@@ -610,7 +610,6 @@ trait CrudConfig
                             if ($datos['autoincrement']) {
                                 $configCampos[$campo]['valor'] = $modeloClass::all()->count() + 1;
                                 $configCampos[$campo]['nodb'] = "nodb";
-                                $configCampos[$campo]['readonly'] = "readonly";
                             }
                             break;
                         case 'time':
@@ -633,7 +632,6 @@ trait CrudConfig
                             ];
                             if ($campo == 'created_at' || $campo == 'updated_at') {
                                 $configCampos[$campo]['nodb'] = "nodb";
-                                $configCampos[$campo]['readonly'] = "readonly";
                             }
                             break;
                         case 'boolean':
@@ -831,7 +829,6 @@ trait CrudConfig
                                             if ($pivotColumn['autoincrement']) {
                                                 //$pivotColumnAux['valor'] = $modeloClass::all()->count() + 1;
                                                 //$pivotColumnAux['nodb'] = "nodb";
-                                                //$pivotColumnAux['readonly'] = "readonly";
                                             }
                                             break;
                                         case 'time':
@@ -885,7 +882,6 @@ trait CrudConfig
                         $prefixRules = "|";
                         if ($datos['type'] == 'HasMany') {
                             $configCampos[$campo]['nodb'] = "nodb";
-                            $configCampos[$campo]['readonly'] = "readonly";
                         }
                         break;
                 }
@@ -1156,6 +1152,13 @@ trait CrudConfig
         return $columns;
     }
 
+    public static function turnNodbIntoReadonly($config){
+        CrudGenerator::forValor($config,"nodb","nodb",function($campo, $configCampo) use (&$config){
+            $config['campos'][$campo]["readonly"] = "readonly";
+        });
+        return $config;
+    }
+
     /**
      * Check and load the necesary "todos" option form all fields in a configuration array
      * @param array $config The configuration array
@@ -1219,13 +1222,13 @@ trait CrudConfig
                             if ($relacion['tipo'] == "relationship") {
                                 $foreign = (new $config['modelo']())->{$clave}()->getForeignKeyName();
                                 $foreignQ =(new $config['modelo']())->{$clave}()->getQualifiedForeignKeyName();
-                                $ids = $registros->selectRaw("distinct {$foreignQ}")->get()->map(function ($objeto) use ($foreign) {
+                                $ids = DB::query()->fromSub($registros, "ids")->selectRaw("distinct {$foreign}")->get()->map(function ($objeto) use ($foreign) {
                                     return $objeto->{$foreign};
                                 })->values()->unique()->toArray();
                                 $modelosM = $modeloM::whereIn($relacion['id'],$ids);
                             }elseif ($relacion['tipo'] == "relationships") {
                                 $foreignQ =(new $config['modelo']())->{$clave}()->getQualifiedForeignKeyName();
-                                $ids = $registros->selectRaw("distinct {$config['id']}")->get()->map(function ($objeto) use ($config) {
+                                $ids = DB::query()->fromSub($registros, "ids")->selectRaw("distinct {$config['id']}")->get()->map(function ($objeto) use ($config) {
                                     return $objeto->{$config['id']};
                                 })->values()->unique()->toArray();
                                 $modelosM = $modeloM::whereIn($foreignQ, $ids);

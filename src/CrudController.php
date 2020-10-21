@@ -349,7 +349,7 @@ class CrudController extends BaseController
                             "base_url" => route('sirgrimorum_home'),
                             "plural" => $plural,
                             "registro" => $objeto,
-                            "config" => $config,
+                            "config" => CrudGenerator::turnNodbIntoReadonly($config),
                         ])->render();
                         break;
                     case "store":
