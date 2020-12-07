@@ -87,8 +87,8 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
          */
         Validator::resolver(
                 function($translator, $data, $rules, $messages, $customAttributes ) {
-            return new ExtendedValidator($translator, $data, $rules, $messages, $customAttributes);
-        }
+                    return new ExtendedValidator($translator, $data, $rules, $messages, $customAttributes);
+                }
         );
 
         /**
