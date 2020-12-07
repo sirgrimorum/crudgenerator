@@ -116,5 +116,6 @@ return [
         'exists' => 'El valor escogido para el campo ":attribute"  no se encuentra en la base de datos',
         'unique_composite' => 'Ya existe un registro con la misma combinación de :fields',
         'with_articles' => 'Es obligatorio ingresar la versión en :langs del campo ":attribute"',
+        'older_than' => 'El valor del campo ":attribute" debe ser mayor a :min_age años',
     ],
 ];

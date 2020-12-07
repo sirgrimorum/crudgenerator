@@ -2,6 +2,7 @@
 
 namespace Sirgrimorum\CrudGenerator;
 
+use Carbon\Carbon;
 use Illuminate\Validation\Validator;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
 use Illuminate\Support\Arr;
@@ -19,23 +20,41 @@ class ExtendedValidator extends Validator {
         parent::__construct($translator, $data, $rules, $messages, $customAttributes);
 
         // Set custom validation error messages
-        if (!isset($this->messages['unique_composite'])) {
-            $this->messages['unique_composite'] = $this->translator->get(
+        if (!isset($this->customMessages['unique_composite'])) {
+            $this->customMessages['unique_composite'] = $this->translator->get(
                     "crudgenerator::admin.error_messages.unique_composite"
             );
         }
         // Set custom validation error messages
-        if (!isset($this->messages['with_articles'])) {
-            $this->messages['with_articles'] = $this->translator->get(
+        if (!isset($this->customMessages['with_articles'])) {
+            $this->customMessages['with_articles'] = $this->translator->get(
                     "crudgenerator::admin.error_messages.with_articles"
             );
         }
         // Set custom validation error messages
-        if (!isset($this->messages['unique_with'])) {
-            $this->messages['unique_with'] = $this->translator->get(
+        if (!isset($this->customMessages['unique_with'])) {
+            $this->customMessages['unique_with'] = $this->translator->get(
                     'uniquewith-validator::validation.unique_with'
             );
         }
+        // Set custom validation error messages
+        if (!isset($this->customMessages['older_than'])) {
+            $this->customMessages['older_than'] = __(
+                    'crudgenerator::admin.error_messages.older_than'
+            );
+        }
+    }
+
+    // Laravel uses this convention to look for validation rules, this function will be triggered
+    // for older_than
+    public function validateOlderThan($attribute, $value, $parameters) {
+        $minAge = ( ! empty($parameters)) ? (int) $parameters[0] : 18;
+        return Carbon::now()->diff(new Carbon($value))->y >= $minAge;
+    }
+
+    public function replaceOlderThan($message, $attribute, $rule, $parameters) {
+        $minAge = ( ! empty($parameters)) ? (int) $parameters[0] : 18;
+        return str_replace(':min_age', $minAge, $message);
     }
 
     // Laravel uses this convention to look for validation rules, this function will be triggered

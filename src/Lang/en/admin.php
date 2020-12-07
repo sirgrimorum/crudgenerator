@@ -104,5 +104,6 @@ return [
     'error_messages' => [
         'unique_composite' => 'Already exists a row with the same combination of :fields',
         'with_articles' => 'Is required to set a version in :langs for the field ":attribute"',
+        'older_than' => 'The value for the field ":attribute" must be over :min_age years old',
     ],
 ];
