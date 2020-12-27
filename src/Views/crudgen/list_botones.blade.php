@@ -170,7 +170,7 @@ if (is_string($butName)) {
                                                         if ($.type(data.result) == "object"){
                                                 $.alert({
                                                 theme: '{!!config("sirgrimorum.crudgenerator.success_theme")!!}',
-                                                        icon: '{!!config("sirgrimorum.crudgenerator.success_icon")!!}',
+                                                        icon: '{!!config("sirgrimorum.crudgenerator.icons.success")!!}',
                                                         title: data.title + ' - ' + data.statusText,
                                                         content: data.result.{{config("sirgrimorum.crudgenerator.status_messages_key")}},
                                                 });
@@ -183,7 +183,7 @@ if (is_string($butName)) {
                                                 } else{
                                                 $.alert({
                                                 theme: '{!!config("sirgrimorum.crudgenerator.error_theme")!!}',
-                                                        icon: '{!!config("sirgrimorum.crudgenerator.error_icon")!!}',
+                                                        icon: '{!!config("sirgrimorum.crudgenerator.icons.error")!!}',
                                                         title: data.title,
                                                         content: data.statusText,
                                                 });
@@ -203,7 +203,7 @@ if (is_string($butName)) {
                                                 }
                                                 $.alert({
                                                 theme: '{!!config("sirgrimorum.crudgenerator.error_theme")!!}',
-                                                        icon: '{!!config("sirgrimorum.crudgenerator.error_icon")!!}',
+                                                        icon: '{!!config("sirgrimorum.crudgenerator.icons.error")!!}',
                                                         title: title,
                                                         content: content,
                                                 });
