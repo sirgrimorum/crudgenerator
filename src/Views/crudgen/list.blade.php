@@ -204,14 +204,14 @@ if (old("__parametros","") != ""){
     <?php
 }
 if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.jquerytables_path"), ['http', '://'])) {
-    echo '<link href="' . config("sirgrimorum.crudgenerator.jquerytables_path") . '" rel="stylesheet" type="text/css">';
+    echo Sirgrimorum\CrudGenerator\CrudGenerator::addLinkTagLoaderHtml(config("sirgrimorum.crudgenerator.jquerytables_path"));
 } else {
-    echo '<link href="' . asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/datatables.min.css") . '" rel="stylesheet" type="text/css">';
+    echo Sirgrimorum\CrudGenerator\CrudGenerator::addLinkTagLoaderHtml(asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/datatables.min.css"));
 }
 if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
-    echo '<link href="' . config("sirgrimorum.crudgenerator.confirm_path") . '" rel="stylesheet" type="text/css">';
+    echo Sirgrimorum\CrudGenerator\CrudGenerator::addLinkTagLoaderHtml(config("sirgrimorum.crudgenerator.confirm_path"));
 } else {
-    echo '<link href="' . asset(config("sirgrimorum.crudgenerator.confirm_path") . "/css/jquery-confirm.min.css") . '" rel="stylesheet" type="text/css">';
+    echo Sirgrimorum\CrudGenerator\CrudGenerator::addLinkTagLoaderHtml(asset(config("sirgrimorum.crudgenerator.confirm_path") . "/css/jquery-confirm.min.css"));
 }
 if ($css_section != "") {
     ?>
