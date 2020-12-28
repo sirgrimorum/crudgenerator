@@ -1220,7 +1220,7 @@ trait CrudStrings
     /**
      * Add a link tag loader to a blade
      * @param string $href The path to the file
-     * @param string $tyrelpe Optional the rel attribute of the link tag, default is "stylesheet"
+     * @param string $rel Optional the rel attribute of the link tag, default is "stylesheet"
      * @param string $type Optional the type attribute of the link tag, default is "text/css"
      * @return string The script call for the scriptLoader function
      */
