@@ -99,11 +99,11 @@ if (isset($columnaT['campo']) && $columnaT['type'] != 'label') {
     <div class="card-header text-center">
         <div class="d-flex justify-content-between align-items-center">
             <div class="btn-group" role="group" aria-label="Third group">
-                <button type="button" class="btn btn-dark" data-toggle="collapse" href="#{{ $tabla . '_' . $columna . "_" . $tablaOtroId}}_info" title='{{ trans("crudgenerator::admin.layout.labels.info")}}'>{{ CrudGenerator::getIcon('info',true) }}</button>
+                <button type="button" class="btn btn-dark" data-toggle="collapse" href="#{{ $tabla . '_' . $columna . "_" . $tablaOtroId}}_info" title='{{ trans("crudgenerator::admin.layout.labels.info")}}'>{!! CrudGenerator::getIcon('info',true) !!}</button>
             </div>
             <span class="card-title mb-2 mt-2 mr-1 ml-1"><!--small>{{ $columnaT['label'] }}</small><br-->{{ $valorM }}</span>
             <div class="btn-group" role="group" aria-label="Third group">
-                <button type="button" class="btn btn-danger" onclick="quitarPivote('{{$columna . "_" . $tablaOtroId}}_principal','{{ $valorM }}')" title="{{trans("crudgenerator::admin.layout.labels.remove")}}">{{ CrudGenerator::getIcon('minus',true,'fa-lg') }}</button>
+                <button type="button" class="btn btn-danger" onclick="quitarPivote('{{$columna . "_" . $tablaOtroId}}_principal','{{ $valorM }}')" title="{{trans("crudgenerator::admin.layout.labels.remove")}}">{!! CrudGenerator::getIcon('minus',true,'fa-lg') !!}</button>
             </div>
         </div>
     </div>

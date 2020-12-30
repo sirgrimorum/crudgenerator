@@ -94,7 +94,7 @@
                                                         ?>
                                                         <div class="card text-center" >
                                                             <div class="card-header">
-                                                                {{ CrudGenerator::getIcon($tipoFile,true,'fa-3x') }}
+                                                                {!! CrudGenerator::getIcon($tipoFile,true,'fa-3x') !!}
                                                             </div>
                                                             <div clas="card-body" >
                                                                 <h5 class="card-title">
@@ -345,7 +345,7 @@
                                     <?php } else { ?>
                                         <ul class="fa-ul">
                                             <li class="pl-2">
-                                                {{ CrudGenerator::getIcon($tipoFile,true,'fa-li') }}
+                                                {!! CrudGenerator::getIcon($tipoFile,true,'fa-li') !!}
                                                 <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
                                                     {{$auxprevioName}}
                                                 </a>

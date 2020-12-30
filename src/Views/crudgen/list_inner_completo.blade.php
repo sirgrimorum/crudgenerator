@@ -182,7 +182,7 @@
                 @if ($tipoFile == 'image')
                 <i class="{{ CrudGenerator::getIcon('empty') }} fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="{{ route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}"></i>
                 @else
-                {{ CrudGenerator::getIcon($tipoFile,true,'fa-li') }}
+                {!! CrudGenerator::getIcon($tipoFile,true,'fa-li') !!}
                 @endif
                 <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
                     {{$auxprevioName}}
@@ -216,7 +216,7 @@
                 @if ($tipoFile == 'image')
                 <i class="{{ CrudGenerator::getIcon('empty') }} fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="{{ route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}"></i>
                 @else
-                {{ CrudGenerator::getIcon($tipoFile,true,'fa-li') }}
+                {!! CrudGenerator::getIcon($tipoFile,true,'fa-li') !!}
                 @endif
                 <a class="text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
                     {{$datoReg->name}}
