@@ -644,9 +644,9 @@ trait CrudModels
             } else {
                 [$filename, $urlFile] = CrudGenerator::getFileUrl($value->{$columna}, $value, $modelo, $columna, $datos, $config);
                 $tipoFile = CrudGenerator::filenameIs($value->{$columna}, $datos);
-                if (stripos($value->{$columna}, '__') !== false){
+                if (stripos($value->{$columna}, '__') !== false) {
                     $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
-                }else{
+                } else {
                     $auxprevioName = substr($value->{$columna}, 0, stripos($value->{$columna}, '.', 0));
                 }
                 $tipoMime = CrudGenerator::fileMime(strtolower($filename), $datos);
@@ -792,6 +792,31 @@ trait CrudModels
                 }
                 $celda['html'] = $fileHtml;
                 $celda['html_cell'] = $fileHtmlCell;
+            }
+        } elseif ($datos['tipo'] == "color") {
+            $celda = [
+                'value' => $value->{$columna},
+                'data' => $value->{$columna},
+            ];
+            $celda['label'] = $datos['label'];
+            $color = false;
+            if (!isset($value->{$columna}) && isset($datos['valor'])) {
+                $color = $datos['valor'];
+            } elseif (isset($value->{$columna})) {
+                $color = $value->{$columna};
+            }
+            if ($color) {
+                $celda['html'] = '<span style="display:inline-block;width:1.5em;height:1.5em;border:1px solid #000;background-color:' . $color . ';"></span>';
+                $celda['html_cell'] = $celda['html'];
+                $fileHtml = '<div class="card text-center">' .
+                    '<div class="card-header">' .
+                    '<span style="display:inline-block;width:90%;height:5em;border:1px solid #000;background-color:' . $color . ';"></span>' .
+                    '</div>' .
+                    '<div class="card-body" >' .
+                    '<h5 class="card-title">' . $color . '</h5>' .
+                    '</div>' .
+                    '</div>';
+                $celda['html_show'] = $fileHtml;
             }
         } else {
             if (array_key_exists('enlace', $datos)) {
@@ -1869,7 +1894,7 @@ trait CrudModels
                                 }
                                 if ($filename == "" && $existFile == "" && isset($detalles['valor'])) {
                                     $objModelo->{$campo} = $detalles['valor'];
-                                }elseif($filename == "" ){
+                                } elseif ($filename == "") {
                                     $objModelo->{$campo} = null;
                                 }
                                 $objModelo->save();

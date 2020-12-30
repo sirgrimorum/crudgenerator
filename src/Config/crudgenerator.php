@@ -191,7 +191,7 @@ return [
      * Path to the color-picker folder, if is in asset, just include the string for the asset
      * use 'vendor/sirgrimorum/colorpicker' publishing with tag=colorpicker
      */
-    'colorpicker_path' => 'vendor/sirgrimorum/colorpicker', // 
+    'colorpicker_path' => 'vendor/sirgrimorum/color-picker', // 
     /**
      * Icons to use in the different alerts, buttons, links this need font awesome 4.7 npm install font-awesome@4.7.0 --save
      */
