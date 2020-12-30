@@ -173,6 +173,15 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
     if ($tieneFile) {
         ?>
         <script>
+            function _isObject(variable){
+                return typeof variable === 'object' && variable !== null;
+            }
+            function _isString(variable){
+                return typeof variable === 'string' || variable instanceof String;
+            }
+            function _isNull(variable){
+                return typeof variable === null || variable === NaN || variable === undefined ||  typeof variable === 'undefined';
+            }
             $('body').on('change', 'input[type="file"][data-toggle="custom-file"]', function (ev) {
                 var $input = $(this);
                 //console.log("qui",$input.parent().parent().find('img').first());
@@ -188,15 +197,15 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
                 
                 previo_nombre = $target.html();
                 const input = $input.get(0);
-                let name = _.isObject(input)
-                        && _.isObject(input.files)
-                        && _.isObject(input.files[0])
-                        && _.isString(input.files[0].name) ? input.files[0].name : $input.val();
-                let file = _.isObject(input)
-                        && _.isObject(input.files)
-                        && _.isObject(input.files[0]) ? input.files[0] : $input.val();
+                let name = _isObject(input)
+                        && _isObject(input.files)
+                        && _isObject(input.files[0])
+                        && _isString(input.files[0].name) ? input.files[0].name : $input.val();
+                let file = _isObject(input)
+                        && _isObject(input.files)
+                        && _isObject(input.files[0]) ? input.files[0] : $input.val();
                 
-                if (_.isNull(name) || name === ''){
+                if (_isNull(name) || name === ''){
                     name = $target.attr('data-original-content');
                 }
                 showImage($target_image,file);
@@ -222,7 +231,7 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
                 var $target_icon = $target_image.parent().find('i').first().parent();
                 var $collapse_image = $target_image.parent().parent().parent().next('div[data-id="collapseImageCont"]').first().find('img').first();
 
-                if (_.isNull(file) || file === ''){
+                if (_isNull(file) || file === ''){
                     $target_image_companion.removeClass("rounded-left").addClass("rounded-left");
                     $target_image.removeClass("d-none").addClass("d-none");
                     $target_icon.removeClass("d-none").addClass("d-none");
