@@ -663,7 +663,7 @@ trait CrudModels
                         '</a>' .
                         '</figure>';
                     $fileHtml .= '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
-                        '<img class="card-img-top" src="' . $urlFile . '" alt="' . $auxprevioName . '">' .
+                        '<img class="card-img-top" style="width:auto;max-width:100%;" src="' . $urlFile . '" alt="' . $auxprevioName . '">' .
                         '</a>';
                 } else {
                     $fileHtmlCell = '<ul class="fa-ul">' .
@@ -806,7 +806,7 @@ trait CrudModels
                 $color = $value->{$columna};
             }
             if ($color) {
-                $celda['html'] = '<span style="display:inline-block;width:1.5em;height:1.5em;border:1px solid #000;background-color:' . $color . ';"></span>';
+                $celda['html'] = '<span title="' . $color . '" style="display:inline-block;width:1.5em;height:1.5em;border:1px solid #000;background-color:' . $color . ';"></span>';
                 $celda['html_cell'] = $celda['html'];
                 $fileHtml = '<div class="card text-center">' .
                     '<div class="card-header">' .
