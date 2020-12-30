@@ -571,25 +571,30 @@ trait CrudModels
             $celda['label'] = $datos['label'];
             $celda['value'] = $dato;
         } elseif ($datos['tipo'] == "url" || ($datos['tipo'] == "file" && \Illuminate\Support\Str::startsWith(strtolower($value->{$columna}), ["http:", "https:"]))) {
+            if ($datos['tipo'] == "url" && !\Illuminate\Support\Str::startsWith(strtolower($value->{$columna}), ["http:", "https:"])){
+                $url = \Illuminate\Support\Str::start($value->{$columna}, "http://");
+            }else{
+                $url = $value->{$columna};
+            }
             $celda = [
-                'value' => $value->{$columna},
-                'data' => $value->{$columna},
+                'value' => $url,
+                'data' => $url,
             ];
-            if (CrudGenerator::urlType($value->{$columna}) == "youtube") {
-                $youtubeId = CrudGenerator::getYoutubeId($value->{$columna});
+            if (CrudGenerator::urlType($url) == "youtube") {
+                $youtubeId = CrudGenerator::getYoutubeId($url);
                 $celda['embed'] = "https://www.youtube.com/embed/" . $youtubeId;
                 $celda['html_show'] = '<div class="card text-center" >' .
                     '<iframe class="card-img-top" height="400" src="https://www.youtube.com/embed/' . $youtubeId . '" style="border: none;"></iframe>' .
                     '<div clas="card-body" >' .
-                    '<h5 class="card-title">' . $value->{$columna} . '</h5>' .
+                    '<h5 class="card-title">' . $url . '</h5>' .
                     '</div>' .
                     '</div>';
             } else {
-                $celda['embed'] = $value->{$columna};
-                $celda['html_show'] = "<a class='btn' href='{$value->{$columna}}' target='_blank'><i class='mt-2 " . CrudGenerator::getIcon('url') . "' aria-hidden='true'></i></a> {$value->{$columna}}";
+                $celda['embed'] = $url;
+                $celda['html_show'] = "<a class='btn' href='{$url}' target='_blank'><i class='mt-2 " . CrudGenerator::getIcon('url') . "' aria-hidden='true'></i></a> {$url}";
             }
             $celda['label'] = $datos['label'];
-            $celda['html'] = "<a href='{{ $value->{$columna} }}' target='_blank'><i class='mt-2 " . CrudGenerator::getIcon('url') . "' aria-hidden='true'></i></a>";
+            $celda['html'] = "<a href='{$url}' target='_blank'><i class='mt-2 " . CrudGenerator::getIcon('url') . "' aria-hidden='true'></i></a>";
             $celda['html_cell'] = $celda['html'];
         } elseif ($datos['tipo'] == "article" && class_exists(config('sirgrimorum.transarticles.default_articles_model'))) {
             $modelClass = config('sirgrimorum.transarticles.default_articles_model');
