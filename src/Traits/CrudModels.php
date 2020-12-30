@@ -644,7 +644,11 @@ trait CrudModels
             } else {
                 [$filename, $urlFile] = CrudGenerator::getFileUrl($value->{$columna}, $value, $modelo, $columna, $datos, $config);
                 $tipoFile = CrudGenerator::filenameIs($value->{$columna}, $datos);
-                $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
+                if (stripos($value->{$columna}, '__') !== false){
+                    $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
+                }else{
+                    $auxprevioName = substr($value->{$columna}, 0, stripos($value->{$columna}, '.', 0));
+                }
                 $tipoMime = CrudGenerator::fileMime(strtolower($filename), $datos);
                 $fileHtml = '<div class="card text-center">';
                 $titleFileHtml = $auxprevioName;
@@ -1857,12 +1861,16 @@ trait CrudModels
                                             }
                                             CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile, $path), \Illuminate\Support\Arr::get($detalles, "disk", "local"));
                                         }
+                                        $filename = "";
+                                        $existFile = "";
                                     } elseif ($input->has($campo . "_filereg") && $existFile != "") {
                                         $filename = $existFile;
                                     }
                                 }
-                                if ($filename == "" && $existFile != "" && isset($detalles['valor'])) {
+                                if ($filename == "" && $existFile == "" && isset($detalles['valor'])) {
                                     $objModelo->{$campo} = $detalles['valor'];
+                                }elseif($filename == "" ){
+                                    $objModelo->{$campo} = null;
                                 }
                                 $objModelo->save();
                                 break;
