@@ -50,7 +50,14 @@ if (isset($datos["placeholder"])) {
     <div class="{{ $config['class_divinput'] }}" id="{{$tabla . "_" . $extraId}}_container">
         @if($auxprevio!="")
         <?php
-        $filename = \Illuminate\Support\Str::start($auxprevio, \Illuminate\Support\Str::finish($datos['path'], '\\'));
+        $pathImage = str_replace([":modelName", ":modelId", ":modelCampo"], [$registro->{$config['nombre']}, $registro->{$config['id']}, $auxprevio], $datos['pathImage']);
+        if (\Illuminate\Support\Str::startsWith(strtolower($pathImage), ["http:", "https:"])){
+            $filename = $auxprevio;
+            $urlFile = $pathImage;
+        }else{
+            $filename = \Illuminate\Support\Str::start($auxprevio, \Illuminate\Support\Str::finish($pathImage, '\\'));
+            $urlFile = route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
+        }
         $tipoFile = CrudGenerator::filenameIs($auxprevio, $datos);
         $auxprevioName = substr($auxprevio, stripos($auxprevio, '__') + 2, stripos($auxprevio, '.', stripos($auxprevio, '__')) - (stripos($auxprevio, '__') + 2));
         $error_campo = false;
@@ -60,7 +67,7 @@ if (isset($datos["placeholder"])) {
             <div class="input-group-prepend">
                 <div class="rounded-left border border-secondary">
                     @if ($tipoFile=='image')
-                    <img class="rounded-left " style="cursor: pointer;" src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" onclick="toogleImagen(this);">
+                    <img class="rounded-left " style="cursor: pointer;" src="{{ $urlFile }}" onclick="toogleImagen(this);">
                     @elseif($tipoFile=='video')
                     <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="toogleVideo(this);">{!! CrudGenerator::getIcon($tipoFile,true,'mt-2') !!}</div>
                     @elseif($tipoFile=='audio')
@@ -70,7 +77,7 @@ if (isset($datos["placeholder"])) {
                     @elseif($tipoFile=='other')
                     <div class="pl-3 pr-3 h-100 pt-1" style="cursor: default;">{!! CrudGenerator::getIcon($tipoFile,true,'mt-2') !!}</div>
                     @else
-                    <a class="d-block pl-3 pr-3 h-100 pt-1 text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
+                    <a class="d-block pl-3 pr-3 h-100 pt-1 text-secondary" href='{{ $urlFile }}' target="_blank" >
                         {!! CrudGenerator::getIcon($tipoFile,true,'mt-2') !!}
                     </a>
                     @endif
@@ -86,14 +93,14 @@ if (isset($datos["placeholder"])) {
         @if($tipoFile =='image')
         <div class="collapse" data-id="collapseImageCont">
             <div class="card collapse" >
-                <img class="card-img-top" src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" data-id="collapseImage">
+                <img class="card-img-top" src="{{ $urlFile }}" data-id="collapseImage">
             </div>
         </div>
         @elseif($tipoFile =='video')
         <div class="collapse" data-id="collapseVideoCont">
             <div class="card collapse" >
                 <video class="card-img-top" controls preload="auto" height="300" >
-                    <source src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="video/mp4" />
+                    <source src="{{ $urlFile }}" type="video/mp4" />
                 </video>
             </div>
         </div>
@@ -101,14 +108,14 @@ if (isset($datos["placeholder"])) {
         <div class="collapse" data-id="collapseAudioCont">
             <div class="card collapse" >
                 <audio class="card-img-top" controls preload="auto" >
-                    <source src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="audio/mpeg" />
+                    <source src="{{ $urlFile }}" type="audio/mpeg" />
                 </audio>
             </div>
         </div>
         @elseif($tipoFile =='pdf')
         <div class="collapse" data-id="collapsePdfCont">
             <div class="card collapse" >
-                <iframe class="card-img-top" height="300" src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" style="border: none;"></iframe>
+                <iframe class="card-img-top" height="300" src="{{ $urlFile }}" style="border: none;"></iframe>
             </div>
         </div>
         @endif

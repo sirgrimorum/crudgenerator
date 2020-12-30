@@ -264,18 +264,17 @@ trait CrudModels
      *      label: with the translated label of the field
      *      value: with the formated value of the field
      *
-     * @param array $config Configuration array
      * @param Model $value The object
      * @param string $columna The field to show
-     * @param array $config Optional The configuration array for the field
+     * @param array $datos Optional The configuration array for the field
      * @return array with the values in the config format
      */
     public static function field_array($value, $columna, $datos = "")
     {
-        $config = [];
         $modelo = strtolower(class_basename(get_class($value)));
+        $config = CrudGenerator::getConfigWithParametros($modelo);
         if ($datos == "") {
-            $config = CrudGenerator::getConfigWithParametros($modelo);
+            //$config = CrudGenerator::getConfigWithParametros($modelo);
             if (isset($config['campos'][$columna])) {
                 if (is_array($config['campos'][$columna])) {
                     $datos = $config['campos'][$columna];
@@ -643,10 +642,16 @@ trait CrudModels
             if ($value->{$columna} == "") {
                 $celda = '';
             } else {
-                $filename = \Illuminate\Support\Str::start($value->{$columna}, \Illuminate\Support\Str::finish($datos['path'], '\\'));
+                $pathImage = str_replace([":modelName", ":modelId", ":modelCampo"], [$value->{$config['nombre']}, $value->{$config['id']}, $value->{$columna}], $datos['pathImage']);
+                if (\Illuminate\Support\Str::startsWith(strtolower($pathImage), ["http:", "https:"])){
+                    $filename = $value->{$columna};
+                    $urlFile = $pathImage;
+                }else{
+                    $filename = \Illuminate\Support\Str::start($value->{$columna}, \Illuminate\Support\Str::finish($pathImage, '\\'));
+                    $urlFile = route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
+                }
                 $tipoFile = CrudGenerator::filenameIs($value->{$columna}, $datos);
                 $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
-                $urlFile = route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
                 $tipoMime = CrudGenerator::fileMime(strtolower($filename), $datos);
                 $fileHtml = '<div class="card text-center">';
                 $titleFileHtml = $auxprevioName;
@@ -655,38 +660,38 @@ trait CrudModels
                     $fileHtml = '-';
                 } elseif ($tipoFile == 'image') {
                     $fileHtmlCell = '<figure class="figure">' .
-                        '<a class="text-secondary" href="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" target="_blank" >' .
-                        '<img src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" class="figure-img img-fluid rounded" alt="' . $auxprevioName . '">' .
+                        '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
+                        '<img src="' . $urlFile . '" class="figure-img img-fluid rounded" alt="' . $auxprevioName . '">' .
                         '<figcaption class="figure-caption">' . $auxprevioName . '</figcaption>' .
                         '</a>' .
                         '</figure>';
-                    $fileHtml .= '<a class="text-secondary" href="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" target="_blank" >' .
-                        '<img class="card-img-top" src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" alt="' . $auxprevioName . '">' .
+                    $fileHtml .= '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
+                        '<img class="card-img-top" src="' . $urlFile . '" alt="' . $auxprevioName . '">' .
                         '</a>';
                 } else {
                     $fileHtmlCell = '<ul class="fa-ul">' .
                         '<li class="pl-2">' .
                         CrudGenerator::getIcon($tipoFile, true, 'fa-li') .
-                        '<a class="text-secondary" href="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" target="_blank" >' .
+                        '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
                         $auxprevioName .
                         '</a>' .
                         '</li>' .
                         '</ul>';
                     if ($tipoFile == 'video') {
                         $fileHtml .= '<video class="card-img-top" controls preload="auto" height="300" >' .
-                            '<source src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" type="video/mp4" />' .
+                            '<source src="' . $urlFile . '" type="video/mp4" />' .
                             '</video>';
                     } elseif ($tipoFile == 'audio') {
                         $fileHtml .= '<audio class="card-img-top" controls preload="auto" >' .
-                            '<source src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" type="audio/mpeg" />' .
+                            '<source src="' . $urlFile . '" type="audio/mpeg" />' .
                             '</audio>';
                     } elseif ($tipoFile == 'pdf') {
-                        $fileHtml .= '<iframe class="card-img-top" height="300" src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" style="border: none;"></iframe>';
+                        $fileHtml .= '<iframe class="card-img-top" height="300" src="' . $urlFile . '" style="border: none;"></iframe>';
                     } else {
                         $fileHtml .= '<div class="card-header">' .
                             CrudGenerator::getIcon($tipoFile, true, 'fa-3x') .
                             '</div>';
-                        $titleFileHtml = '<a class="text-secondary" href="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" target="_blank" >' .
+                        $titleFileHtml = '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
                             "{$titleFileHtml}" .
                             '</a>';
                     }
@@ -704,7 +709,7 @@ trait CrudModels
                     "type" => $tipoFile,
                     "html" => CrudGenerator::getHtmlParaFile($tipoFile, $urlFile, $auxprevioName, $tipoMime),
                     "html_cell" => $fileHtmlCell,
-                    "html_show" => $fileHtmlCell,
+                    "html_show" => $fileHtml,
                 ];
             }
         } elseif ($datos['tipo'] == "files") {
@@ -726,10 +731,16 @@ trait CrudModels
                 $fileHtmlCell = '<ul class="fa-ul">';
                 foreach ($auxprevios as $datoReg) {
                     if (is_object($datoReg)) {
-                        $filename =  \Illuminate\Support\Str::start($datoReg->file, \Illuminate\Support\Str::finish($datos['path'], '\\'));
+                        $pathImage = str_replace([":modelName", ":modelId", ":modelCampo"], [$value->{$config['nombre']}, $value->{$config['id']}, $datoReg->file], $datos['pathImage']);
+                        if (\Illuminate\Support\Str::startsWith(strtolower($pathImage), ["http:", "https:"])){
+                            $filename = $datoReg->file;
+                            $urlFile = $pathImage;
+                        }else{
+                            $filename = \Illuminate\Support\Str::start($datoReg->file, \Illuminate\Support\Str::finish($pathImage, '\\'));
+                            $urlFile = route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
+                        }
                         $tipoFile = CrudGenerator::filenameIs($datoReg->file, $datos);
                         $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
-                        $urlFile = route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
                         $tipoMime = CrudGenerator::fileMime(strtolower($filename), $datos);
                         $fileHtml = CrudGenerator::getHtmlParaFile($tipoFile, $urlFile, $auxprevioName, $tipoMime);
                         $celda['data'][] = [
@@ -742,11 +753,11 @@ trait CrudModels
                         ];
                         $fileHtmlCell .= '<li class="pl-2">';
                         if ($tipoFile == 'image') {
-                            $fileHtmlCell .= '<i class="' . CrudGenerator::getIcon('empty') . ' fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '"></i>';
+                            $fileHtmlCell .= '<i class="' . CrudGenerator::getIcon('empty') . ' fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="' . $urlFile . '"></i>';
                         } else {
                             $fileHtmlCell .= CrudGenerator::getIcon($tipoFile, true, 'fa-li');
                         }
-                        $fileHtmlCell .= '<a class="text-secondary" href="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" target="_blank" >' .
+                        $fileHtmlCell .= '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
                             $datoReg->name .
                             '</a>' .
                             '</li>';
@@ -754,24 +765,24 @@ trait CrudModels
                             '<div class="card text-center">';
                         $titleFileHtml = $datoReg->name;
                         if ($tipoFile == 'image') {
-                            $fileHtml .= '<a class="text-secondary" href="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" target="_blank" >' .
-                                '<img class="card-img-top" src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '">' .
+                            $fileHtml .= '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
+                                '<img class="card-img-top" src="' . $urlFile . '">' .
                                 '</a>';
                         } elseif ($tipoFile == 'video') {
                             $fileHtml .= '<video class="card-img-top" controls preload="auto" height="300" >' .
-                                '<source src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" type="video/mp4" />' .
+                                '<source src="' . $urlFile . '" type="video/mp4" />' .
                                 '</video>';
                         } elseif ($tipoFile == 'audio') {
                             $fileHtml .= '<audio class="card-img-top" controls preload="auto" >' .
-                                '<source src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" type="audio/mpeg" />' .
+                                '<source src="' . $urlFile . '" type="audio/mpeg" />' .
                                 '</audio>';
                         } elseif ($tipoFile == 'pdf') {
-                            $fileHtml .= '<iframe class="card-img-top" height="300" src="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" style="border: none;"></iframe>';
+                            $fileHtml .= '<iframe class="card-img-top" height="300" src="' . $urlFile . '" style="border: none;"></iframe>';
                         } else {
                             $fileHtml .= '<div class="card-header">' .
                                 CrudGenerator::getIcon($tipoFile, true, 'fa-3x') .
                                 '</div>';
-                            $titleFileHtml = '<a class="text-secondary" href="' . route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename . '" target="_blank" >' .
+                            $titleFileHtml = '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
                                 "{$titleFileHtml}" .
                                 '</a>';
                         }
