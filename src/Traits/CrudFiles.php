@@ -68,7 +68,8 @@ trait CrudFiles
      * @param string $filename the file name
      * @return boolean If the model file was successfully modified or not
      */
-    public static function addGetToModel($path, $filename){
+    public static function addGetToModel($path, $filename)
+    {
         if (substr($path, strlen($path) - 1) == "/" || substr($path, strlen($path) - 1) == "\\") {
             $path = substr($path, 0, strlen($path) - 1);
         }
@@ -76,16 +77,16 @@ trait CrudFiles
         if (file_exists($path)) {
             $contents = file($path);
             $ultima = 0;
-            for ($i=count($contents) -1 ; $i>=0 ; $i--) { 
+            for ($i = count($contents) - 1; $i >= 0; $i--) {
                 if (strpos($contents[$i], '}') !== false) {
                     $ultima = $i;
                     $i = -1;
                 }
             }
-            if ($ultima > 0){
+            if ($ultima > 0) {
                 $newContent = array_slice($contents, 0, $ultima);
                 $contenido = view("sirgrimorum::templates.getfunction")->render();
-                $newArray = explode(chr(13),$contenido);
+                $newArray = explode(chr(13), $contenido);
                 foreach ($newArray as $newTexto) {
                     $newContent[] = $newTexto;
                 }
@@ -282,8 +283,8 @@ trait CrudFiles
         $searchArr = ["{?php}", "{php?}", "[[", "]]", "[!!", "!!]", "{modelo}", "{Modelo}", "{model}", "{Model}", "*extends", "*section", "*stop", "*stack", "*push", "*if", "*else", "*foreach", "*end", "{ " . $modelo . " }"];
         $replaceArr = ["<?php", "?>", "{{", "}}", "{!!", "!!}", $modelo, $modeloM, $modelo, $modeloM, "@extends", "@section", "@stop", "@stack", "@push", "@if", "@else", "@foreach", "@end", "{" . $modelo . "}"];
         $contenido = view($view, ["config" => $config, "localized" => $localized, "modelo" => $modelo])->render();
-        if ($modelo == "user" && $view == "sirgrimorum::templates.policy"){
-            $contenido = str_replace(['$user, {Model} ${model}','${model}->getKey()'], ['$user, {Model} ${model}2','${model}2->getKey()'], $contenido);
+        if ($modelo == "user" && $view == "sirgrimorum::templates.policy") {
+            $contenido = str_replace(['$user, {Model} ${model}', '${model}->getKey()'], ['$user, {Model} ${model}2', '${model}2->getKey()'], $contenido);
         }
         $contenido = str_replace($searchArr, $replaceArr, $contenido);
 
@@ -542,6 +543,39 @@ trait CrudFiles
             }
         }
         return 'other';
+    }
+
+    /**
+     * Get the file url using its configuration array
+     * @param object $registro The model
+     * @param string $filename The file name from the bd
+     * @param string $modelo The model name
+     * @param string $columna The camp name
+     * @param array $detalles Optional, The configuration array for the field
+     * @param array $config Optional, The full configuration array for the model
+     * @return array [TheFileName, The url to show or retrive the file]
+     */
+    public static function getFileUrl(string $filename, $registro, string $modelo, string $columna, array $detalles = [], array $config = [])
+    {
+        if (isset($detalles['showPath']) && is_callable($detalles['showPath'])) {
+            $urlFile = route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
+        } elseif (isset($detalles['showPath']) && is_string($detalles['showPath']) && \Illuminate\Support\Str::startsWith(strtolower($detalles['showPath']), ["http:", "https:"])) {
+            if (stripos($detalles['showPath'], ":modelName") !== false || stripos($detalles['showPath'], ":modelId") !== false) {
+                if (count($config) == 0) {
+                    $config = CrudGenerator::getConfigWithParametros($modelo);
+                }
+                $urlFile = str_replace([":modelName", ":modelId"], [$registro->{$config['nombre']}, $registro->{$config['id']}], $detalles['showPath']);
+            } else {
+                $urlFile = $detalles['showPath'];
+            }
+            $urlFile = str_replace([":modelCampo"], [$registro->{$columna}], $urlFile);
+        } else {
+            if (isset($datos['path'])) {
+                $filename = \Illuminate\Support\Str::start($registro->{$columna}, \Illuminate\Support\Str::finish($detalles['path'], '\\'));
+            }
+            $urlFile = route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
+        }
+        return [$filename, $urlFile];
     }
 
     /**

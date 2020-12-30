@@ -143,8 +143,8 @@ class CrudController extends BaseController
     private function devolverFile($filename, $detalles = [])
     {
         $tipo = CrudGenerator::filenameIs($filename, $detalles);
-        if (isset($detalles['path'])) {
-            $path = Storage::disk(\Illuminate\Support\Arr::get($detalles, "disk", "local"))->url(\Illuminate\Support\Str::start(str_replace("\\", "/", $filename), \Illuminate\Support\Str::finish(str_replace("\\", "/", $detalles['path']), '/')));
+        if (isset($detalles['showPath']) && is_callable($detalles['showPath'])){
+            return $detalles['showPath']($filename, $tipo, $detalles);
         } else {
             $path = Storage::disk(\Illuminate\Support\Arr::get($detalles, "disk", "local"))->url($filename);
         }

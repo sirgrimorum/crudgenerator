@@ -64,14 +64,7 @@ if (isset($datos["placeholder"])) {
         @foreach($auxprevios as $datoReg)
         @if(is_object($datoReg))
         <?php
-        $pathImage = str_replace([":modelName", ":modelId", ":modelCampo"], [$registro->{$config['nombre']}, $registro->{$config['id']}, $datoReg->file], $datos['pathImage']);
-        if (\Illuminate\Support\Str::startsWith(strtolower($pathImage), ["http:", "https:"])){
-            $filename = $datoReg->file;
-            $urlFile = $pathImage;
-        }else{
-            $filename = \Illuminate\Support\Str::start($datoReg->file, \Illuminate\Support\Str::finish($pathImage, '\\'));
-            $urlFile = route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
-        }
+        [$filename, $urlFile] = CrudGenerator::getFileUrl($datoReg->file, $registro, $modelo, $columna, $datos, $config);
         $tipoFile =CrudGenerator::filenameIs($datoReg->file,$datos);
         $error_campo = false;
         $claseError = '';

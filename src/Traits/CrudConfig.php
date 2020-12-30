@@ -581,7 +581,6 @@ trait CrudConfig
                                 $prefixRules = "|";
                             } elseif (CrudGenerator::getTypeByName($campo, 'file') || CrudGenerator::getTypeByName($campo, 'image')) {
                                 $configCampos[$campo]['tipo'] = "files";
-                                $configCampos[$campo]['pathImage'] = $tabla . "_" . $campo;
                                 $configCampos[$campo]['path'] = $tabla . "_" . $campo;
                                 $configCampos[$campo]['saveCompletePath'] = true;
                                 $rulesExtraArrayStr .= $prefixRulesExtraArray . 'file';
@@ -672,7 +671,6 @@ trait CrudConfig
                                 $prefixRules = "|";
                             } elseif (CrudGenerator::getTypeByName($campo, 'file') || CrudGenerator::getTypeByName($campo, 'image')) {
                                 $configCampos[$campo]['tipo'] = "file";
-                                $configCampos[$campo]['pathImage'] = $tabla . "_" . $campo;
                                 $configCampos[$campo]['path'] = $tabla . "_" . $campo;
                                 $configCampos[$campo]['saveCompletePath'] = true;
                                 $rulesStr .= $prefixRules . 'file';
@@ -811,7 +809,6 @@ trait CrudConfig
                                                 $pivotColumnAux['type'] = "html";
                                             } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
                                                 $pivotColumnAux['type'] = "files";
-                                                $pivotColumnAux['pathImage'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
                                                 $pivotColumnAux['path'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
                                                 $pivotColumnAux['saveCompletePath'] = true;
                                             }
@@ -864,7 +861,6 @@ trait CrudConfig
                                                 $pivotColumnAux['type'] = "password";
                                             } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
                                                 $pivotColumnAux['type'] = "file";
-                                                $pivotColumnAux['pathImage'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
                                                 $pivotColumnAux['path'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
                                                 $pivotColumnAux['saveCompletePath'] = true;
                                             }

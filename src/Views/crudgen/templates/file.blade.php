@@ -50,14 +50,7 @@ if (isset($datos["placeholder"])) {
     <div class="{{ $config['class_divinput'] }}" id="{{$tabla . "_" . $extraId}}_container">
         @if($auxprevio!="")
         <?php
-        $pathImage = str_replace([":modelName", ":modelId", ":modelCampo"], [$registro->{$config['nombre']}, $registro->{$config['id']}, $auxprevio], $datos['pathImage']);
-        if (\Illuminate\Support\Str::startsWith(strtolower($pathImage), ["http:", "https:"])){
-            $filename = $auxprevio;
-            $urlFile = $pathImage;
-        }else{
-            $filename = \Illuminate\Support\Str::start($auxprevio, \Illuminate\Support\Str::finish($pathImage, '\\'));
-            $urlFile = route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
-        }
+        [$filename, $urlFile] = CrudGenerator::getFileUrl($auxprevio, $registro, $modelo, $columna, $datos, $config);
         $tipoFile = CrudGenerator::filenameIs($auxprevio, $datos);
         $auxprevioName = substr($auxprevio, stripos($auxprevio, '__') + 2, stripos($auxprevio, '.', stripos($auxprevio, '__')) - (stripos($auxprevio, '__') + 2));
         $error_campo = false;
