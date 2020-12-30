@@ -34,7 +34,7 @@ Route::group(['prefix' => Sirgrimorum\CrudGenerator\CrudGenerator::setLocale() .
         Route::any('/{registro}/edit', '\Sirgrimorum\CrudGenerator\CrudController@edit')->name('edit');
         Route::put('/{registro}/update', '\Sirgrimorum\CrudGenerator\CrudController@update')->name('update');
         Route::delete('/{registro}/destroy', '\Sirgrimorum\CrudGenerator\CrudController@destroy')->name('destroy');
-        Route::any('/file/{campo}', '\Sirgrimorum\CrudGenerator\CrudController@modelfile')->name('modelfile');
+        Route::any('{registro}/file/{campo}', '\Sirgrimorum\CrudGenerator\CrudController@modelfile')->name('modelfile');
     });
     Route::any('/file', '\Sirgrimorum\CrudGenerator\CrudController@file')->name('sirgrimorum_file');
 });

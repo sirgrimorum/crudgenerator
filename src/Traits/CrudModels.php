@@ -1742,119 +1742,6 @@ trait CrudModels
                                 $objModelo->{$campo} = $date->format("Y-m-d H:i:s");
                             }
                             break;
-                        case 'file':
-                            $existFile = $objModelo->{$campo};
-                            $filename = "";
-                            if ($input->has($campo)) {
-                                $filename = CrudGenerator::saveFileFromRequest($input, $campo, $detalles);
-                                if ($filename !== false) {
-                                    $objModelo->{$campo} = $filename;
-                                    if ($existFile != "") {
-                                        if (isset($detalles['removeFunction']) && is_callable($detalles['removeFunction'])) {
-                                            $detalles['removeFunction']($existFile, $detalles);
-                                        } else {
-                                            if (isset($detalles['path'])) {
-                                                $path = \Illuminate\Support\Str::finish($detalles['path'], '\\');
-                                            } else {
-                                                $path = "";
-                                            }
-                                            CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile, $path), \Illuminate\Support\Arr::get($detalles, "disk", "local"));
-                                        }
-                                    }
-                                } else {
-                                    $filename = "";
-                                    // Return with input????
-                                }
-                            } else {
-                                if (!$input->has($campo . "_filereg") && $existFile != "") {
-                                    if (isset($detalles['removeFunction']) && is_callable($detalles['removeFunction'])) {
-                                        $detalles['removeFunction']($existFile, $detalles);
-                                    } else {
-                                        if (isset($detalles['path'])) {
-                                            $path = \Illuminate\Support\Str::finish($detalles['path'], '\\');
-                                        } else {
-                                            $path = "";
-                                        }
-                                        CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile, $path), \Illuminate\Support\Arr::get($detalles, "disk", "local"));
-                                    }
-                                } elseif ($input->has($campo . "_filereg") && $existFile != "") {
-                                    $filename = $existFile;
-                                }
-                            }
-                            if ($filename == "" && $existFile != "" && isset($detalles['valor'])) {
-                                $objModelo->{$campo} = $detalles['valor'];
-                            }
-                            break;
-                        case 'files':
-                            $existFiles = $objModelo->{$campo};
-                            if (is_string($existFiles)) {
-                                $existFiles = json_decode($existFiles, true);
-                            }
-                            $masFiles = [];
-                            if ($input->has($campo)) {
-                                $paraGuardar = [];
-                                for ($index = 0; $index < count($input->$campo); $index++) {
-                                    $filename = CrudGenerator::saveFileFromRequest($input, $campo . "." . $index, $detalles);
-                                    if ($filename !== false) {
-                                        $paraGuardar[] = [
-                                            "name" => $input->input($campo . "_name." . $index),
-                                            "file" => $filename
-                                        ];
-                                    } else {
-                                        // Return with input????
-                                    }
-                                }
-                                if (count($paraGuardar) > 0) {
-                                    $masFiles = $paraGuardar;
-                                }
-                            }
-                            $finalFiles = [];
-                            if (is_array($existFiles)) {
-                                foreach ($existFiles as $existFile) {
-                                    $esta = false;
-                                    if ($input->has($campo . "_filereg")) {
-                                        $preReg = $input->input($campo . "_filereg");
-                                        $preRegName = $input->input($campo . "_namereg");
-                                        for ($index = 0; $index < count($preReg); $index++) {
-                                            if ($existFile['file'] == $preReg[$index]) {
-                                                $finalFiles[] = [
-                                                    'name' => $preRegName[$index],
-                                                    'file' => $preReg[$index]
-                                                ];
-                                                $esta = true;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    if (!$esta) {
-                                        if (isset($detalles['removeFunction']) && is_callable($detalles['removeFunction'])) {
-                                            $detalles['removeFunction']($existFile['file'], $detalles);
-                                        } else {
-                                            if (isset($detalles['path'])) {
-                                                $path = \Illuminate\Support\Str::finish($detalles['path'], '\\');
-                                            } else {
-                                                $path = "";
-                                            }
-                                            CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile['file'], $path), \Illuminate\Support\Arr::get($detalles, "disk", "local"));
-                                        }
-                                    }
-                                }
-                                $finalFiles = array_merge($finalFiles, $masFiles);
-                            } else {
-                                $finalFiles = $masFiles;
-                            }
-
-                            if (count($finalFiles) && isset($detalles['valor'])) {
-                                if (!is_array($detalles['valor'])) {
-                                    $objModelo->{$campo} = json_encode(["name" => $detalles['valor'], "file" => $detalles['valor']]);
-                                } else {
-                                    $objModelo->{$campo} = json_encode($detalles['valor']);
-                                }
-                            } else {
-                                $objModelo->{$campo} = json_encode($finalFiles);
-                            }
-
-                            break;
                         default:
                             break;
                     }
@@ -1935,6 +1822,120 @@ trait CrudModels
                                     $objModelo->{$campo}()->sync([]);
                                 }
                                 break;
+                            case 'file':
+                                $existFile = $objModelo->{$campo};
+                                $filename = "";
+                                if ($input->has($campo)) {
+                                    $filename = CrudGenerator::saveFileFromRequest($objModelo, $input, $campo, $detalles);
+                                    if ($filename !== false) {
+                                        $objModelo->{$campo} = $filename;
+                                        if ($existFile != "") {
+                                            if (isset($detalles['removeFunction']) && is_callable($detalles['removeFunction'])) {
+                                                $detalles['removeFunction']($objModelo, $existFile, $detalles);
+                                            } else {
+                                                if (isset($detalles['path'])) {
+                                                    $path = \Illuminate\Support\Str::finish($detalles['path'], '\\');
+                                                } else {
+                                                    $path = "";
+                                                }
+                                                CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile, $path), \Illuminate\Support\Arr::get($detalles, "disk", "local"));
+                                            }
+                                        }
+                                    } else {
+                                        $filename = "";
+                                        // Return with input????
+                                    }
+                                } else {
+                                    if (!$input->has($campo . "_filereg") && $existFile != "") {
+                                        if (isset($detalles['removeFunction']) && is_callable($detalles['removeFunction'])) {
+                                            $detalles['removeFunction']($objModelo, $existFile, $detalles);
+                                        } else {
+                                            if (isset($detalles['path'])) {
+                                                $path = \Illuminate\Support\Str::finish($detalles['path'], '\\');
+                                            } else {
+                                                $path = "";
+                                            }
+                                            CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile, $path), \Illuminate\Support\Arr::get($detalles, "disk", "local"));
+                                        }
+                                    } elseif ($input->has($campo . "_filereg") && $existFile != "") {
+                                        $filename = $existFile;
+                                    }
+                                }
+                                if ($filename == "" && $existFile != "" && isset($detalles['valor'])) {
+                                    $objModelo->{$campo} = $detalles['valor'];
+                                }
+                                $objModelo->save();
+                                break;
+                            case 'files':
+                                $existFiles = $objModelo->{$campo};
+                                if (is_string($existFiles)) {
+                                    $existFiles = json_decode($existFiles, true);
+                                }
+                                $masFiles = [];
+                                if ($input->has($campo)) {
+                                    $paraGuardar = [];
+                                    for ($index = 0; $index < count($input->$campo); $index++) {
+                                        $filename = CrudGenerator::saveFileFromRequest($objModelo, $input, $campo . "." . $index, $detalles);
+                                        if ($filename !== false) {
+                                            $paraGuardar[] = [
+                                                "name" => $input->input($campo . "_name." . $index),
+                                                "file" => $filename
+                                            ];
+                                        } else {
+                                            // Return with input????
+                                        }
+                                    }
+                                    if (count($paraGuardar) > 0) {
+                                        $masFiles = $paraGuardar;
+                                    }
+                                }
+                                $finalFiles = [];
+                                if (is_array($existFiles)) {
+                                    foreach ($existFiles as $existFile) {
+                                        $esta = false;
+                                        if ($input->has($campo . "_filereg")) {
+                                            $preReg = $input->input($campo . "_filereg");
+                                            $preRegName = $input->input($campo . "_namereg");
+                                            for ($index = 0; $index < count($preReg); $index++) {
+                                                if ($existFile['file'] == $preReg[$index]) {
+                                                    $finalFiles[] = [
+                                                        'name' => $preRegName[$index],
+                                                        'file' => $preReg[$index]
+                                                    ];
+                                                    $esta = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        if (!$esta) {
+                                            if (isset($detalles['removeFunction']) && is_callable($detalles['removeFunction'])) {
+                                                $detalles['removeFunction']($objModelo, $existFile['file'], $detalles);
+                                            } else {
+                                                if (isset($detalles['path'])) {
+                                                    $path = \Illuminate\Support\Str::finish($detalles['path'], '\\');
+                                                } else {
+                                                    $path = "";
+                                                }
+                                                CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile['file'], $path), \Illuminate\Support\Arr::get($detalles, "disk", "local"));
+                                            }
+                                        }
+                                    }
+                                    $finalFiles = array_merge($finalFiles, $masFiles);
+                                } else {
+                                    $finalFiles = $masFiles;
+                                }
+
+                                if (count($finalFiles) && isset($detalles['valor'])) {
+                                    if (!is_array($detalles['valor'])) {
+                                        $objModelo->{$campo} = json_encode(["name" => $detalles['valor'], "file" => $detalles['valor']]);
+                                    } else {
+                                        $objModelo->{$campo} = json_encode($detalles['valor']);
+                                    }
+                                } else {
+                                    $objModelo->{$campo} = json_encode($finalFiles);
+                                }
+                                $objModelo->save();
+                                break;
                             default:
                                 break;
                         }
@@ -1952,13 +1953,14 @@ trait CrudModels
 
     /**
      * Save an uploaded file from a configuration array
+     * @param object $objModelo The model
      * @param Request $input The request
      * @param strinf $campo The file field name
      * @param array $detalles the Field configuration array
      * @param boolean $addNewName Optional, if true, will add the new field name to the filename (assumed in $campo . "_name" in input)
      * @return boolean|string The name of the faile to save in the bd or false if something went wrong
      */
-    public static function saveFileFromRequest(\Illuminate\Http\Request $input, $campo, array $detalles, $addNewName = true)
+    public static function saveFileFromRequest($objModelo, \Illuminate\Http\Request $input, $campo, array $detalles, $addNewName = true)
     {
         if ($input->hasFile($campo)) {
             $file = $input->file($campo);
@@ -2001,7 +2003,7 @@ trait CrudModels
                 $filename .= "." . $file->getClientOriginalExtension();
                 $destinationPath = false;
                 if (isset($detalles['saveFunction']) && is_callable($detalles['saveFunction'])) {
-                    $path = $detalles['saveFunction']($file, $filename, $detalles);
+                    $path = $detalles['saveFunction']($objModelo, $file, $filename, $detalles);
                     $esImagen = false;
                 } else {
                     if (isset($detalles['path'])) {

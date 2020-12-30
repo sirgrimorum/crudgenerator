@@ -558,7 +558,7 @@ trait CrudFiles
     public static function getFileUrl(string $filename, $registro, string $modelo, string $columna, array $detalles = [], array $config = [])
     {
         if (isset($detalles['showPath']) && is_callable($detalles['showPath'])) {
-            $urlFile = route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
+            $urlFile = route('sirgrimorum_modelo::modelfile', ['registro' => $registro->{(new $modelo)->getKeyName()}, 'modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
         } elseif (isset($detalles['showPath']) && is_string($detalles['showPath']) && \Illuminate\Support\Str::startsWith(strtolower($detalles['showPath']), ["http:", "https:"])) {
             if (stripos($detalles['showPath'], ":modelName") !== false || stripos($detalles['showPath'], ":modelId") !== false) {
                 if (count($config) == 0) {
@@ -573,7 +573,7 @@ trait CrudFiles
             if (isset($datos['path'])) {
                 $filename = \Illuminate\Support\Str::start($registro->{$columna}, \Illuminate\Support\Str::finish($detalles['path'], '\\'));
             }
-            $urlFile = route('sirgrimorum_modelo::modelfile', ['modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
+            $urlFile = route('sirgrimorum_modelo::modelfile', ['registro' => $registro->{(new $modelo)->getKeyName()}, 'modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
         }
         return [$filename, $urlFile];
     }

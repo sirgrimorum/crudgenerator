@@ -113,7 +113,7 @@ class CrudController extends BaseController
         return $this->devolver($request, $config, $permiso, 0, $datos);
     }
 
-    public function modelfile($modelo, $campo, Request $request)
+    public function modelfile($modelo, $registro, $campo, Request $request)
     {
         $config = CrudGenerator::getConfigWithParametros($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config, 0, 'show')) {
@@ -123,7 +123,7 @@ class CrudController extends BaseController
             $detalles = $config['campos'][$campo];
             if ($request->has('_f')) {
                 $filename = $request->_f;
-                return $this->devolverFile($filename, $detalles);
+                return $this->devolverFile($filename, $registro, $detalles);
             } else {
                 abort(500, "Error preparing no file in query '_f' for the model '$modelo");
             }
@@ -140,11 +140,11 @@ class CrudController extends BaseController
         abort(500, "Error no file in query '_f'");
     }
 
-    private function devolverFile($filename, $detalles = [])
+    private function devolverFile($filename, $id = null, $detalles = [])
     {
         $tipo = CrudGenerator::filenameIs($filename, $detalles);
         if (isset($detalles['showPath']) && is_callable($detalles['showPath'])){
-            return $detalles['showPath']($filename, $tipo, $detalles);
+            return $detalles['showPath']($id, $filename, $tipo, $detalles);
         } else {
             $path = Storage::disk(\Illuminate\Support\Arr::get($detalles, "disk", "local"))->url($filename);
         }
