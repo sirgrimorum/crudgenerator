@@ -448,7 +448,7 @@ trait CrudConfig
                                         'relatedId' => $datosQueryAux[3],
                                         'intermediaModelId' => $datosQueryAux[7],
                                         'modelId' => substr($modeloE->{$method->name}()->getQualifiedParentKeyName(), stripos($modeloE->{$method->name}()->getQualifiedParentKeyName(), ".") + 1),
-                                        'foreignId' => $modeloE->{$method->name}()->getForeignKeyName(),
+                                        'foreignId' => $modeloE->{$method->name}()->getForeignPivotKeyName(),
                                         //'ownerId' => $modeloE->{$method->name}()->getQualifiedRelatedPivotKeyName(),
                                     ];
                                 }
