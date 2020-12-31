@@ -98,6 +98,8 @@ return [
      * 
      * 'prefix' => 'global_function_name',
      * 'prefix' => function([parameters]){ return $string}
+     * 'prefix' => [true,'global_function_name'], // Only to be used with a model, not used in the initial configuration translate, works if you use <-field_name-> with this function
+     * 'prefix' => [true,function([parameters]){ return $string}], // Only to be used with a model, not used in the initial configuration translate, works if you use <-field_name-> with this function
      */
     'data_prefixes' => [
         '__getLocale__' => function (){
@@ -108,6 +110,7 @@ return [
         '__url__' => 'url',
         '__trans__' => '__',
         '__transarticle__' => 'trans_article',
+        '__config__' => [true,'config'],
         '__function__' => function ($string) {
             return $string;
         },

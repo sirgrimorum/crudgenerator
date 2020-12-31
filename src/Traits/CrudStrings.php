@@ -248,7 +248,7 @@ trait CrudStrings
                         } else {
                             $piece = call_user_func($function, $textPiece);
                         }
-                        if (is_string($piece)) {
+                        if (is_string($piece) || $piece == null) {
                             if ($right <= strlen($item)) {
                                 $item = substr($item, 0, $left) . $piece . substr($item, $right + strlen($close));
                             } else {
@@ -331,19 +331,31 @@ trait CrudStrings
     {
         if (isset($item)) {
             $prefixes = CrudGenerator::getPrefixesTranslateConfig();
-            foreach ($prefixes as $prefix => $function) {
-                if (is_string($item)) {
-                    if (strpos($item, $prefix) !== false) {
-                        if ($function instanceof Closure) {
-                            $item = CrudGenerator::translateString($item, $prefix, $function);
-                        } elseif (is_string($function)) {
-                            if (function_exists($function)) {
+            foreach ($prefixes as $prefix => $preFunction) {
+                $sigue = true;
+                if (is_array($preFunction)) {
+                    $function = $preFunction[1];
+                    $sigue = $preFunction[0];
+                    if ($preFunction[0]) {
+                        $sigue = $registro != null;
+                    }
+                } else {
+                    $function = $preFunction;
+                }
+                if ($sigue) {
+                    if (is_string($item)) {
+                        if (strpos($item, $prefix) !== false) {
+                            if ($function instanceof Closure) {
                                 $item = CrudGenerator::translateString($item, $prefix, $function);
+                            } elseif (is_string($function)) {
+                                if (function_exists($function)) {
+                                    $item = CrudGenerator::translateString($item, $prefix, $function);
+                                }
                             }
                         }
+                    } elseif (is_array($item)) {
+                        $item = CrudGenerator::translateArray($item, $prefix, $function, $close);
                     }
-                } elseif (is_array($item)) {
-                    $item = CrudGenerator::translateArray($item, $prefix, $function, $close);
                 }
             }
             if ($config != null && is_array($config) && $registro != null && is_object($registro)) {
