@@ -1203,11 +1203,6 @@ trait CrudConfig
                 if ($relacion['tipo'] == "relationship") {
                     //$lista = array("-" => "-");
                 }
-                if (isset($relacion['separador'])) {
-                    $separador = $relacion['separador'];
-                } else {
-                    $separador = "-";
-                }
                 if ($relacion['todos'] == "") {
                     $modeloM = ucfirst($relacion["modelo"]);
                     if ($config == null || $clave == null || !($config != null && $clave != null && is_array($config) && array_has($config, 'query') && $config['query'] != null)) {
@@ -1215,8 +1210,8 @@ trait CrudConfig
                     } else {
                         $registros = CrudGenerator::getListFromConfig($config);
                         if ($registros instanceof Collection) {
-                            $modelosM = $registros->map(function ($objeto) use ($relacion, $separador) {
-                                return [$objeto->getKey() => CrudGenerator::getNombreDeLista($objeto, $relacion['campo'], $separador)];
+                            $modelosM = $registros->map(function ($objeto) use ($relacion, $config) {
+                                return [$objeto->getKey() => CrudGenerator::translateDato($relacion['campo'], $objeto, $config)];
                             })->values()->unique()->toArray();
                         }elseif ($registros instanceof Builder) {
                             if ($relacion['tipo'] == "relationship") {
@@ -1254,8 +1249,8 @@ trait CrudConfig
                     
                     if (isset($relacion['groupby'])) {
                         $groupBy = $relacion['groupby'];
-                        $modelosM->sortBy(function ($elemento) use ($groupBy, $separador) {
-                            return CrudGenerator::getNombreDeLista($elemento, $groupBy, $separador);
+                        $modelosM->sortBy(function ($elemento) use ($groupBy, $config) {
+                            return CrudGenerator::translateDato($groupBy, $elemento, $config);
                         });
                     }
                     $lista = [];
@@ -1263,17 +1258,17 @@ trait CrudConfig
                     $groupId = null;
                     foreach ($modelosM as $elemento) {
                         if (isset($relacion['groupby'])) {
-                            $nombreGroup = CrudGenerator::getNombreDeLista($elemento, $relacion['groupby'], $separador);
+                            $nombreGroup = CrudGenerator::translateDato($relacion['groupby'], $elemento, $config);
                             if ($groupId === null || $groupId <> $nombreGroup) {
                                 if ($groupId !== null) {
                                     $lista[$groupId] = $auxlista;
                                     $auxlista = [];
                                 }
                             }
-                            $auxlista[$elemento->getKey()] = CrudGenerator::getNombreDeLista($elemento, $relacion['campo'], $separador);
+                            $auxlista[$elemento->getKey()] = CrudGenerator::translateDato($relacion['campo'], $elemento, $config);
                             $groupId = $nombreGroup;
                         } else {
-                            $lista[$elemento->getKey()] = CrudGenerator::getNombreDeLista($elemento, $relacion['campo'], $separador);
+                            $lista[$elemento->getKey()] = CrudGenerator::translateDato($relacion['campo'], $elemento, $config);
                         }
                     }
                     if (count($auxlista) > 0) {

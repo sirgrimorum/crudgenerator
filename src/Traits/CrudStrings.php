@@ -330,6 +330,9 @@ trait CrudStrings
     public static function translateDato($item, $registro = null, $config = null, $close = "__")
     {
         if (isset($item)) {
+            if ($registro != null) {
+                $item = CrudGenerator::getNombreDeLista($registro, $item);
+            }
             $prefixes = CrudGenerator::getPrefixesTranslateConfig();
             foreach ($prefixes as $prefix => $preFunction) {
                 $sigue = true;
@@ -366,9 +369,6 @@ trait CrudStrings
                     $nombreValor = CrudGenerator::getNombreDeLista($registro, $config['nombre'], "-", ":modelName");
                     $item = str_replace([":modelName", urlencode(":modelName")], $nombreValor, $item);
                 }
-            }
-            if ($registro != null) {
-                return CrudGenerator::getNombreDeLista($registro, $item);
             }
         }
         return $item;
