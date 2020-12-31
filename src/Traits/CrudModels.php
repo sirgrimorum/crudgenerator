@@ -1561,28 +1561,44 @@ trait CrudModels
      */
     public static function syncHasMany($model, $campo, $children_items, $config)
     {
+        if (isset($config['campos']) && is_array($config['campos']) && isset($config['campos'][$campo])){
+            $config = $config['campos'];
+        }
         $children = $model->{$campo};
-        $children_items = collect($children_items);
+        $children_itemsC = collect($children_items);
+        if ($children_itemsC->has($config[$campo]['id'])){
+            $children_items = $children_itemsC;
+        }
         $deleted_ids = $children->filter(
             function ($child) use ($children_items, $config, $campo) {
-                return empty($children_items->where($config[$campo]['id'], $child->$config[$campo]['id'])->first());
+                if ($children_items instanceof Collection){
+                    return empty($children_items->where($config[$campo]['id'], $child->{$config[$campo]['id']})->first());
+                }else{
+                    return !in_array($child->{$config[$campo]['id']}, $children_items);
+                }
             }
         )->map(
             function ($child) {
-                $id = $child->id;
-                $child->delete();
-                return $id;
+                return $child->id;
             }
         );
-        $attachments = $children_items->filter(
-            function ($children_item, $config, $campo) {
-                return empty($children_item->$config[$campo]['id']);
+        $attachments = $children_itemsC->filter(
+            function ($children_item) use ($config, $campo, $children) {
+                if (is_int($children_item) || is_string($children_item)){
+                    return empty($children->whereIn($config[$campo]['id'],$children_item)->first());
+                }
+                return empty($children->whereIn($config[$campo]['id'],$children_item->{$config[$campo]['id']})->first());
             }
-        )->map(function ($children_item) use ($deleted_ids, $config, $campo) {
-            $children_item->$config[$campo]['id'] = $deleted_ids->pop();
-            return new $config[$campo]['modelo']($children_item);
+        )->map(function ($children_item) use ($config, $campo) {
+            if (is_int($children_item) || is_string($children_item)){
+                return $children_item;
+            }
+                $id = $children_item->{$config[$campo]['id']};
+                $children_item->delete();
+                return $id;
         });
-        $model->{$campo}()->saveMany($attachments);
+        $model->{$campo}()->detach($deleted_ids);
+        $model->{$campo}()->attach($attachments);
     }
 
     /**
