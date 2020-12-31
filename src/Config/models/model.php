@@ -62,7 +62,7 @@
                     "multiple" => "multiple", // for the select type, if you want the select to be multiple select available, other values means do nothing
                     "modelo" => "[Model object]", // required for the relationship, relationships and the relationshipssel types
                     "id" => "[id field name]", // required for the relationship, relationships and the relationshipssel types
-                    "campo" => "[attribute taken as name for the model]", // required for the relationship, relationships and the relationshipssel types, may use an array of field names
+                    "campo" => "[attribute taken as name for the model]", // required for the relationship, relationships and the relationshipssel types, may use an array of field names  or a string with the names of the fields to be replaced between <-field_name->
                     "groupby" => "[attribute taken as group for options in select]", // optional for the relationship, relationships and the relationshipssel types, may use an array of field names
                     "todos" => "", // required for the relationship, relationships and the relationshipssel types, array or collection of option models, a query Builder, callable that returns an array, a collection or a Query Builder, leave blank if you want all of them
                     "path" => "[name of the path in assets]/", // required for the file and files type, used to save the file, when url is "Sirgrimorum_CrudAdministrator", could be a route o function using the 'trans_prefix'

@@ -177,11 +177,14 @@ trait CrudStrings
     {
         $result = [];
         foreach ($array as $key => $item) {
+
             if (gettype($item) != "Closure Object") {
                 if (is_array($item)) {
                     $result[$key] = CrudGenerator::translateArray($array, $prefix, $function, $close);
                 } elseif (is_string($item)) {
-                    $item = CrudGenerator::translateString($item, $prefix, $function, $close);
+                    if (strpos($item, $prefix) !== false) {
+                        $item = CrudGenerator::translateString($item, $prefix, $function, $close);
+                    }
                     $result[$key] = $item;
                 } else {
                     $result[$key] = $item;
@@ -236,7 +239,7 @@ trait CrudStrings
                     }
                     if (is_string($piece)) {
                         if ($right <= strlen($item)) {
-                            $item = substr($item, 0, $left) . $piece . substr($item, $right + 2);
+                            $item = substr($item, 0, $left) . $piece . substr($item, $right + strlen($close));
                         } else {
                             $item = substr($item, 0, $left) . $piece;
                         }
@@ -306,24 +309,40 @@ trait CrudStrings
      * For array, use json notation inside comas
      *
      * @param string $item The string to operate
+     * @param object $registro Optional The model to be used as base to change field names using :*field_name: inside the string
+     * @param array $config Optional The config array for the model, used to replace :modelId and :modelName inside the item with the $registro values
      * @param string $close The close string that shows where the function must be stopped
      * @return string The string with the results of the evaluations
      */
-    public static function translateDato($item, $close = "__")
+    public static function translateDato($item, $registro = null, $config = null, $close = "__")
     {
         $prefixes = CrudGenerator::getPrefixesTranslateConfig();
         foreach ($prefixes as $prefix => $function) {
             if (is_string($item)) {
-                if ($function instanceof Closure) {
-                    $item = CrudGenerator::translateString($item, $prefix, $function);
-                } elseif (is_string($function)) {
-                    if (function_exists($function)) {
+                if (strpos($item, $prefix) !== false) {
+                    if ($function instanceof Closure) {
                         $item = CrudGenerator::translateString($item, $prefix, $function);
+                    } elseif (is_string($function)) {
+                        if (function_exists($function)) {
+                            $item = CrudGenerator::translateString($item, $prefix, $function);
+                        }
                     }
                 }
             } elseif (is_array($item)) {
                 $item = CrudGenerator::translateArray($item, $prefix, $function, $close);
             }
+        }
+        if ($config != null && is_array($config) && $registro != null && is_object($registro)) {
+            if (isset($config['id']) && isset($registro->{$config['id']}) && (strpos($item, ":modelId") !== false || strpos($item, urlencode(":modelId")) !== false)) {
+                $item = str_replace([":modelId", urlencode(":modelId")], $registro->{$config['id']}, $item);
+            }
+            if (isset($config['nombre']) && (strpos($item, ":modelName") !== false || strpos($item, urlencode(":modelName")) !== false)) {
+                $nombreValor = CrudGenerator::getNombreDeLista($registro, $config['nombre'], "-", ":modelName");
+                $item = str_replace([":modelName", urlencode(":modelName")], $nombreValor, $item);
+            }
+        }
+        if ($registro != null) {
+            return CrudGenerator::getNombreDeLista($registro, $item);
         }
         return $item;
     }
@@ -601,9 +620,10 @@ trait CrudStrings
      * @param object|array|string $elemento The objects
      * @param string|array $campo The field or list of fields names
      * @param string $separador Optional, the separator to concatenate with
+     * @param string $default Optional, the value to be used when nothing is found, if null will leave $campo
      * @return string
      */
-    public static function getNombreDeLista($elemento, $campo, $separador = "-")
+    public static function getNombreDeLista($elemento, $campo, $separador = "-", $default = null)
     {
         if (is_object($elemento)) {
             if (is_array($campo)) {
@@ -615,7 +635,7 @@ trait CrudStrings
                 }
                 return $strNombre;
             } else {
-                return $elemento->{$campo};
+                return CrudGenerator::replaceCamposEnString($elemento, $campo, $default);
             }
         } elseif (is_array($elemento)) {
             if (is_array($campo)) {
@@ -627,7 +647,7 @@ trait CrudStrings
                 }
                 return $strNombre;
             } else {
-                return $elemento[$campo];
+                return CrudGenerator::replaceCamposEnString($elemento, $campo, $default);
             }
         } elseif (is_string($elemento)) {
             if (is_array($campo)) {
@@ -639,10 +659,73 @@ trait CrudStrings
                 }
                 return $strNombre;
             } else {
-                return $campo;
+                return $default ?? $campo;
             }
         }
         return "";
+    }
+
+    /**
+     * Replaces field values form an element in a string (almost lake trans())
+     * 
+     * @param object|array $elemento The element with the fields
+     * @param string $plantilla The string to be "translated"
+     * @param string $default Optional The default value to be used when $plantilla is a single name field, and the field is not found in $elemento, if null leave $plantilla unchanged
+     * @param string $separadorInicial Optional The string used to identify de begining of the field's name in $plantilla, default "<-"
+     * @param string $separadorFinal Optional The string used to identify de end of the field's name in $plantilla, default "->"
+     * @return string The plantilla "translated"
+     */
+    public static function replaceCamposEnString($elemento, $plantilla, $default = null, $separadorInicial = "<-", $separadorFinal = "->")
+    {
+        $pedazos = "";
+        if (($left = strpos($plantilla, $separadorInicial)) !== false) {
+            $right = 0;
+            while ($left !== false) {
+                $pedazos .= substr($plantilla, $right, $left - $right);
+                if (($right = stripos($plantilla, $separadorFinal, $right)) === false) {
+                    $right = strlen($plantilla);
+                }
+                $textPiece = substr($plantilla, $left + strlen($separadorInicial), $right - ($left + strlen($separadorInicial)));
+                $piece = $textPiece;
+                $campo = \Illuminate\Support\Str::slug($piece);
+                $pedazos .= data_get($elemento, $campo,  $piece);
+                $right += strlen($separadorFinal);
+                if($right < strlen($plantilla)){
+                    $left = (stripos($plantilla, $separadorInicial, $right));
+                }else{
+                    $left = false;
+                }
+            }
+            if ($right < strlen($plantilla)) {
+                $pedazos .= substr($plantilla, $right);
+            }
+        } elseif (($left = strpos($plantilla, urlencode($separadorInicial))) !== false) {
+            $separadorInicial = urlencode($separadorInicial);
+            $separadorFinal = urlencode($separadorFinal);
+            $right = 0;
+            while ($left !== false) {
+                $pedazos .= substr($plantilla, $right, $left - $right);
+                if (($right = stripos($plantilla, $separadorFinal, $right)) === false) {
+                    $right = strlen($plantilla);
+                }
+                $textPiece = substr($plantilla, $left + strlen($separadorInicial), $right - ($left + strlen($separadorInicial)));
+                $piece = $textPiece;
+                $campo = \Illuminate\Support\Str::slug($piece);
+                $pedazos .= urlencode(data_get($elemento, $campo,  $piece));
+                $right += strlen($separadorFinal);
+                if($right < strlen($plantilla)){
+                    $left = (stripos($plantilla, $separadorInicial, $right));
+                }else{
+                    $left = false;
+                }
+            }
+            if ($right < strlen($plantilla)) {
+                $pedazos .= substr($plantilla, $right);
+            }
+        } else {
+            $pedazos = data_get($elemento, $plantilla, $default ?? $plantilla);
+        }
+        return $pedazos;
     }
 
     /**
@@ -1220,7 +1303,7 @@ trait CrudStrings
     /**
      * Add a link tag loader to a blade
      * @param string $href The path to the file
-     * @param string $rel Optional the rel attribute of the link tag, default is "stylesheet"
+     * @param string $tyrelpe Optional the rel attribute of the link tag, default is "stylesheet"
      * @param string $type Optional the type attribute of the link tag, default is "text/css"
      * @return string The script call for the scriptLoader function
      */

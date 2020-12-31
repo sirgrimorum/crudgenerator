@@ -234,7 +234,7 @@ trait CrudModels
             $value->getKeyName() => $value->getKey()
         ];
         foreach ($campos as $columna => $datos) {
-            $celda = CrudGenerator::field_array($value, $columna, $datos);
+            $celda = CrudGenerator::field_array($value, $columna, $config, $datos);
             $row[$columna] = $celda;
             $rowSimple[$columna] = $celda['value'];
         }
@@ -259,20 +259,26 @@ trait CrudModels
 
     /**
      * Generate an array of a field using a configuration array.
-     * Returns an array with 3 elements:
+     * Returns an array with at least 3 elements:
      *      data: with the detailed value
      *      label: with the translated label of the field
      *      value: with the formated value of the field
      *
      * @param Model $value The object
      * @param string $columna The field to show
+     * @param array $config Optional the configuration array for the model
      * @param array $datos Optional The configuration array for the field
      * @return array with the values in the config format
      */
-    public static function field_array($value, $columna, $datos = "")
+    public static function field_array($value, $columna, $config = "", $datos = "")
     {
         $modelo = strtolower(class_basename(get_class($value)));
-        $config = CrudGenerator::getConfigWithParametros($modelo);
+        if ($config == ""){
+            $config = CrudGenerator::getConfigWithParametros($modelo);
+        }
+        if ($datos == "" && isset($config[$columna])){
+            $datos = $config[$columna];
+        }
         if ($datos == "") {
             //$config = CrudGenerator::getConfigWithParametros($modelo);
             if (isset($config['campos'][$columna])) {
@@ -304,33 +310,13 @@ trait CrudModels
         if ($datos['tipo'] == "relationship") {
             if (CrudGenerator::hasRelation($value, $columna)) {
                 if (array_key_exists('enlace', $datos)) {
-                    if (isset($datos['id'])) {
-                        $idField = $datos['id'];
-                    } else {
-                        $idField = "";
-                    }
-                    if (isset($datos['campo'])) {
-                        $nombreField = $datos['campo'];
-                    } else {
-                        $nombreField = "";
-                    }
-                    if ($idField != "" && isset($value->{$columna}->{$idField})) {
-                        $idValor = $value->{$columna}->{$idField};
-                    } else {
-                        $idValor = 0;
-                    }
-                    if ($nombreField != "" && isset($value->{$columna}->{$nombreField})) {
-                        $nombreValor = $value->{$columna}->{$nombreField};
-                    } else {
-                        $nombreValor = "";
-                    }
-                    $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$idValor, $nombreValor], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$idValor, $nombreValor], $datos['enlace'])) . '">';
+                    $auxcelda = '<a href = "' . CrudGenerator::getNombreDeLista($value->{$columna}, $datos['enlace']) . '">';
                 } else {
                     $auxcelda = '';
                 }
                 $celda['data'] = CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
                 $celda['label'] = $datos['label'];
-                $auxcelda .= CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
+                $auxcelda .= $celda['data'];
                 if (array_key_exists('enlace', $datos)) {
                     $auxcelda .= '</a>';
                 }
@@ -346,27 +332,7 @@ trait CrudModels
                 foreach ($value->{$columna}()->get() as $sub) {
                     $auxcelda = "";
                     if (array_key_exists('enlace', $datos)) {
-                        if (isset($datos['id'])) {
-                            $idField = $datos['id'];
-                        } else {
-                            $idField = "";
-                        }
-                        if (isset($datos['campo'])) {
-                            $nombreField = $datos['campo'];
-                        } else {
-                            $nombreField = "";
-                        }
-                        if ($idField != "" && isset($sub->{$idField})) {
-                            $idValor = $sub->{$idField};
-                        } else {
-                            $idValor = 0;
-                        }
-                        if ($nombreField != "" && isset($sub->{$nombreField})) {
-                            $nombreValor = $sub->{$nombreField};
-                        } else {
-                            $nombreValor = "";
-                        }
-                        $auxcelda2 .= $prefijo . '<a href = "' . str_replace([":modelId", ":modelName"], [$idValor, $nombreValor], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$idValor, $nombreValor], $datos['enlace'])) . '">';
+                        $auxcelda2 .= $prefijo . '<a href = "' .  CrudGenerator::getNombreDeLista( $sub, $datos['enlace']) . '">';
                     } else {
                         $auxcelda2 .= $prefijo;
                     }
@@ -399,31 +365,11 @@ trait CrudModels
                     $auxcelda = "";
                     $htmlShow .= '<dt class="col-sm-3 border-bottom border-secondary pt-2">';
                     if (array_key_exists('enlace', $datos)) {
-                        if (isset($datos['id'])) {
-                            $idField = $datos['id'];
-                        } else {
-                            $idField = "";
-                        }
-                        if (isset($datos['campo'])) {
-                            $nombreField = $datos['campo'];
-                        } else {
-                            $nombreField = "";
-                        }
-                        if ($idField != "" && isset($sub->{$idField})) {
-                            $idValor = $sub->{$idField};
-                        } else {
-                            $idValor = 0;
-                        }
-                        if ($nombreField != "" && isset($sub->{$nombreField})) {
-                            $nombreValor = $sub->{$nombreField};
-                        } else {
-                            $nombreValor = "";
-                        }
-                        $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$idValor, $nombreValor], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$idValor, $nombreValor], $datos['enlace'])) . '">';
+                        $auxcelda = '<a href = "' . CrudGenerator::getNombreDeLista($sub, $datos['enlace']) . '">';
                         $htmlShow .= $auxcelda;
                     }
                     $auxcelda2 = CrudGenerator::getNombreDeLista($sub, $datos['campo']);
-                    $htmlShow .= CrudGenerator::getNombreDeLista($sub, $datos['campo']);
+                    $htmlShow .= $auxcelda2;
                     $auxcelda .= $auxcelda2;
                     if (array_key_exists('enlace', $datos)) {
                         $auxcelda .= '</a>';
@@ -823,10 +769,8 @@ trait CrudModels
                 if (count($config) <= 0) {
                     $modelo = strtolower(class_basename(get_class($value)));
                     $config = CrudGenerator::getConfigWithParametros($modelo);
-                    $identificador = array_get($config, 'id', 'id');
-                    $nombre = array_get($config, 'nombre', 'id');
                 }
-                $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $datos['enlace'])) . '">';
+                $auxcelda = '<a href = "' . $datos['enlace'] . '">';
             }
             $htmlCell = $auxcelda;
             if ($datos['tipo'] == "number" && isset($datos['format'])) {
@@ -889,15 +833,15 @@ trait CrudModels
                 $celda['html_cell'] = $celda['html_cell'] . \Illuminate\Support\Str::start($celda['post'], " ");
             }
         }
-        $celda['value'] = CrudGenerator::translateDato($celda['value']);
+        $celda['value'] = CrudGenerator::translateDato($celda['value'], $value, $config);
         if (isset($celda['html'])) {
-            $celda['html'] = CrudGenerator::translateDato($celda['html']);
+            $celda['html'] = CrudGenerator::translateDato($celda['html'], $value, $config);
         }
         if (isset($celda['html_show'])) {
-            $celda['html_show'] = CrudGenerator::translateDato($celda['html_show']);
+            $celda['html_show'] = CrudGenerator::translateDato($celda['html_show'], $value, $config);
         }
         if (isset($celda['html_cell'])) {
-            $celda['html_cell'] = CrudGenerator::translateDato($celda['html_cell']);
+            $celda['html_cell'] = CrudGenerator::translateDato($celda['html_cell'], $value, $config);
         }
         return $celda;
     }

@@ -557,14 +557,15 @@ trait CrudFiles
      */
     public static function getFileUrl(string $filename, $registro, string $modelo, string $columna, array $detalles = [], array $config = [])
     {
+        $modelClassName = CrudGenerator::getModel($modelo, ucfirst($modelo));
         if (isset($detalles['showPath']) && is_callable($detalles['showPath'])) {
-            $urlFile = route('sirgrimorum_modelo::modelfile', ['registro' => $registro->{(new $modelo)->getKeyName()}, 'modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
+            $urlFile = route('sirgrimorum_modelo::modelfile', ['registro' => $registro->{(new $modelClassName)->getKeyName()}, 'modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
         } elseif (isset($detalles['showPath']) && is_string($detalles['showPath']) && \Illuminate\Support\Str::startsWith(strtolower($detalles['showPath']), ["http:", "https:"])) {
-            if (stripos($detalles['showPath'], ":modelName") !== false || stripos($detalles['showPath'], ":modelId") !== false) {
+            if (stripos($detalles['showPath'], ":") !== false) {
                 if (count($config) == 0) {
                     $config = CrudGenerator::getConfigWithParametros($modelo);
                 }
-                $urlFile = str_replace([":modelName", ":modelId"], [$registro->{$config['nombre']}, $registro->{$config['id']}], $detalles['showPath']);
+                $urlFile = CrudGenerator::translateDato($detalles['showPath'], $registro, $config);
             } else {
                 $urlFile = $detalles['showPath'];
             }
@@ -573,7 +574,7 @@ trait CrudFiles
             if (isset($datos['path'])) {
                 $filename = \Illuminate\Support\Str::start($registro->{$columna}, \Illuminate\Support\Str::finish($detalles['path'], '\\'));
             }
-            $urlFile = route('sirgrimorum_modelo::modelfile', ['registro' => $registro->{(new $modelo)->getKeyName()}, 'modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
+            $urlFile = route('sirgrimorum_modelo::modelfile', ['registro' => $registro->{(new $modelClassName)->getKeyName()}, 'modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
         }
         return [$filename, $urlFile];
     }
