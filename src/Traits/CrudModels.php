@@ -273,10 +273,10 @@ trait CrudModels
     public static function field_array($value, $columna, $config = "", $datos = "")
     {
         $modelo = strtolower(class_basename(get_class($value)));
-        if ($config == ""){
+        if ($config == "") {
             $config = CrudGenerator::getConfigWithParametros($modelo);
         }
-        if ($datos == "" && isset($config[$columna])){
+        if ($datos == "" && isset($config[$columna])) {
             $datos = $config[$columna];
         }
         if ($datos == "") {
@@ -332,7 +332,7 @@ trait CrudModels
                 foreach ($value->{$columna}()->get() as $sub) {
                     $auxcelda = "";
                     if (array_key_exists('enlace', $datos)) {
-                        $auxcelda2 .= $prefijo . '<a href = "' .  CrudGenerator::getNombreDeLista( $sub, $datos['enlace']) . '">';
+                        $auxcelda2 .= $prefijo . '<a href = "' .  CrudGenerator::getNombreDeLista($sub, $datos['enlace']) . '">';
                     } else {
                         $auxcelda2 .= $prefijo;
                     }
@@ -1505,19 +1505,19 @@ trait CrudModels
      */
     public static function syncHasMany($model, $campo, $children_items, $config)
     {
-        if (isset($config['campos']) && is_array($config['campos']) && isset($config['campos'][$campo])){
+        if (isset($config['campos']) && is_array($config['campos']) && isset($config['campos'][$campo])) {
             $config = $config['campos'];
         }
         $children = $model->{$campo};
         $children_itemsC = collect($children_items);
-        if ($children_itemsC->has($config[$campo]['id'])){
+        if ($children_itemsC->has($config[$campo]['id'])) {
             $children_items = $children_itemsC;
         }
         $deleted_ids = $children->filter(
             function ($child) use ($children_items, $config, $campo) {
-                if ($children_items instanceof Collection){
+                if ($children_items instanceof Collection) {
                     return empty($children_items->where($config[$campo]['id'], $child->{$config[$campo]['id']})->first());
-                }else{
+                } else {
                     return !in_array($child->{$config[$campo]['id']}, $children_items);
                 }
             }
@@ -1528,18 +1528,18 @@ trait CrudModels
         );
         $attachments = $children_itemsC->filter(
             function ($children_item) use ($config, $campo, $children) {
-                if (is_int($children_item) || is_string($children_item)){
-                    return empty($children->whereIn($config[$campo]['id'],$children_item)->first());
+                if (is_int($children_item) || is_string($children_item)) {
+                    return empty($children->whereIn($config[$campo]['id'], $children_item)->first());
                 }
-                return empty($children->whereIn($config[$campo]['id'],$children_item->{$config[$campo]['id']})->first());
+                return empty($children->whereIn($config[$campo]['id'], $children_item->{$config[$campo]['id']})->first());
             }
         )->map(function ($children_item) use ($config, $campo) {
-            if (is_int($children_item) || is_string($children_item)){
+            if (is_int($children_item) || is_string($children_item)) {
                 return $children_item;
             }
-                $id = $children_item->{$config[$campo]['id']};
-                $children_item->delete();
-                return $id;
+            $id = $children_item->{$config[$campo]['id']};
+            $children_item->delete();
+            return $id;
         });
         $model->{$campo}()->detach($deleted_ids);
         $model->{$campo}()->attach($attachments);

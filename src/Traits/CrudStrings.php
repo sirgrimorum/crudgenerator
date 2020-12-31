@@ -212,49 +212,62 @@ trait CrudStrings
      */
     public static function translateString($item, $prefix, $function, $close = "__")
     {
-        $result = "";
-        if (\Illuminate\Support\Str::contains($item, $prefix)) {
-            if (($left = (stripos($item, $prefix))) !== false) {
-                while ($left !== false) {
-                    if (($right = stripos($item, $close, $left + strlen($prefix))) === false) {
-                        $right = strlen($item);
-                    }
-                    $textPiece = substr($item, $left + strlen($prefix), $right - ($left + strlen($prefix)));
-                    $piece = $textPiece;
-                    if (\Illuminate\Support\Str::contains($textPiece, "{")) {
-                        $auxLeft = (stripos($textPiece, "{"));
-                        $auxRight = stripos($textPiece, "}", $left) + 1;
-                        $auxJson = substr($textPiece, $auxLeft, $auxRight - $auxLeft);
-                        $textPiece = str_replace($auxJson, "*****", $textPiece);
-                        $auxJson = str_replace(["'", ", }"], ['"', "}"], $auxJson);
-                        $auxArr = explode(",", str_replace([" ,", ", "], [",", ","], $textPiece));
-                        if ($auxIndex = array_search("*****", $auxArr)) {
-                            $auxArr[$auxIndex] = json_decode($auxJson, true);
+        if (isset($item)) {
+            $result = "";
+            if (\Illuminate\Support\Str::contains($item, $prefix)) {
+                if (($left = (stripos($item, $prefix))) !== false) {
+                    while ($left !== false) {
+                        if ((CrudGenerator::isFunction($function, null)) === 0) {
+                            $right = $left + strlen($prefix);
+                            if (substr($item, $left, strlen($prefix) + strlen($close)) != $prefix . $close) {
+                                $right -= strlen($close);
+                            }
+                            if ($right > strlen($item)) {
+                                $right = strlen($item);
+                            }
                         } else {
-                            $auxArr[] = json_decode($auxJson, true);
+                            if (($right = stripos($item, $close, $left + strlen($prefix))) === false) {
+                                $right = strlen($item);
+                            }
                         }
-                        $piece = call_user_func_array($function, $auxArr);
-                    } else {
-                        $piece = call_user_func($function, $textPiece);
-                    }
-                    if (is_string($piece)) {
-                        if ($right <= strlen($item)) {
-                            $item = substr($item, 0, $left) . $piece . substr($item, $right + strlen($close));
+                        $textPiece = substr($item, $left + strlen($prefix), $right - ($left + strlen($prefix)));
+                        $piece = $textPiece;
+                        if (\Illuminate\Support\Str::contains($textPiece, "{")) {
+                            $auxLeft = (stripos($textPiece, "{"));
+                            $auxRight = stripos($textPiece, "}", $left) + 1;
+                            $auxJson = substr($textPiece, $auxLeft, $auxRight - $auxLeft);
+                            $textPiece = str_replace($auxJson, "*****", $textPiece);
+                            $auxJson = str_replace(["'", ", }"], ['"', "}"], $auxJson);
+                            $auxArr = explode(",", str_replace([" ,", ", "], [",", ","], $textPiece));
+                            if ($auxIndex = array_search("*****", $auxArr)) {
+                                $auxArr[$auxIndex] = json_decode($auxJson, true);
+                            } else {
+                                $auxArr[] = json_decode($auxJson, true);
+                            }
+                            $piece = call_user_func_array($function, $auxArr);
                         } else {
-                            $item = substr($item, 0, $left) . $piece;
+                            $piece = call_user_func($function, $textPiece);
                         }
-                        $left = (stripos($item, $prefix));
-                    } else {
-                        $item = $piece;
-                        $left = false;
+                        if (is_string($piece)) {
+                            if ($right <= strlen($item)) {
+                                $item = substr($item, 0, $left) . $piece . substr($item, $right + strlen($close));
+                            } else {
+                                $item = substr($item, 0, $left) . $piece;
+                            }
+                            $left = (stripos($item, $prefix));
+                        } else {
+                            $item = $piece;
+                            $left = false;
+                        }
                     }
                 }
+                $result = $item;
+            } else {
+                $result = $item;
             }
-            $result = $item;
-        } else {
-            $result = $item;
+            return $result;
         }
-        return $result;
+        return $item;
     }
 
     /**
@@ -316,33 +329,35 @@ trait CrudStrings
      */
     public static function translateDato($item, $registro = null, $config = null, $close = "__")
     {
-        $prefixes = CrudGenerator::getPrefixesTranslateConfig();
-        foreach ($prefixes as $prefix => $function) {
-            if (is_string($item)) {
-                if (strpos($item, $prefix) !== false) {
-                    if ($function instanceof Closure) {
-                        $item = CrudGenerator::translateString($item, $prefix, $function);
-                    } elseif (is_string($function)) {
-                        if (function_exists($function)) {
+        if (isset($item)) {
+            $prefixes = CrudGenerator::getPrefixesTranslateConfig();
+            foreach ($prefixes as $prefix => $function) {
+                if (is_string($item)) {
+                    if (strpos($item, $prefix) !== false) {
+                        if ($function instanceof Closure) {
                             $item = CrudGenerator::translateString($item, $prefix, $function);
+                        } elseif (is_string($function)) {
+                            if (function_exists($function)) {
+                                $item = CrudGenerator::translateString($item, $prefix, $function);
+                            }
                         }
                     }
+                } elseif (is_array($item)) {
+                    $item = CrudGenerator::translateArray($item, $prefix, $function, $close);
                 }
-            } elseif (is_array($item)) {
-                $item = CrudGenerator::translateArray($item, $prefix, $function, $close);
             }
-        }
-        if ($config != null && is_array($config) && $registro != null && is_object($registro)) {
-            if (isset($config['id']) && isset($registro->{$config['id']}) && (strpos($item, ":modelId") !== false || strpos($item, urlencode(":modelId")) !== false)) {
-                $item = str_replace([":modelId", urlencode(":modelId")], $registro->{$config['id']}, $item);
+            if ($config != null && is_array($config) && $registro != null && is_object($registro)) {
+                if (isset($config['id']) && isset($registro->{$config['id']}) && (strpos($item, ":modelId") !== false || strpos($item, urlencode(":modelId")) !== false)) {
+                    $item = str_replace([":modelId", urlencode(":modelId")], $registro->{$config['id']}, $item);
+                }
+                if (isset($config['nombre']) && (strpos($item, ":modelName") !== false || strpos($item, urlencode(":modelName")) !== false)) {
+                    $nombreValor = CrudGenerator::getNombreDeLista($registro, $config['nombre'], "-", ":modelName");
+                    $item = str_replace([":modelName", urlencode(":modelName")], $nombreValor, $item);
+                }
             }
-            if (isset($config['nombre']) && (strpos($item, ":modelName") !== false || strpos($item, urlencode(":modelName")) !== false)) {
-                $nombreValor = CrudGenerator::getNombreDeLista($registro, $config['nombre'], "-", ":modelName");
-                $item = str_replace([":modelName", urlencode(":modelName")], $nombreValor, $item);
+            if ($registro != null) {
+                return CrudGenerator::getNombreDeLista($registro, $item);
             }
-        }
-        if ($registro != null) {
-            return CrudGenerator::getNombreDeLista($registro, $item);
         }
         return $item;
     }
@@ -382,22 +397,27 @@ trait CrudStrings
     }
 
     /**
-     * Get if a Model has a function
+     * Get if a Model has a function, 
+     * could be use to get the number of parameters of a function if $key is null
      * @param string $model
      * @param string $key the attribute name for the function
      * @return boolean|int if key is a callable function, return the number of arguments, if not, return false (use strict comparision)
      */
-    public static function isFunction($model, $key)
+    public static function isFunction($model, $key = null)
     {
         $nombreLlamar = "";
-        if (is_callable([$model, $key], true, $nombreLlamar) && method_exists($model, $key)) {
+        if ($key == null) {
+            if (is_callable($model, true, $nombreLlamar)) {
+                $refFunc = new \ReflectionFunction($model);
+                return $refFunc->getNumberOfParameters();
+            }
+        } elseif (is_callable([$model, $key], true, $nombreLlamar) && method_exists($model, $key)) {
             $refClass = new \ReflectionClass($model);
             $refFunc = $refClass->getMethod($key);
             //$refFunc = new \ReflectionFunction($nombreLlamar);
             return $refFunc->getNumberOfParameters();
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -625,44 +645,45 @@ trait CrudStrings
      */
     public static function getNombreDeLista($elemento, $campo, $separador = "-", $default = null)
     {
-        if (is_object($elemento)) {
-            if (is_array($campo)) {
-                $strNombre = "";
-                $preNombre = "";
-                foreach ($campo as $indiceCampo => $nombreCampo) {
-                    $strNombre .= $preNombre . $elemento->{$nombreCampo};
-                    $preNombre = $separador;
+        if (isset($campo)) {
+            if (is_object($elemento)) {
+                if (is_array($campo)) {
+                    $strNombre = "";
+                    $preNombre = "";
+                    foreach ($campo as $indiceCampo => $nombreCampo) {
+                        $strNombre .= $preNombre . $elemento->{$nombreCampo};
+                        $preNombre = $separador;
+                    }
+                    return $strNombre;
+                } else {
+                    return CrudGenerator::replaceCamposEnString($elemento, $campo, $default);
                 }
-                return $strNombre;
-            } else {
-                return CrudGenerator::replaceCamposEnString($elemento, $campo, $default);
-            }
-        } elseif (is_array($elemento)) {
-            if (is_array($campo)) {
-                $strNombre = "";
-                $preNombre = "";
-                foreach ($campo as $indiceCampo => $nombreCampo) {
-                    $strNombre .= $preNombre . $elemento[$nombreCampo];
-                    $preNombre = $separador;
+            } elseif (is_array($elemento)) {
+                if (is_array($campo)) {
+                    $strNombre = "";
+                    $preNombre = "";
+                    foreach ($campo as $indiceCampo => $nombreCampo) {
+                        $strNombre .= $preNombre . $elemento[$nombreCampo];
+                        $preNombre = $separador;
+                    }
+                    return $strNombre;
+                } else {
+                    return CrudGenerator::replaceCamposEnString($elemento, $campo, $default);
                 }
-                return $strNombre;
-            } else {
-                return CrudGenerator::replaceCamposEnString($elemento, $campo, $default);
-            }
-        } elseif (is_string($elemento)) {
-            if (is_array($campo)) {
-                $strNombre = "";
-                $preNombre = "";
-                foreach ($campo as $indiceCampo => $nombreCampo) {
-                    $strNombre .= $preNombre . $nombreCampo;
-                    $preNombre = $separador;
+            } elseif (is_string($elemento)) {
+                if (is_array($campo)) {
+                    $strNombre = "";
+                    $preNombre = "";
+                    foreach ($campo as $indiceCampo => $nombreCampo) {
+                        $strNombre .= $preNombre . $nombreCampo;
+                        $preNombre = $separador;
+                    }
+                    return $strNombre;
                 }
-                return $strNombre;
-            } else {
-                return $default ?? $campo;
             }
+            return $default ?? $campo;
         }
-        return "";
+        return $default ?? $campo;
     }
 
     /**
@@ -690,9 +711,9 @@ trait CrudStrings
                 $campo = \Illuminate\Support\Str::slug($piece);
                 $pedazos .= data_get($elemento, $campo,  $piece);
                 $right += strlen($separadorFinal);
-                if($right < strlen($plantilla)){
+                if ($right < strlen($plantilla)) {
                     $left = (stripos($plantilla, $separadorInicial, $right));
-                }else{
+                } else {
                     $left = false;
                 }
             }
@@ -713,9 +734,9 @@ trait CrudStrings
                 $campo = \Illuminate\Support\Str::slug($piece);
                 $pedazos .= urlencode(data_get($elemento, $campo,  $piece));
                 $right += strlen($separadorFinal);
-                if($right < strlen($plantilla)){
+                if ($right < strlen($plantilla)) {
                     $left = (stripos($plantilla, $separadorInicial, $right));
-                }else{
+                } else {
                     $left = false;
                 }
             }

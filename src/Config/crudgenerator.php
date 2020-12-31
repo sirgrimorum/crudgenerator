@@ -100,12 +100,14 @@ return [
      * 'prefix' => function([parameters]){ return $string}
      */
     'data_prefixes' => [
+        '__getLocale__' => function (){
+            return Illuminate\Support\Facades\App::getLocale();
+        },
         '__asset__' => 'asset',
         '__route__' => 'route',
         '__url__' => 'url',
         '__trans__' => '__',
         '__transarticle__' => 'trans_article',
-        '__getLocale__' => 'Illuminate\Support\Facades\App::getLocale',
         '__function__' => function ($string) {
             return $string;
         },

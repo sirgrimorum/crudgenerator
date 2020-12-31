@@ -736,12 +736,14 @@ trait CrudConfig
                 $prefixRules = "bail|";
                 switch ($datos['type']) {
                     case "BelongsTo":
+                        $modeloSimple = strtolower(class_basename($datos['relation']['related']['model']));
                         $configCampos[$campo] = [
                             'tipo' => 'relationship',
                             'label' => $campo,
                             'modelo' => $datos['relation']['related']['model'],
                             'id' => $datos['relation']['datosQuery']['relatedId'],
-                            'campo' => $datos['relation']['related']['name'],
+                            'campo' => "<-{$datos['relation']['related']['name']}-> (<-{$datos['relation']['related']['id']}->)",
+                            'enlace' => "__route__sirgrimorum_modelo::show,{'localecode':'__getLocale__','modelo':'{$modeloSimple}','registro':'<-{$datos['relation']['related']['id']}->'}__",
                             "todos" => "",
                         ];
                         $rulesStr .= $prefixRules . 'required|exists:' . $datos['relation']['related']['tabla'] . ',' . $datos['relation']['datosQuery']['relatedId'];
@@ -756,12 +758,14 @@ trait CrudConfig
                         break;
                     case "HasMany":
                     case "BelongsToMany":
+                        $modeloSimple = strtolower(class_basename($datos['relation']['related']['model']));
                         $configCampos[$campo] = [
                             'tipo' => 'relationships',
                             'label' => $campo,
                             'modelo' => $datos['relation']['related']['model'],
-                            'id' => $datos['relation']['datosQuery']['relatedId'],
+                            'id' => "<-{$datos['relation']['related']['name']}-> (<-{$datos['relation']['related']['id']}->)",
                             'campo' => $datos['relation']['related']['name'],
+                            'enlace' => "__route__sirgrimorum_modelo::show,{'localecode':'__getLocale__','modelo':'{$modeloSimple}','registro':'<-{$datos['relation']['related']['id']}->'}__",
                             'card_class' => 'bg-light',
                             "todos" => "",
                         ];
