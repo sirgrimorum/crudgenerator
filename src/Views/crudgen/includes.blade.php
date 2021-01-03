@@ -351,6 +351,12 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
                     var obj = JSON.parse(ugly);
                     var pretty = JSON.stringify(obj, undefined, 4);
                     document.getElementById(idElement).value = pretty;
+                    if (typeof window['json_' + idElement] !== 'undefined'){
+                        window['json_' + idElement] = new JSONedtr(ugly, '#contenedor_json_' + idElement,{
+                            'instantChange' : true,
+                            'runFunctionOnUpdate' : 'json_' + idElement + '_onChange'
+                        });
+                    }
                 }catch(err) {
                     confirmTitle = '{{trans('crudgenerator::admin.layout.labels.error_json_title')}}';
                     confirmContent = '{!!trans('crudgenerator::admin.messages.error_json')!!}<br>' + err.message;

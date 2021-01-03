@@ -1,5 +1,7 @@
 .jse--output {
     position: relative;
+    margin: 50px;
+    width: 1000px;
     min-height: 100px;
     outline: 1px solid #eee;
     padding: 0;
@@ -13,10 +15,20 @@
 
 .jse--output .jse--row {
     position: relative;
-    display: flex;
+    display: block;
     margin: 0px;
     line-height: 30px;
+}
+
+.jse--output .jse--container {
+    display: flex;
     justify-content: space-around;
+    width: 100%;
+    padding-right: 3em;
+}
+
+.jse--output .jse--add .jse--container {
+    padding-right: 0;
 }
 
 .jse--output .jse--row:hover {
@@ -25,7 +37,7 @@
 }
 
 .jse--output .jse--delete {
-    position: relative;
+    position: absolute;
     right: 0;
     top: 0;
     width: 2em;
@@ -46,11 +58,10 @@
     border: none;
     background-color: transparent;
     margin-left: 6px;
-    padding: 0 12px !important;
+    padding: 0 !important;
     width: 100%;
-    margin-left: auto;
-    text-align: right;
     height: 30px;
+    text-align: left;
 }
 
 .jse--output .jse--typeof {
@@ -58,11 +69,19 @@
     font-size: 0.9em;
     color: #555;
     margin-left: 0px;
+}
+
+.jse--output button {
+    line-height: 1em;
+}
+
+.jse--output .jse--container>.jse--typeof {
+    flex-grow: 1;
     display: flex;
 }
 
 .jse--output input {
-    border: 1px solid #555;
+    border: 1px solid #999;
     background-color: transparent;
     margin: 0;
     line-height: 30px;
@@ -81,16 +100,23 @@
 
 .jse--output input.jse--key {
     font-weight: bold;
-    flex-grow: 1;
+}
+
+.jse--output .jse--container>input.jse--key {
+    flex-grow: 2;
+    max-width: 50%;
 }
 
 .jse--output input.jse--value {
     font-style: italic;
-    flex-grow: 2;
+}
+
+.jse--output .jse--container>input.jse--value {
+    flex-grow: 6;
 }
 
 .jse--output input[type=checkbox].jse--value__new {
-    position: absolute;
+    padding: 5px;
 }
 
 .jse--output .jse--row-object>.jse--row,

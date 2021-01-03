@@ -270,4 +270,8 @@ return [
      * Probable column names of a "color" in the model, used to autobuild config, only apply for string fields
      */
     'probable_color' => ['color'],
+    /**
+     * Probable column names of a "json" in the model, used to autobuild config, only apply for string fields
+     */
+    'probable_json' => ['json','options','option'],
 ];

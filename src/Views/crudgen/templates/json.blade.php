@@ -14,7 +14,11 @@ if ($dato == "") {
 }
 if ($dato == "") {
     if (isset($datos["valor"])) {
-        $dato = $datos["valor"];
+        if (is_array($datos["valor"]) || is_object($datos["valor"])){
+            $dato = json_encode($datos["valor"]);
+        }else{
+            $dato = $datos["valor"];
+        }
     }
 }
 $error_campo = false;
@@ -63,17 +67,18 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
 ?>
 <script>
     var {{ $tabla . "_" . $extraId }}Ejecutado = false;
+    var json_{{ $tabla . "_" . $extraId }};
     function {{ $tabla . "_" . $extraId }}Loader(){
         if (!{{ $tabla . "_" . $extraId }}Ejecutado){
             var jsonInicial = "{}";
             try {
-                var ugly = document.getElementById({{ $tabla . "_" . $extraId }}).value;
+                var ugly = document.getElementById('{{ $tabla . "_" . $extraId }}').value;
                 var obj = JSON.parse(ugly);
                 jsonInicial = ugly;
             }catch(err) {
                 console.log('error leyendo json', err);
             }
-            var json_{{ $tabla . "_" . $extraId }} = new JSONedtr(jsonInicial, '#contenedor_json_{{ $tabla . "_" . $extraId }}',{
+            json_{{ $tabla . "_" . $extraId }} = new JSONedtr(jsonInicial, '#contenedor_json_{{ $tabla . "_" . $extraId }}',{
                 'instantChange' : true,
                 'runFunctionOnUpdate' : 'json_{{ $tabla . "_" . $extraId }}_onChange'
             });
@@ -81,6 +86,7 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
         {{ $tabla . "_" . $extraId }}Ejecutado = true;
     }
     function json_{{ $tabla . "_" . $extraId }}_onChange(data){
+        console.log('llega', data.getDataString());
         $('#{{ $tabla . "_" . $extraId }}').val(data.getDataString());
     }
     window.addEventListener('load', function() {
