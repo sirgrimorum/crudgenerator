@@ -37,22 +37,27 @@ if (isset($datos["placeholder"])) {
 } else {
     $placeholder = "";
 }
+$extraClassDiv = array_get($datos, 'extraClassDiv', "");
+$extraClassInput = array_get($datos, 'extraClassInput', "");
+$extraDataInput = array_get($datos, 'extraDataInput', []);
+$help = array_get($datos, 'help', "");
 if (isset($datos['multiple'])) {
     if ($datos['multiple'] == 'multiple') {
         $nomColumna = $extraId . "[]";
-        $arrayAttr = ['multiple' => 'multiple', 'class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $extraId, $readonly];
+        $arrayAttr = ['multiple' => 'multiple', 'class' => "form-control {$config['class_input']} $claseError $extraClassInput", 'id' => $tabla . '_' . $extraId, $readonly];
     } else {
         $nomColumna = $extraId;
-        $arrayAttr = ['class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $extraId, $readonly];
+        $arrayAttr = ['class' => "form-control {$config['class_input']} $claseError $extraClassInput", 'id' => $tabla . '_' . $extraId, $readonly];
     }
 } else {
     $nomColumna = $extraId;
-    $arrayAttr = ['class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $extraId, $readonly];
+    $arrayAttr = ['class' => "form-control {$config['class_input']} $claseError $extraClassInput", 'id' => $tabla . '_' . $extraId, $readonly];
 }
+$arrayAttr = array_merge($extraDataInput,$arrayAttr);
 
 //$arrayAttr["placeholder"]=$placeholder;
 ?>
-<div class="form-group row {{$config['class_formgroup']}}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
+<div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>
         {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))
@@ -67,6 +72,11 @@ if (isset($datos['multiple'])) {
         <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}
         </div>
+        @endif
+        @if($help != "")
+        <small class="form-text text-muted {{ $help }} mt-0">
+            {{ $help }}
+        </small>
         @endif
     </div>
 </div>
@@ -90,10 +100,19 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
         }
         {{ $tabla . "_" . $extraId }}Ejecutado = true;
     }
+    var {{ $tabla . "_" . $extraId }}_selecteador_Ejecutado = false;
+    function {{ $tabla . "_" . $extraId }}_selecteador_Loader(){
+        if (!{{ $tabla . "_" . $extraId }}_selecteador_Ejecutado){
+            comenzarCheckeador();
+        }
+        {{ $tabla . "_" . $extraId }}_selecteador_Ejecutado = true;
+    }
     window.addEventListener('load', function() {
         {{ $tabla . "_" . $extraId }}Loader();
+        {{ $tabla . "_" . $extraId }}_selecteador_Loader();
     });
     {{ $nameScriptLoader }}('select2_min_js',"{{ $tabla . "_" . $extraId }}Loader();");
+    {{ $nameScriptLoader }}('chekeador_js',"{{ $tabla . "_" . $extraId }}_selecteador_Loader();");
 </script>
 <?php
 if ($js_section != "") {

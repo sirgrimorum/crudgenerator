@@ -37,8 +37,13 @@ if (isset($datos['placeholder'])) {
 } else {
     $placeholder = "";
 }
+$extraClassDiv = array_get($datos, 'extraClassDiv', "");
+$extraClassInput = array_get($datos, 'extraClassInput', "");
+$extraDataInput = array_get($datos, 'extraDataInput', []);
+$help = array_get($datos, 'help', "");
 ?>
-<div class="form-group row {{$config['class_formgroup']}}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
+<div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo'
+    data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>
         {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))
@@ -50,11 +55,17 @@ if (isset($datos['placeholder'])) {
     <div class="{{ $config['class_divinput'] }}">
         <div class="input-group w-50">
             @if (isset($datos["pre"]))
-            <div class="input-group-prepend"><div class="input-group-text">{{ $datos["pre"] }}</div></div>
+            <div class="input-group-prepend">
+                <div class="input-group-text">{{ $datos["pre"] }}</div>
+            </div>
             @endif
-            {{ Form::number($extraId, $dato, array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $extraId, 'step' => 'any', 'placeholder'=>$placeholder,$readonly)) }}
+            {{ Form::number($extraId, $dato, array_merge(
+                $extraDataInput,
+                ['class' => "form-control {$config['class_input']} $claseError $extraClassInput", 'id' => $tabla . '_' . $extraId, 'step' => 'any', 'placeholder'=>$placeholder,$readonly])) }}
             @if (isset($datos["post"]))
-            <div class="input-group-append"><div class="input-group-text">{{ $datos["post"] }}</div></div>
+            <div class="input-group-append">
+                <div class="input-group-text">{{ $datos["post"] }}</div>
+            </div>
             @endif
             @if ($error_campo)
             <div class="invalid-feedback">
@@ -62,5 +73,10 @@ if (isset($datos['placeholder'])) {
             </div>
             @endif
         </div>
+        @if($help != "")
+        <small class="form-text text-muted {{ $help }} mt-0">
+            {{ $help }}
+        </small>
+        @endif
     </div>
 </div>

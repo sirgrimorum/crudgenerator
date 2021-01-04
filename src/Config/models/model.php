@@ -43,9 +43,30 @@
                     "tipo" => "[type of the field]", // required for all types, options are: "function", "checkbox", "color", "date", "datetime", "time", "email", "url", "file", "files" (multiple files in a single field with Json notation, recomended, text type), "hidden", "html", "article" (Translation from Articles table, needs sirgrimorum/transarticles package), "number", "password", "radio", "relationship" (belongsTo one to many), "relationships" (many to many), "relationshipssel" (many to many with pivot table), "select", "slider", "text", "textarea", "json"
                     "label" => "[text of the label]", // required for all types, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.labels.name__",
                     "placeholder" => "[placeholder text]", // required for text, textarea, email, password and number types, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.placeholders.name__",
-                    "description" => "[description text]", // use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.descriptions.name__",
+                    "description" => "[description text]", // is shown under the label use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.descriptions.name__",
+                    "help" => "[help text]", // is shown under the input use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.descriptions.name__",
+                    'extraClassDiv' => "extra_class_div_field", // for the form group div, use 'contenedor_field_value' or 'contenedor_field_value_not' for 'chekeador' or 'selecteador' conditioning
+                    'extraClassInput' => "extra_class_field", // for the input, use 'checkeador' for conditional fields in 'checkbox' or 'radio' types and 'selecteador' for 'select' type
+                    'extraDataInput' => [ // for the input, aditional attributes
+                        'data-dato1' => 'valor_dato_1' // use data-contenedor' => '.contenedor_field' with 'chekeador' o 'selecteador' class
+                    ]
                     "valor" => "[default value of the field]", // use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
-                    "value" => "[value or lists of values to be taken by de field]", // required for checkbox and radio types, mainly for the checkbox and radio use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
+                    "value" => "[value or lists of values to be taken by de field]" | [ // required for checkbox and radio types, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
+                        'valor1',
+                        'valor2' => "Label valor 2",
+                        'valor3' => [
+                            'separador' => true, // If this only a separator not an actual choice
+                            'label' => "__trans__crudgenerator::article.labels.checkbox.valor3",
+                            'description' => "Descripcion valor 3", // goes inside de input group
+                            'help' => "Help valor 3", // goes outside de input group with 'extraClassDiv'
+                            'extraClassDiv' => "extra_class_div_valor3", // for the input group div, use 'contenedor_field_value2' or 'contenedor_field_value2_not' for 'chekeador' conditioning
+                            'extraClassInput' => "extra_class_input_valor3", // for the input, use 'checkeador' for conditional fields
+                            'extraDataInput' => [ // for the input, aditiona attributes
+                                'data-dato1' => 'valor_dato_1' // use data-contenedor' => '.contenedor_field_valor3' with 'chekeador' class
+                            ]
+                        ]
+                    ],
+                    "glue" => "_", // string to be use as glue when value is an array and must be a string, ej: in checkbox with multiple selection, default is "_"
                     "unchecked" => "[value to be taken by de field when unchecked]", // for checkbox and radio types, default is 0, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
                     "enlace" => "[url for link in show or lists views]", // use :modelId or :modelName to change it for de id or name of the object, use the 'trans_prefix' value if you want localization ej: __route__users.show, {'user': ':modelId'}__ or url("__trans__crudgenerator::article.menu.links.usuario__", array(":modelId"),
                     "conditional" => [ // Only show if all of the conditions are fullfill. use :! for negation and :< :> := for operations and {:empty] or {:notempty}

@@ -79,8 +79,12 @@ if (is_array($datos['campo'])) {
 } else {
     $camposQuery = $datos['campo'];
 }
+$extraClassDiv = array_get($datos, 'extraClassDiv', "");
+$extraClassInput = array_get($datos, 'extraClassInput', "");
+$extraDataInput = array_get($datos, 'extraDataInput', []);
+$help = array_get($datos, 'help', "");
 ?>
-<div class="form-group row {{ $claseError }} {{$config['class_formgroup']}}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $columna}}'>
+<div class="form-group row {{ $claseError }} {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $columna}}'>
     <div class='{{$config['class_labelcont']}}'>
         {{ Form::label($columna, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))
@@ -138,6 +142,11 @@ if (is_array($datos['campo'])) {
         ?>
         @include('sirgrimorum::crudgen.templates.relationshipssel_item')
         @endforeach
+        @if($help != "")
+        <small class="form-text text-muted {{ $help }} mt-0">
+            {{ $help }}
+        </small>
+        @endif
     </div>
 
     @if ($error_campo)

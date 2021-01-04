@@ -80,7 +80,7 @@ if (isset($datos["card_class"])) {
     $card_class = "";
 }
 $atributos = [
-    'class' => 'form-control ' . $claseError,
+    'class' => "form-control $claseError $extraClassInput",
     'placeholder' => $placeholder,
     'style' => "max-height:100px;",
     $readonly
@@ -127,7 +127,7 @@ if (isset($columnaT['campo']) && $columnaT['type'] != 'label') {
                     @endif
                 </div>
                 <div class="{{ $config['class_divinput'] }}">
-                    {{ Form::text($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, $valorM, array('class' => 'form-control-plaintext ' . $config['class_input'] . ' ' . $claseError, 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, "readonly"=>"readonly")) }}
+                    {{ Form::text($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, $valorM, array('class' => "form-control-plaintext {$config['class_input']} $claseError $extraClassInput", 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, "readonly"=>"readonly")) }}
                 </div>
             </div>
             @elseif (View::exists("sirgrimorum::crudgen.templates." . $columnaT['type']))

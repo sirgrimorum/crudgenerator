@@ -48,10 +48,13 @@ if (isset($datos["placeholder"])) {
 } else {
     $placeholder = "";
 }
-
+$extraClassDiv = array_get($datos, 'extraClassDiv', "");
+$extraClassInput = array_get($datos, 'extraClassInput', "");
+$extraDataInput = array_get($datos, 'extraDataInput', []);
+$help = array_get($datos, 'help', "");
 ?>
 
-<div class="form-group row {{$config['class_formgroup']}}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
+<div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>
         {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))
@@ -138,7 +141,9 @@ if (isset($datos["placeholder"])) {
             </div>
             {{ Form::text($extraId . "_name[]", $dato, ['class' => 'form-control ' . $claseError, 'placeholder'=>trans("crudgenerator::admin.layout.labels.name"),$readonly]) }}
             <div class="custom-file">
-                {{ Form::file($extraId . "[]", ['class' => 'custom-file-input form-control ' . $claseError, $placeholder, $readonly,"data-toggle"=>"custom-file"]) }}
+                {{ Form::file($extraId . "[]", array_merge(
+                    $extraDataInput,
+                    ['class' => "custom-file-input form-control $claseError $extraClassInput", $placeholder, $readonly,"data-toggle"=>"custom-file"])) }}
                 <label class="custom-file-label">{{trans("crudgenerator::admin.layout.labels.choose_file")}}</label>
             </div>
             <div class="input-group-append">
@@ -183,7 +188,9 @@ if (isset($datos["placeholder"])) {
             </div>
             {{ Form::text($extraId . "_name[]", $dato, ['class' => 'form-control ' . $claseError, 'placeholder'=>trans("crudgenerator::admin.layout.labels.name"),"required"=>"required",$readonly]) }}
             <div class="custom-file">
-                {{ Form::file($extraId . "[]", ['class' => 'custom-file-input ' . $claseError, $placeholder, $readonly,"data-toggle"=>"custom-file"]) }}
+                {{ Form::file($extraId . "[]", array_merge(
+                    $extraDataInput,
+                    ['class' => "custom-file-input $claseError $extraClassInput", $placeholder, $readonly,"data-toggle"=>"custom-file"])) }}
                 <label class="custom-file-label">{{trans("crudgenerator::admin.layout.labels.choose_file")}}</label>
             </div>
             <div class="input-group-append">
@@ -202,6 +209,11 @@ if (isset($datos["placeholder"])) {
         </div>
         @endif
         @endforeach
+        @if($help != "")
+        <small class="form-text text-muted {{ $help }} mt-0">
+            {{ $help }}
+        </small>
+        @endif
     </div>
     <div class="d-none" id="{{$tabla . "_" . $extraId}}_clone">
         <div class="input-group mt-2 mb-0" >
@@ -214,7 +226,9 @@ if (isset($datos["placeholder"])) {
             </div>
             {{ Form::text("nombre", $dato, ['class' => 'form-control ' . $claseError, 'placeholder'=>trans("crudgenerator::admin.layout.labels.name"),$readonly]) }}
             <div class="custom-file">
-                {{ Form::file($extraId . "[]", ['class' => 'custom-file-input ' . $claseError, $placeholder, $readonly,"data-toggle"=>"custom-file"]) }}
+                {{ Form::file($extraId . "[]", array_merge(
+                    $extraDataInput,
+                    ['class' => "custom-file-input $claseError $extraClassInput", $placeholder, $readonly,"data-toggle"=>"custom-file"])) }}
                 <label class="custom-file-label">{{trans("crudgenerator::admin.layout.labels.choose_file")}}</label>
             </div>
             <div class="input-group-append">

@@ -36,8 +36,12 @@ if (isset($datos["readonly"])) {
 } else {
     $readonly = "";
 }
+$extraClassDiv = array_get($datos, 'extraClassDiv', "");
+$extraClassInput = array_get($datos, 'extraClassInput', "");
+$extraDataInput = array_get($datos, 'extraDataInput', []);
+$help = array_get($datos, 'help', "");
 ?>
-<div class="form-group row {{$config['class_formgroup']}}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
+<div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>
         {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))
@@ -48,11 +52,18 @@ if (isset($datos["readonly"])) {
     </div>
     <div class="{{ $config['class_divinput'] }}">
         <div class="w-100 m-0" id="contenedor_json_{{ $tabla . "_" . $extraId }}"></div>
-        {{ Form::textarea($extraId, $dato, array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $extraId,$readonly)) }}
+        {{ Form::textarea($extraId, $dato, array_merge(
+            $extraDataInput,
+            ['class' => "form-control {$config['class_input']} $claseError $extraClassInput", 'id' => $tabla . '_' . $extraId,$readonly])) }}
         @if ($error_campo)
         <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}
         </div>
+        @endif
+        @if($help != "")
+        <small class="form-text text-muted {{ $help }} mt-0">
+            {{ $help }}
+        </small>
         @endif
         <button class="btn btn-secondary mt-2" role="button" type="button" onclick="{{ $tabla . "_" . $extraId }}Loader();prettyPrint('{{$tabla . '_' . $extraId}}')">{{trans("crudgenerator::admin.layout.labels.pretty_print")}}</button>
     </div>

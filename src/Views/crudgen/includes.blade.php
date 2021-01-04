@@ -107,7 +107,7 @@ if ($tieneSlider || $tieneDate || $tieneSelect || $tieneSearch || $tieneColor ||
 }
 list($condiciones,$validadores)= Sirgrimorum\CrudGenerator\CrudGenerator::buildConditionalArray($config,$action);
 //echo "<p>Condiciones</p><pre>" . print_r([$condiciones,$validadores], true) . "</pre>";
-if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || $tieneColor || $tieneFile || $tieneJson || count($condiciones)>0) {
+if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || $tieneColor || $tieneFile || $tieneJson || $tieneCheckeador || count($condiciones)>0) {
     if ($js_section != "") {
         ?>
         @push($js_section)
@@ -119,6 +119,9 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
         } else {
             echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(asset(config("sirgrimorum.crudgenerator.typeahead_path") . '/jquery.typeahead.min.js'),false);
         }
+    }
+    if ($tieneCheckeador) {
+        echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(asset("vendor/sirgrimorum/checkeador/checkeador.js"),false);
     }
     if ($tieneSearch || $tieneFile || $tieneJson) {
         if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {

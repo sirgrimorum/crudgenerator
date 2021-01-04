@@ -445,9 +445,33 @@ trait CrudModels
                 $celda = '-';
             }
         } elseif ($datos['tipo'] == "checkbox" || $datos['tipo'] == "radio") {
+            $auxdata = $value->{$columna};
             if (is_array($datos['value'])) {
                 if (array_key_exists($value->{$columna}, $datos['value'])) {
                     $auxcelda = $datos['value'][$value->{$columna}];
+                } elseif (strpos($value->{$columna}, array_get($datos, 'glue', '_')) !== false) {
+                    $auxdata = explode(array_get($datos, 'glue', '_'), $value->{$columna});
+                    $auxdataLabels = [];
+                    $auxcelda = "";
+                    $precelda = "";
+                    $auxhtml = "";
+                    foreach ($auxdata as $datico) {
+                        if (array_key_exists($datico, $datos['value'])) {
+                            $auxDatico = $datos['value'][$datico];
+                            if (is_array($auxDatico)){
+                                $auxDatico = array_get($auxDatico, 'label',array_get($auxDatico, 'description',array_get($auxDatico, 'help',$datico)));
+                            }
+                            $auxdataLabels[$datico] = $auxDatico;
+                            $auxcelda .= $precelda . $auxDatico;
+                            $precelda = ", ";
+                            $auxhtml .= "<li>{$auxDatico}</li>";
+                        }
+                    }
+                    if ($auxhtml != "") {
+                        $celda['html'] = "<ul>{$auxhtml}</ul>";
+                        $celda['html_cell'] = '<div style="max-height:200px;min-width:300px;white-space:normal;overflow-y:scroll;">' . $celda['html'] . '</div>';
+                    }
+                    $celda['data_labels'] = $auxdataLabels;
                 } else {
                     if ($value->{$columna} === true) {
                         $auxcelda = trans('crudgenerator::admin.layout.labels.yes');
@@ -466,7 +490,7 @@ trait CrudModels
                     $auxcelda = trans('crudgenerator::admin.layout.labels.no');
                 }
             }
-            $celda['data'] = $value->{$columna};
+            $celda['data'] = $auxdata;
             $celda['label'] = $datos['label'];
             $celda['value'] = $auxcelda;
         } elseif ($datos['tipo'] == "function") {
@@ -1644,7 +1668,11 @@ trait CrudModels
                         case 'textarea':
                         case 'json':
                             if ($input->has($campo)) {
-                                $objModelo->{$campo} = $input->input($campo);
+                                if (is_array($input->input($campo))) {
+                                    $objModelo->{$campo} = implode(array_get($detalles, 'glue', '_'), $input->input($campo));
+                                } else {
+                                    $objModelo->{$campo} = $input->input($campo);
+                                }
                             } elseif (isset($detalles['valor'])) {
                                 $objModelo->{$campo} = $detalles['valor'];
                             }

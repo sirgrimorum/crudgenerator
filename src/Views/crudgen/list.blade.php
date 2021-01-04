@@ -95,6 +95,7 @@ if (old("__parametros","") != ""){
             'tieneSelect' => CrudGenerator::hasTipo($configPrefiltro, ['select', 'relationship', 'relationships']),
             'tieneSearch' => CrudGenerator::hasTipo($configPrefiltro, ['relationshipssel']),
             'tieneColor' => CrudGenerator::hasTipo($config, ['color']),
+            'tieneCheckeador' => CrudGenerator::hasTipo($config, ['select', 'checkbox', 'radio']),
             'tieneFile' => CrudGenerator::hasTipo($configPrefiltro, ['file', 'files']),
             'tieneJson' => CrudGenerator::hasTipo($configPrefiltro, ['json']),
             'js_section' => $js_section,

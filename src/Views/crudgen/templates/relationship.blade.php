@@ -41,14 +41,19 @@ if (isset($datos["placeholder"])) {
 } else {
     $placeholder = "";
 }
+$extraClassDiv = array_get($datos, 'extraClassDiv', "");
+$extraClassInput = array_get($datos, 'extraClassInput', "");
+$extraDataInput = array_get($datos, 'extraDataInput', []);
+$help = array_get($datos, 'help', "");
 $atributos = [
-    'class' => 'form-control ' . $config['class_input'] . ' ' . $claseError,
+    'class' => "form-control {$config['class_input']} $claseError $extraClassInput",
     'id' => $tabla . '_' . $extraId,
     //'placeholder' => $placeholder,
     $readonly
 ];
+array_merge($extraDataInput, $atributos);
 ?>
-<div class="form-group row {{$config['class_formgroup']}}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
+<div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>
         {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))
@@ -63,6 +68,11 @@ $atributos = [
         <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}
         </div>
+        @endif
+        @if($help != "")
+        <small class="form-text text-muted {{ $help }} mt-0">
+            {{ $help }}
+        </small>
         @endif
     </div>
 </div>

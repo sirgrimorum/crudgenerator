@@ -62,8 +62,12 @@ if (isset($datos["readonly"])) {
 } else {
     $readonly = "";
 }
+$extraClassDiv = array_get($datos, 'extraClassDiv', "");
+$extraClassInput = array_get($datos, 'extraClassInput', "");
+$extraDataInput = array_get($datos, 'extraDataInput', []);
+$help = array_get($datos, 'help', "");
 ?>
-<div class="form-group row {{$config['class_formgroup']}}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
+<div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>
         {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))
@@ -84,9 +88,13 @@ if (isset($datos["readonly"])) {
             @foreach(config("sirgrimorum.crudgenerator.list_locales") as $localeCode)
             <div class="tab-pane fade {{ ($loop->first) ? 'show active': ''}}" id="{{$tabla . '_' . $extraId . '_tab_' . $localeCode}}" role="tabpanel" aria-labelledby="{{$tabla . '_' . $extraId . '_nav_' . $localeCode}}">
                 @if(is_array($dato))
-                {{ Form::textarea($extraId. "[" . $localeCode ."]", $dato[$localeCode], array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $extraId . "_" . $localeCode,$readonly)) }}
+                {{ Form::textarea($extraId. "[" . $localeCode ."]", $dato[$localeCode], array_merge(
+                    $extraDataInput,
+                    ['class' => "form-control {$config['class_input']} $claseError $extraClassInput", 'id' => $tabla . '_' . $extraId . "_" . $localeCode,$readonly])) }}
                 @else
-                {{ Form::textarea($extraId. "[" . $localeCode ."]", $dato, array('class' => 'form-control ' . $config['class_input'] . ' ' . $claseError, 'id' => $tabla . '_' . $extraId . "_" . $localeCode,$readonly)) }}
+                {{ Form::textarea($extraId. "[" . $localeCode ."]", $dato, array_merge(
+                    $extraDataInput,
+                    ['class' => "form-control {$config['class_input']} $claseError $extraClassInput", 'id' => $tabla . '_' . $extraId . "_" . $localeCode,$readonly])) }}
                 @endif
             </div>
             @endforeach
@@ -95,6 +103,11 @@ if (isset($datos["readonly"])) {
         <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}
         </div>
+        @endif
+        @if($help != "")
+        <small class="form-text text-muted {{ $help }} mt-0">
+            {{ $help }}
+        </small>
         @endif
     </div>
 </div>

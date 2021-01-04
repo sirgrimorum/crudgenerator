@@ -273,5 +273,5 @@ return [
     /**
      * Probable column names of a "json" in the model, used to autobuild config, only apply for string fields
      */
-    'probable_json' => ['json','options','option'],
+    'probable_json' => ['json','options','option', 'response'],
 ];

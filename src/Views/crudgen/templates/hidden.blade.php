@@ -26,5 +26,9 @@ if ($dato == "") {
         $dato = $datos["valor"];
     }
 }
+$extraClassInput = array_get($datos, 'extraClassInput', "");
+$extraDataInput = array_get($datos, 'extraDataInput', []);
 ?>
-{{ Form::hidden($extraId, $dato, array('class' => 'form-control', 'id' => $tabla . '_' . $extraId)) }}
+{{ Form::hidden($extraId, $dato, array_merge(
+    $extraDataInput,
+    ['class' => "form-control $extraClassInput", 'id' => $tabla . '_' . $extraId])) }}
