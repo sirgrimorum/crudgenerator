@@ -664,6 +664,9 @@ trait CrudConfig
                                 $prefixRules = "|";
                             } elseif (CrudGenerator::getTypeByName($campo, 'color')) {
                                 $configCampos[$campo]['tipo'] = "color";
+                            } elseif (CrudGenerator::getTypeByName($campo, 'json')) {
+                                $configCampos[$campo]['tipo'] = "json";
+                                $configCampos[$campo]['valor'] = "{}";
                             } elseif (CrudGenerator::getTypeByName($campo, 'password')) {
                                 $configCampos[$campo]['tipo'] = "password";
                                 $configCampos[$campo]['hide'] = ["show", "list", "edit"];
