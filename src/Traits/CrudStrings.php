@@ -1042,8 +1042,8 @@ trait CrudStrings
 
     /**
      * Da el rgb de un color RGB a partir de un factor y un color por wavelength
-     * @param real $color
-     * @param real $factor
+     * @param float $color
+     * @param float $factor
      * @return int
      */
     public static function adjustColor($color, $factor)
