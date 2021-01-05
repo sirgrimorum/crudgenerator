@@ -26,8 +26,8 @@ function comenzarCheckeador() {
                 }
             }
         }
-        $(".ya_checkeado").removeClass("ya_checkeado");
     });
+    $(".ya_checkeado").removeClass("ya_checkeado");
     $(".selecteador").on("change", function() {
         mostrarSelecteador($(this));
         $(".ya_checkeado").removeClass("ya_checkeado");
