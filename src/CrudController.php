@@ -146,7 +146,7 @@ class CrudController extends BaseController
         if (isset($detalles['showPath']) && is_callable($detalles['showPath'])){
             return $detalles['showPath']($id, $filename, $tipo, $detalles);
         } else {
-            $path = Storage::disk(\Illuminate\Support\Arr::get($detalles, "disk", "local"))->url($filename);
+            $path = CrudGenerator::getDisk($detalles)->url($filename);
         }
         switch ($tipo) {
             case 'video':
@@ -168,10 +168,10 @@ class CrudController extends BaseController
             case 'image':
             case 'pdf':
             case 'text':
-                return Storage::disk(\Illuminate\Support\Arr::get($detalles, "disk", "local"))->response($filename);
+                return CrudGenerator::getDisk($detalles)->response($filename);
                 break;
             default:
-                return Storage::disk(\Illuminate\Support\Arr::get($detalles, "disk", "local"))->download($filename);
+                return CrudGenerator::getDisk($detalles)->download($filename);
                 break;
         }
     }

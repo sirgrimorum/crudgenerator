@@ -582,15 +582,15 @@ trait CrudFiles
     /**
      * Get Mime of a filename in public with configuration array
      * @param string $filename The file name
-     * @param array $detalles Optiona, The configuration array for the field
+     * @param array $detalles Optional, The configuration array for the field
      * @return string The mime type
      */
     public static function fileMime(string $filename, array $detalles = [])
     {
         if (isset($detalles['path'])) {
-            $path = Storage::disk(\Illuminate\Support\Arr::get($detalles, "disk", "local"))->url(\Illuminate\Support\Str::start(str_replace("\\", "/", $filename), \Illuminate\Support\Str::finish(str_replace("\\", "/", $detalles['path']), '/')));
+            $path = CrudGenerator::getDisk($detalles)->url(\Illuminate\Support\Str::start(str_replace("\\", "/", $filename), \Illuminate\Support\Str::finish(str_replace("\\", "/", $detalles['path']), '/')));
         } else {
-            $path = Storage::disk(\Illuminate\Support\Arr::get($detalles, "disk", "local"))->url($filename);
+            $path = CrudGenerator::getDisk($detalles)->url($filename);
         }
         $ext = pathinfo($path, PATHINFO_EXTENSION);
         $mimeType = "";
@@ -607,5 +607,16 @@ trait CrudFiles
             return false;
         }
         return $mimeType;
+    }
+
+    /**
+     * Get the disk to use with some field
+     * 
+     * @param array $detalles Optional, The configuration array for the field
+     * @param string $default Optional, The default disk to use, "local" as default
+     * @return \Illuminate\Filesystem\FilesystemAdapter
+     */
+    public static function getDisk($detalles = [], $default = "local"){
+        return Storage::disk(\Illuminate\Support\Arr::get($detalles, "disk", $default));
     }
 }
