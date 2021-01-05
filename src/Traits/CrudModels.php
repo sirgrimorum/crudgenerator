@@ -305,18 +305,22 @@ trait CrudModels
         }
         if ($datos['tipo'] == "relationship") {
             if (CrudGenerator::hasRelation($value, $columna)) {
-                if (array_key_exists('enlace', $datos)) {
-                    $auxcelda = '<a href = "' . CrudGenerator::getNombreDeLista($value->{$columna}, $datos['enlace']) . '">';
+                if (isset($value->{$columna})) {
+                    if (array_key_exists('enlace', $datos)) {
+                        $auxcelda = '<a href = "' . CrudGenerator::getNombreDeLista($value->{$columna}, $datos['enlace']) . '">';
+                    } else {
+                        $auxcelda = '';
+                    }
+                    $celda['data'] = CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
+                    $celda['label'] = $datos['label'];
+                    $auxcelda .= $celda['data'];
+                    if (array_key_exists('enlace', $datos)) {
+                        $auxcelda .= '</a>';
+                    }
+                    $celda['value'] = $auxcelda;
                 } else {
-                    $auxcelda = '';
+                    $celda = '-';
                 }
-                $celda['data'] = CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
-                $celda['label'] = $datos['label'];
-                $auxcelda .= $celda['data'];
-                if (array_key_exists('enlace', $datos)) {
-                    $auxcelda .= '</a>';
-                }
-                $celda['value'] = $auxcelda;
             } else {
                 $celda = '-';
             }
@@ -349,6 +353,8 @@ trait CrudModels
                     "label" => $datos['label'],
                     "value" => $auxcelda2
                 ];
+            } else {
+                $celda = '-';
             }
         } elseif ($datos['tipo'] == "relationshipssel") {
             if (CrudGenerator::hasRelation($value, $columna)) {
@@ -454,8 +460,8 @@ trait CrudModels
                     foreach ($auxdata as $datico) {
                         if (array_key_exists($datico, $datos['value'])) {
                             $auxDatico = $datos['value'][$datico];
-                            if (is_array($auxDatico)){
-                                $auxDatico = array_get($auxDatico, 'label',array_get($auxDatico, 'description',array_get($auxDatico, 'help',$datico)));
+                            if (is_array($auxDatico)) {
+                                $auxDatico = array_get($auxDatico, 'label', array_get($auxDatico, 'description', array_get($auxDatico, 'help', $datico)));
                             }
                             $auxdataLabels[$datico] = $auxDatico;
                             $auxcelda .= $precelda . $auxDatico;
