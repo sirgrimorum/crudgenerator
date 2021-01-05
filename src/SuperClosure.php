@@ -7,6 +7,8 @@
 
 namespace Sirgrimorum\CrudGenerator;
 
+use Closure;
+use Exception;
 use ReflectionFunction;
 use SplFileObject;
 
