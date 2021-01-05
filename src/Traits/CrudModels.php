@@ -672,7 +672,7 @@ trait CrudModels
                 $celda = [
                     "name" => $auxprevioName,
                     "value" => $filename,
-                    "url_public" => Storage::disk(\Illuminate\Support\Arr::get($datos, "disk", "local"))->url($filename),
+                    "url_public" => CrudGenerator::getDisk($datos)->url($filename),
                     "url" => $urlFile,
                     "label" => $datos['label'],
                     "type" => $tipoFile,
@@ -708,7 +708,7 @@ trait CrudModels
                         $celda['data'][] = [
                             "name" => $datoReg->name,
                             "value" => $filename,
-                            "url_public" => Storage::disk(\Illuminate\Support\Arr::get($datos, "disk", "local"))->url($filename),
+                            "url_public" => CrudGenerator::getDisk($datos)->url($filename),
                             "url" => $urlFile,
                             "type" => $tipoFile,
                             "html" => $fileHtml,
@@ -1978,7 +1978,7 @@ trait CrudModels
      * Save an uploaded file from a configuration array
      * @param object $objModelo The model
      * @param Request $input The request
-     * @param strinf $campo The file field name
+     * @param string $campo The file field name
      * @param array $detalles the Field configuration array
      * @param boolean $addNewName Optional, if true, will add the new field name to the filename (assumed in $campo . "_name" in input)
      * @return boolean|string The name of the faile to save in the bd or false if something went wrong
@@ -2039,9 +2039,18 @@ trait CrudModels
                 }
                 $upload_success = $path !== false;
                 if ($upload_success) {
+                    $newFilename = $filename;
+                    if (isset($detalles['saveCompletePath'])) {
+                        if ($detalles['saveCompletePath']) {
+                            $newFilename = $path;
+                            //$newFilename = \Illuminate\Support\Str::finish(str_replace("/", "\\", $detalles['path']), "\\") . $filename;
+                        }
+                    }
                     if ($esImagen && isset($detalles['resize']) && class_exists('Intervention\Image\Image')) {
                         foreach ($detalles['resize'] as $resize) {
-                            $image_resize = Intervention\Image\Image::make($destinationPath . $filename);
+                            $imageManager = new \Intervention\Image\ImageManager(['driver' => 'imagick']);
+                            $modelo = strtolower(class_basename($objModelo));
+                            $image_resize = $imageManager->make(CrudGenerator::getFileUrl($newFilename, $objModelo, $modelo, $campo, $detalles));
                             $width = 0;
                             if (isset($resize['width'])) {
                                 $width = $resize['width'];
@@ -2060,21 +2069,15 @@ trait CrudModels
                                 }
                             }
                             $destinationPath = \Illuminate\Support\Str::finish(public_path($resize['path']), '/');
-                            $quality = 100;
+                            $quality = 90;
                             if (isset($resize['quality'])) {
                                 $quality = $resize['quality'];
                             }
-                            $image_resize->save($destinationPath . $filename, $quality);
+                            $content = (string) $image_resize->encode(null, $quality);
+                            CrudGenerator::getDisk($detalles)->put($destinationPath . $filename, $content);
                         }
                         // resizing an uploaded file
                         //return Response::json('success', 200);
-                    }
-                    $newFilename = $filename;
-                    if (isset($detalles['saveCompletePath'])) {
-                        if ($detalles['saveCompletePath']) {
-                            $newFilename = $path;
-                            //$newFilename = \Illuminate\Support\Str::finish(str_replace("/", "\\", $detalles['path']), "\\") . $filename;
-                        }
                     }
                     return $newFilename;
                 } else {
