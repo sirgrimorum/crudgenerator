@@ -112,7 +112,7 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
         {{ $tabla . "_" . $extraId }}_selecteador_Loader();
     });
     {{ $nameScriptLoader }}('select2_min_js',"{{ $tabla . "_" . $extraId }}Loader();");
-    {{ $nameScriptLoader }}('chekeador_js',"{{ $tabla . "_" . $extraId }}_selecteador_Loader();");
+    {{ $nameScriptLoader }}('checkeador_js',"{{ $tabla . "_" . $extraId }}_selecteador_Loader();");
 </script>
 <?php
 if ($js_section != "") {

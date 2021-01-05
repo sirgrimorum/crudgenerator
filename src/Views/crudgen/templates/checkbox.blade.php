@@ -208,7 +208,7 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
     window.addEventListener('load', function() {
         {{ $tabla . "_" . $extraId }}Loader();
     });
-    {{ $nameScriptLoader }}('chekeador_js',"{{ $tabla . "_" . $extraId }}Loader();");
+    {{ $nameScriptLoader }}('checkeador_js',"{{ $tabla . "_" . $extraId }}Loader();");
 </script>
 <?php
 if ($js_section != "") {
