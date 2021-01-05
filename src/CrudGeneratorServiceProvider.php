@@ -9,29 +9,31 @@ use Sirgrimorum\CrudGenerator\ExtendedValidator;
 use Illuminate\Support\Facades\Blade;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
 
-class CrudGeneratorServiceProvider extends ServiceProvider {
+class CrudGeneratorServiceProvider extends ServiceProvider
+{
 
     /**
      * Perform post-registration booting of services.
      *
      * @return void
      */
-    public function boot() {
+    public function boot()
+    {
         $this->publishes([
             __DIR__ . '/Config/crudgenerator.php' => config_path('sirgrimorum/crudgenerator.php'),
             __DIR__ . '/Config/mimebyext.php' => config_path('sirgrimorum/mimebyext.php'),
             __DIR__ . '/Config/models' => config_path('sirgrimorum/models'),
-                ], 'config');
+        ], 'config');
 
         $this->loadTranslationsFrom(__DIR__ . 'Lang', 'crudgenerator');
         $this->loadRoutesFrom(__DIR__ . '/Routes/web.php');
         $this->loadViewsFrom(__DIR__ . '/Views', 'sirgrimorum');
         $this->publishes([
             __DIR__ . '/Views/admin' => resource_path('views/vendor/sirgrimorum/admin'),
-                ], 'views');
+        ], 'views');
         $this->publishes([
             __DIR__ . '/Views/templates' => resource_path('views/vendor/sirgrimorum/templates'),
-                ], 'templateviews');
+        ], 'templateviews');
         $this->publishes([
             __DIR__ . '/Views/crudgen/create.blade.php' => resource_path('views/vendor/sirgrimorum/crudgen/create.blade.php'),
             __DIR__ . '/Views/crudgen/edit.blade.php' => resource_path('views/vendor/sirgrimorum/crudgen/edit.blade.php'),
@@ -39,83 +41,89 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
             __DIR__ . '/Views/crudgen/includes.blade.php' => resource_path('views/vendor/sirgrimorum/crudgen/includes.blade.php'),
             __DIR__ . '/Views/crudgen/list.blade.php' => resource_path('views/vendor/sirgrimorum/crudgen/list.blade.php'),
             __DIR__ . '/Views/crudgen/show.blade.php' => resource_path('views/vendor/sirgrimorum/crudgen/show.blade.php'),
-                ], 'crudviews');
+        ], 'crudviews');
         $this->publishes([
             __DIR__ . '/Views/templates' => resource_path('views/vendor/sirgrimorum/templates'),
-                ], 'templates');
+        ], 'templates');
 
         $this->publishes([
             __DIR__ . '/Lang' => resource_path('lang/vendor/crudgenerator'),
-                ], 'lang');
+        ], 'lang');
         $this->publishes([
             __DIR__ . '/Langapp' => resource_path('lang'),
-                ], 'langapp');
+        ], 'langapp');
 
         /**
          * Assets
          */
         $this->publishes([
             __DIR__ . '/Assets/images' => public_path('vendor/sirgrimorum/images'),
-                ], 'assets');
+        ], 'assets');
         $this->publishes([
             __DIR__ . '/Assets/ckeditor' => public_path('vendor/sirgrimorum/ckeditor'),
-                ], 'assets');
+        ], 'assets');
         $this->publishes([
             __DIR__ . '/Assets/jquerytables' => public_path('vendor/sirgrimorum/jquerytables'),
-                ], 'assets');
+        ], 'assets');
         $this->publishes([
             __DIR__ . '/Assets/slider' => public_path('vendor/sirgrimorum/slider'),
-                ], 'assets');
+        ], 'assets');
         $this->publishes([
             __DIR__ . '/Assets/confirm' => public_path('vendor/sirgrimorum/confirm'),
-                ], 'assets');
+        ], 'assets');
         $this->publishes([
             __DIR__ . '/Assets/datetimepicker' => public_path('vendor/sirgrimorum/datetimepicker'),
-                ], 'assets');
+        ], 'assets');
         $this->publishes([
             __DIR__ . '/Assets/select2' => public_path('vendor/sirgrimorum/select2'),
-                ], 'assets');
+        ], 'assets');
         $this->publishes([
             __DIR__ . '/Assets/typeahead' => public_path('vendor/sirgrimorum/typeahead'),
-                ], 'assets');
+        ], 'assets');
         $this->publishes([
-            __DIR__ . '/Assets/colorpicker' => public_path('vendor/sirgrimorum/colorpicker'),
-                ], 'assets');
+            __DIR__ . '/Assets/color-picker' => public_path('vendor/sirgrimorum/color-picker'),
+        ], 'assets');
+        $this->publishes([
+            __DIR__ . '/Assets/checkeador' => public_path('vendor/sirgrimorum/checkeador'),
+        ], 'assets');
+        $this->publishes([
+            __DIR__ . '/Assets/json-editor' => public_path('vendor/sirgrimorum/json-editor'),
+        ], 'assets');
 
         /**
          * Extended validator
          */
         Validator::resolver(
-                function($translator, $data, $rules, $messages, $customAttributes ) {
-                    return new ExtendedValidator($translator, $data, $rules, $messages, $customAttributes);
-                }
+            function ($translator, $data, $rules, $messages, $customAttributes) {
+                return new ExtendedValidator($translator, $data, $rules, $messages, $customAttributes);
+            }
         );
 
         /**
          * Blade directives
          */
-        Blade::directive('handleCrudMessages', function($tipo) {
+        Blade::directive('handleCrudMessages', function ($tipo) {
             $tipo = str_replace([' ', '"', "'"], '', $tipo);
             $html = "";
-            switch($tipo){
+            switch ($tipo) {
                 case 'error':
-                    $html = "<?php if (session(config('sirgrimorum.crudgenerator.error_messages_key'))) : ?>".
-                        '<div class="container">'.
-                        '    <div class="alert alert-danger alert-dismissible fade show" role="alert">'.
-                        '        <button type="button" class="close" data-dismiss="alert" aria-label="{{trans("crudgenerator::admin.layout.labels.close")}}"><span aria-hidden="true">&times;</span></button>'.
-                        '        {!! session(config("sirgrimorum.crudgenerator.error_messages_key")) !!}'.
-                        '    </div>'.
-                        '</div>'.
+                    $html = "<?php if (session(config('sirgrimorum.crudgenerator.error_messages_key'))) : ?>" .
+                        '<div class="container">' .
+                        '    <div class="alert alert-danger alert-dismissible fade show" role="alert">' .
+                        '        <button type="button" class="close" data-dismiss="alert" aria-label="{{trans("crudgenerator::admin.layout.labels.close")}}"><span aria-hidden="true">&times;</span></button>' .
+                        '        {!! session(config("sirgrimorum.crudgenerator.error_messages_key")) !!}' .
+                        '    </div>' .
+                        '</div>' .
                         "<?php endif; ?>";
                     break;
                 case 'status':
-                    $html = "<?php if (session(config('sirgrimorum.crudgenerator.status_messages_key'))) : ?>".
-                        '<div class="container">'.
-                        '    <div class="alert alert-success alert-dismissible fade show" role="alert">'.
-                        '        <button type="button" class="close" data-dismiss="alert" aria-label="{{trans("crudgenerator::admin.layout.labels.close")}}"><span aria-hidden="true">&times;</span></button>'.
-                        '        {!! session(config("sirgrimorum.crudgenerator.status_messages_key")) !!}'.
-                        '    </div>'.
-                        '</div>'.
+                    $html = "<?php if (session(config('sirgrimorum.crudgenerator.status_messages_key'))) : ?>" .
+                        '<div class="container">' .
+                        '    <div class="alert alert-success alert-dismissible fade show" role="alert">' .
+                        '        <button type="button" class="close" data-dismiss="alert" aria-label="{{trans("crudgenerator::admin.layout.labels.close")}}"><span aria-hidden="true">&times;</span></button>' .
+                        '        {!! session(config("sirgrimorum.crudgenerator.status_messages_key")) !!}' .
+                        '    </div>' .
+                        '</div>' .
                         "<?php endif; ?>";
                     break;
             }
@@ -124,66 +132,66 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
         });
         //Add the scriptsLoader funtion to load scripts only once
         Blade::directive('addScriptsLoader', function () {
-            $name = config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader");
-            $html = "<script>".
-            "var callbacksFunctions = [];".
-            "function {$name}Creator(callbackName, functionBody){".
-                "if(!(callbackName in callbacksFunctions)){".
-                    "callbacksFunctions[callbackName] = [];".
-                "}".
-                "callbacksFunctions[callbackName].push(new Function(functionBody));".
-            "}".
-            "function {$name}Runner(callbackName){".
-                "if(callbackName in callbacksFunctions){".
-                    "for (var i = 0; i < callbacksFunctions[callbackName].length; i++){".
-                        "callbacksFunctions[callbackName][i]();".
-                    "}".
-                "}".
-            "}".
-            "function $name(path, diferir, inner=''){".
-                "let scripts = Array .from(document.querySelectorAll('script')).map(scr => scr.src);".
-                "var callbackName = inner;".
-                "if (inner=='' && path != ''){".
-                    "callbackName = path.split('/').pop().split('#')[0].split('?')[0].replaceAll('.','_');".
-                "}".
-                "if (!scripts.includes(path) || path == ''){".
-                    "var tag = document.createElement('script');".
-                    "tag.type = 'text/javascript';".
-                    "if (callbackName!= ''){".
-                        "if(tag.readyState) {".
-                            "tag.onreadystatechange = function() {".
-                                "if ( tag.readyState === 'loaded' || tag.readyState === 'complete' ) {".
-                                    "tag.onreadystatechange = null;".
-                                    "{$name}Runner(callbackName);".
-                                "}".
-                            "};".
-                        "}else{".
-                            "tag.onload = function() {".
-                                "{$name}Runner(callbackName);".
-                            "};".
-                        "}".
-                    "}".
-                    "if (path != ''){".
-                        "tag.src = path;".
-                    "}".
-                    "if (diferir){".
-                        "var attd = document.createAttribute('defer');".
-                        "tag.setAttributeNode(attd);".
-                    "}".
-                    "if (inner != ''){".
-                        "var innerBlock = document.getElementById(inner);" .
-                        "if (typeof innerBlock !== 'undefined' && innerBlock !== null){" .
-                            "tag.innerHTML = innerBlock.innerHTML;".
-                        "}" .
-                    "}".
-                    "document.getElementsByTagName('body')[document.getElementsByTagName('body').length-1].appendChild(tag);".
-                "}else{".
-                    "if (callbackName!= ''){".
-                        "if(callbackName in window){window[callbackName]();}".
-                    "}".
-                "}".
-            "}".
-            "</script>";
+            $name = config("sirgrimorum.crudgenerator.scriptLoader_name", "scriptLoader");
+            $html = "<script>" .
+                "var callbacksFunctions = [];" .
+                "function {$name}Creator(callbackName, functionBody){" .
+                "if(!(callbackName in callbacksFunctions)){" .
+                "callbacksFunctions[callbackName] = [];" .
+                "}" .
+                "callbacksFunctions[callbackName].push(new Function(functionBody));" .
+                "}" .
+                "function {$name}Runner(callbackName){" .
+                "if(callbackName in callbacksFunctions){" .
+                "for (var i = 0; i < callbacksFunctions[callbackName].length; i++){" .
+                "callbacksFunctions[callbackName][i]();" .
+                "}" .
+                "}" .
+                "}" .
+                "function $name(path, diferir, inner=''){" .
+                "let scripts = Array .from(document.querySelectorAll('script')).map(scr => scr.src);" .
+                "var callbackName = inner;" .
+                "if (inner=='' && path != ''){" .
+                "callbackName = path.split('/').pop().split('#')[0].split('?')[0].replaceAll('.','_');" .
+                "}" .
+                "if (!scripts.includes(path) || path == ''){" .
+                "var tag = document.createElement('script');" .
+                "tag.type = 'text/javascript';" .
+                "if (callbackName!= ''){" .
+                "if(tag.readyState) {" .
+                "tag.onreadystatechange = function() {" .
+                "if ( tag.readyState === 'loaded' || tag.readyState === 'complete' ) {" .
+                "tag.onreadystatechange = null;" .
+                "{$name}Runner(callbackName);" .
+                "}" .
+                "};" .
+                "}else{" .
+                "tag.onload = function() {" .
+                "{$name}Runner(callbackName);" .
+                "};" .
+                "}" .
+                "}" .
+                "if (path != ''){" .
+                "tag.src = path;" .
+                "}" .
+                "if (diferir){" .
+                "var attd = document.createAttribute('defer');" .
+                "tag.setAttributeNode(attd);" .
+                "}" .
+                "if (inner != ''){" .
+                "var innerBlock = document.getElementById(inner);" .
+                "if (typeof innerBlock !== 'undefined' && innerBlock !== null){" .
+                "tag.innerHTML = innerBlock.innerHTML;" .
+                "}" .
+                "}" .
+                "document.getElementsByTagName('body')[document.getElementsByTagName('body').length-1].appendChild(tag);" .
+                "}else{" .
+                "if (callbackName!= ''){" .
+                "if(callbackName in window){window[callbackName]();}" .
+                "}" .
+                "}" .
+                "}" .
+                "</script>";
             return $html;
         });
         Blade::directive('loadScript', function ($expression) {
@@ -205,21 +213,21 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
         });
         //Add the linkTagssLoader funtion to load scripts only once
         Blade::directive('addLinkTagsLoader', function () {
-            $name = config("sirgrimorum.crudgenerator.linkTagLoader_name","linkTagLoader");
-            $html = "<script>".
-            "function $name(path, rel = 'stylesheet', type = 'text/css'){".
-                "let links = Array .from(document.querySelectorAll('link')).map(href => href.href);".
-                "if (!links.includes(path) || path == ''){".
-                    "var tag = document.createElement('link');".
-                    "tag.type = type;".
-                    "tag.rel = rel;".
-                    "if (path != ''){".
-                        "tag.href = path;".
-                    "}".
-                    "document.getElementsByTagName('head')[document.getElementsByTagName('head').length-1].appendChild(tag);".
-                "}".
-            "}".
-            "</script>";
+            $name = config("sirgrimorum.crudgenerator.linkTagLoader_name", "linkTagLoader");
+            $html = "<script>" .
+                "function $name(path, rel = 'stylesheet', type = 'text/css'){" .
+                "let links = Array .from(document.querySelectorAll('link')).map(href => href.href);" .
+                "if (!links.includes(path) || path == ''){" .
+                "var tag = document.createElement('link');" .
+                "tag.type = type;" .
+                "tag.rel = rel;" .
+                "if (path != ''){" .
+                "tag.href = path;" .
+                "}" .
+                "document.getElementsByTagName('head')[document.getElementsByTagName('head').length-1].appendChild(tag);" .
+                "}" .
+                "}" .
+                "</script>";
             return $html;
         });
         Blade::directive('loadLinkTag', function ($expression) {
@@ -264,7 +272,8 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
      *
      * @return void
      */
-    public function register() {
+    public function register()
+    {
         //AliasLoader::getInstance()->alias('CrudLoader', CrudGenerator::class);
         $loader = AliasLoader::getInstance();
 
@@ -277,15 +286,17 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
         $this->app->alias(CrudGenerator::class, 'CrudGenerator');
 
         $this->mergeConfigFrom(
-                __DIR__ . '/Config/crudgenerator.php', 'sirgrimorum.crudgenerator'
+            __DIR__ . '/Config/crudgenerator.php',
+            'sirgrimorum.crudgenerator'
         );
         $this->mergeConfigFrom(
-                __DIR__ . '/Config/mimebyext.php', 'sirgrimorum.mimebyext'
+            __DIR__ . '/Config/mimebyext.php',
+            'sirgrimorum.mimebyext'
         );
     }
 
-    public function provides() {
+    public function provides()
+    {
         return ['CrudGenerator'];
     }
-
 }
