@@ -77,6 +77,8 @@ class CrudGenerator
             } else {
                 $config['botones'] = trans("crudgenerator::admin.layout.crear");
             }
+        } elseif (is_array($config['url'])) {
+            $config['url'] = array_get($config['url'], 'store', route("sirgrimorum_modelo::store", ["modelo" => $modelo]));
         }
         if (!isset($config['botones'])) {
             if (Lang::has('crudgenerator::' . $modelo . '.labels.create')) {
@@ -142,10 +144,10 @@ class CrudGenerator
                 $registro = CrudGenerator::registry_array($config, $id, 'complete');
                 $id = $registro[$config['id']];
             }
-        }elseif($id == null){
-            if (is_array($registro)){
+        } elseif ($id == null) {
+            if (is_array($registro)) {
                 $id = $registro[$config['id']];
-            }else{
+            } else {
                 $id = $registro->{$config['id']};
             }
         }
@@ -210,6 +212,13 @@ class CrudGenerator
             } else {
                 $config['botones'] = trans("crudgenerator::admin.layout.editar");
             }
+        }elseif (is_array($config['url'])) {
+            $config['url'] = array_get($config['url'], 'update', route("sirgrimorum_modelo::update", ["modelo" => $modelo, "registro" => $registro->id]));
+        }
+        if (Lang::has('crudgenerator::' . $modelo . '.labels.edit')) {
+            $config['botones'] = trans("crudgenerator::$modelo.labels.edit");
+        } else {
+            $config['botones'] = trans("crudgenerator::admin.layout.editar");
         }
         if (!$simple) {
             $js_section = config("sirgrimorum.crudgenerator.js_section");
@@ -288,11 +297,27 @@ class CrudGenerator
             } else {
                 $singulares = $modelo;
             }
+            $urls = [];
+            if ($config['url'] == "Sirgrimorum_CrudAdministrator") {
+                $urls = [
+                    "show" => url($base_url . "/" . strtolower($modelo) . "/:modelId"),
+                    "edit" => url($base_url . "/" . strtolower($modelo) . "/:modelId/edit"),
+                    "remove" => url($base_url . "/" . strtolower($modelo) . "/:modelId/destroy"),
+                    "create" => url($base_url . "/" . strtolower($modelo) . "s/create"),
+                ];
+            }elseif (is_array($config['url'])) {
+                $urls = [
+                    "show" =>  array_get($config['url'], 'show', url($base_url . "/" . strtolower($modelo) . "/:modelId")),
+                    "edit" => array_get($config['url'], 'edit', url($base_url . "/" . strtolower($modelo) . "/:modelId/edit")),
+                    "remove" => array_get($config['url'], 'remove', url($base_url . "/" . strtolower($modelo) . "/:modelId/destroy")),
+                    "create" => array_get($config['url'], 'create', url($base_url . "/" . strtolower($modelo) . "s/create")),
+                ];
+            }
             $config['botones'] = [
-                'show' => "<a class='btn btn-info' href='" . url($base_url . "/" . strtolower($modelo) . "/:modelId") . "' title='" . trans('crudgenerator::datatables.buttons.t_show') . " " . $singulares . "'>" . trans("crudgenerator::datatables.buttons.show") . "</a>",
-                'edit' => "<a class='btn btn-success' href='" . url($base_url . "/" . strtolower($modelo) . "/:modelId/edit") . "' title='" . trans('crudgenerator::datatables.buttons.t_edit') . " " . $singulares . "'>" . trans("crudgenerator::datatables.buttons.edit") . "</a>",
-                'remove' => "<a class='btn btn-danger' href='" . url($base_url . "/" . strtolower($modelo) . "/:modelId/destroy") . "' data-confirm='" . $textConfirm . "' data-yes='" . trans('crudgenerator::admin.layout.labels.yes') . "' data-no='" . trans('crudgenerator::admin.layout.labels.no') . "' data-confirmtheme='" . config('sirgrimorum.crudgenerator.confirm_theme') . "' data-confirmicon='" . config('sirgrimorum.crudgenerator.confirm_icon') . "' data-confirmtitle='' data-method='delete' rel='nofollow' title='" . trans('crudgenerator::datatables.buttons.t_remove') . " " . $plurales . "'>" . trans("crudgenerator::datatables.buttons.remove") . "</a>",
-                'create' => "<a class='btn btn-info' href='" . url($base_url . "/" . strtolower($modelo) . "s/create") . "' title='" . trans('crudgenerator::datatables.buttons.t_create') . " " . $singulares . "'>" . trans("crudgenerator::datatables.buttons.create") . "</a>",
+                'show' => "<a class='btn btn-info' href='{$urls['show']}' title='" . trans('crudgenerator::datatables.buttons.t_show') . " $singulares'>" . trans("crudgenerator::datatables.buttons.show") . "</a>",
+                'edit' => "<a class='btn btn-success' href='{$urls['edit']}' title='" . trans('crudgenerator::datatables.buttons.t_edit') . " $singulares'>" . trans("crudgenerator::datatables.buttons.edit") . "</a>",
+                'remove' => "<a class='btn btn-danger' href='{$urls['remove']}' data-confirm='$textConfirm' data-yes='" . trans('crudgenerator::admin.layout.labels.yes') . "' data-no='" . trans('crudgenerator::admin.layout.labels.no') . "' data-confirmtheme='" . config('sirgrimorum.crudgenerator.confirm_theme') . "' data-confirmicon='" . config('sirgrimorum.crudgenerator.confirm_icon') . "' data-confirmtitle='' data-method='delete' rel='nofollow' title='" . trans('crudgenerator::datatables.buttons.t_remove') . " $plurales'>" . trans("crudgenerator::datatables.buttons.remove") . "</a>",
+                'create' => "<a class='btn btn-info' href='{$urls['create']}' title='" . trans('crudgenerator::datatables.buttons.t_create') . " $singulares'>" . trans("crudgenerator::datatables.buttons.create") . "</a>",
             ];
         }
         $view = View::make('sirgrimorum::crudgen.list', [

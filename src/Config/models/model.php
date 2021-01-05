@@ -7,7 +7,14 @@
             "tabla" => "[table name]",
             "nombre" => "[attribute taken as name for the model]",
             "id" => "[id field name]",
-            "url" => "[url to use as action for the form]", // use "Sirgrimorum_CrudAdministrator" if you want the crude gen to manage it, change if you want to handle it diferently
+            "url" => "[url to use as action for the form]" | [ // use "Sirgrimorum_CrudAdministrator" if you want the crudgen to manage it, change if you want to handle it diferently, this
+                "show" => "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/article/:modelId__", // (Replaced by "botones") The url to the show view, use :modelId for the id in lists, will be call using GET
+                "create" => "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/articles/create", // (Replaced by "botones") The url to the create view, will be call using GET
+                "store" => "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/article/store", // The url to process the store action, will be call using POST
+                "edit" => "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/article/:modelId/edit", // (Replaced by "botones") The url to the edit view, use :modelId for the id in lists, will be call using GET
+                "update" => "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/article/:modelId/update", // The url to the process the update action, use :modelId for the id in lists, will be call using PUT
+                "remove" => "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/article/:modelId/destroy", // (Replaced by "botones") The url to process the remove action, use :modelId for the id in lists, will be call using DELETE
+            ], 
             "botones" => "[text or html of the submit button of the form or array of buttons for lists]", // use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.labels.create__", use route_prefix or url_prefix y json notation to use route or url function, ej: "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/article/:modelId__" ,  use :modelName or :modelId to change it for the corresponding name or id Overriden if url is Sirgrimorum_CrudAdministrator, for lists, set an array using for keys the actions ('create','show','edit','remove') and for values the urls for each ones or the <a
             "botones" => [ //option A for lists using <a tag to load Button options
                 'show' => "<a class='btn btn-info' href='__route__sirgrimorum_modelo::show,{'localecode':'__getLocale__','modelo':'article','registro':':modelId'}__' title='__trans__crudgenerator::datatables.buttons.t_show__ Article'>__trans__crudgenerator::datatables.buttons.show__</a>",
