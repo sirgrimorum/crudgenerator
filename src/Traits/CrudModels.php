@@ -276,11 +276,7 @@ trait CrudModels
         if ($config == "") {
             $config = CrudGenerator::getConfigWithParametros($modelo);
         }
-        if ($datos == "" && isset($config[$columna])) {
-            $datos = $config[$columna];
-        }
-        if ($datos == "") {
-            //$config = CrudGenerator::getConfigWithParametros($modelo);
+        if ($datos == "" && $config != "") {
             if (isset($config['campos'][$columna])) {
                 if (is_array($config['campos'][$columna])) {
                     $datos = $config['campos'][$columna];
