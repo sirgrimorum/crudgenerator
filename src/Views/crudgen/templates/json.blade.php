@@ -12,12 +12,19 @@ if ($dato == "") {
         $dato = "";
     }
 }
+$locked = isset($datos["value"]) ? "data-locked='si'" : "data-locked='no'";
 if ($dato == "") {
     if (isset($datos["valor"])) {
         if (is_array($datos["valor"]) || is_object($datos["valor"])){
             $dato = json_encode($datos["valor"]);
         }else{
             $dato = $datos["valor"];
+        }
+    }elseif(isset($datos["value"])){
+        if (is_array($datos["value"]) || is_object($datos["value"])){
+            $dato = json_encode($datos["value"]);
+        }else{
+            $dato = $datos["value"];
         }
     }
 }
@@ -54,7 +61,7 @@ $help = array_get($datos, 'help', "");
         <div class="w-100 m-0" id="contenedor_json_{{ $tabla . "_" . $extraId }}"></div>
         {{ Form::textarea($extraId, $dato, array_merge(
             $extraDataInput,
-            ['class' => "form-control {$config['class_input']} $claseError $extraClassInput", 'id' => $tabla . '_' . $extraId,$readonly])) }}
+            ['class' => "form-control {$config['class_input']} $claseError $extraClassInput", 'id' => $tabla . '_' . $extraId,$readonly, $locked])) }}
         @if ($error_campo)
         <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}
@@ -91,7 +98,8 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
             }
             json_{{ $tabla . "_" . $extraId }} = new JSONedtr(jsonInicial, '#contenedor_json_{{ $tabla . "_" . $extraId }}',{
                 'instantChange' : true,
-                'runFunctionOnUpdate' : 'json_{{ $tabla . "_" . $extraId }}_onChange'
+                'runFunctionOnUpdate' : 'json_{{ $tabla . "_" . $extraId }}_onChange',
+                'locked' : $('#{{ $tabla . "_" . $extraId }}').data('locked') == 'si'
             });
         }
         {{ $tabla . "_" . $extraId }}Ejecutado = true;

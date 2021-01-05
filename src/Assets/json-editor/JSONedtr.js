@@ -11,6 +11,8 @@ function JSONedtr(data, outputElement, config = {}) {
 
     if (JSONedtr.config.instantChange == null)
         JSONedtr.config.instantChange = true;
+    if (JSONedtr.config.locked == null)
+        JSONedtr.config.locked = false;
 
     JSONedtr.level = function(node, lvl = 0) {
         var output = '';
@@ -38,16 +40,25 @@ function JSONedtr(data, outputElement, config = {}) {
                     output += '<div class="jse--row jse--row-' + type + '" id="jse--row-' + JSONedtr.i + '"><div class="jse--container"><input type="text" class="jse--key jse--' + type + '" data-level="' + lvl + '" value="' + key + '"> : <span class="jse--typeof">(' + type + ')</span></div>';
                 }
                 output += JSONedtr.level(value, lvl + 1);
-                output += '<div class="jse--delete">✖</div></div>';
+                if (!JSONedtr.config.locked) {
+                    output += '<div class="jse--delete">✖</div></div>';
+                } else {
+                    output += '</div>';
+                }
             } else if (typeof value == 'boolean') {
                 var checked = '';
                 if (value) {
                     checked = 'checked';
                 }
                 if (padreIsArray) {
-                    output += '<div class="jse--row" id="jse--row-' + JSONedtr.i + '"><div class="jse--container">: <span class="jse--typeof">(' + typeof value + ')</span><input type="checkbox" class="jse--value" data-level="' + lvl + '"  value="' + value + '" data-key="' + key + '" ' + checked + '><div class="jse--delete">✖</div></div></div>';
+                    output += '<div class="jse--row" id="jse--row-' + JSONedtr.i + '"><div class="jse--container">: <span class="jse--typeof">(' + typeof value + ')</span><input type="checkbox" class="jse--value" data-level="' + lvl + '"  value="' + value + '" data-key="' + key + '" ' + checked + '>';
                 } else {
-                    output += '<div class="jse--row" id="jse--row-' + JSONedtr.i + '"><div class="jse--container"><input type="text" class="jse--key" data-level="' + lvl + '" value="' + key + '"> : <span class="jse--typeof">(' + typeof value + ')</span><input type="checkbox" class="jse--value" value="' + value + '" data-key="' + key + '" ' + checked + '><div class="jse--delete">✖</div></div></div>';
+                    output += '<div class="jse--row" id="jse--row-' + JSONedtr.i + '"><div class="jse--container"><input type="text" class="jse--key" data-level="' + lvl + '" value="' + key + '"> : <span class="jse--typeof">(' + typeof value + ')</span><input type="checkbox" class="jse--value" value="' + value + '" data-key="' + key + '" ' + checked + '>';
+                }
+                if (!JSONedtr.config.locked) {
+                    output += '<div class="jse--delete">✖</div></div></div>';
+                } else {
+                    output += '</div></div>';
                 }
             } else {
                 if (typeof value == 'string')
@@ -65,15 +76,20 @@ function JSONedtr(data, outputElement, config = {}) {
                     tipoCampo = "text";
                 }
                 if (padreIsArray) {
-                    output += '<div class="jse--row" id="jse--row-' + JSONedtr.i + '"><div class="jse--container">: <span class="jse--typeof">(' + typeof value + ')</span><input type="' + tipoCampo + '" class="jse--value" data-level="' + lvl + '"  value="' + value + '" data-key="' + key + '"><div class="jse--delete">✖</div></div></div>';
+                    output += '<div class="jse--row" id="jse--row-' + JSONedtr.i + '"><div class="jse--container">: <span class="jse--typeof">(' + typeof value + ')</span><input type="' + tipoCampo + '" class="jse--value" data-level="' + lvl + '"  value="' + value + '" data-key="' + key + '">';
                 } else {
-                    output += '<div class="jse--row" id="jse--row-' + JSONedtr.i + '"><div class="jse--container"><input type="text" class="jse--key" data-level="' + lvl + '" value="' + key + '"> : <span class="jse--typeof">(' + typeof value + ')</span><input type="' + tipoCampo + '" class="jse--value" value="' + value + '" data-key="' + key + '"><div class="jse--delete">✖</div></div></div>';
+                    output += '<div class="jse--row" id="jse--row-' + JSONedtr.i + '"><div class="jse--container"><input type="text" class="jse--key" data-level="' + lvl + '" value="' + key + '"> : <span class="jse--typeof">(' + typeof value + ')</span><input type="' + tipoCampo + '" class="jse--value" value="' + value + '" data-key="' + key + '">';
+                }
+                if (!JSONedtr.config.locked) {
+                    output += '<div class="jse--delete">✖</div></div></div>';
+                } else {
+                    output += '</div></div>';
                 }
             }
-        })
-
-        output += '<div class="jse--row jse--add" data-level="' + lvl + '"><button class="jse--plus">✚</button></div>';
-
+        });
+        if (!JSONedtr.config.locked) {
+            output += '<div class="jse--row jse--add" data-level="' + lvl + '"><button class="jse--plus">✚</button></div>';
+        }
         return output;
     }
 
@@ -172,17 +188,19 @@ function JSONedtr(data, outputElement, config = {}) {
             }
         })
 
-        $('.jse--row.jse--add .jse--save').on('click', function(e) {
-            JSONedtr.addRow(e.currentTarget.parentElement.parentElement)
-        })
-
-        $('.jse--row.jse--add .jse--cancel').on('click', function(e) {
-            var x = e.currentTarget.parentElement.parentElement
-            $(e.currentTarget.parentElement.parentElement).html('<button class="jse--plus">✚</button>');
-            $(x).find('.jse--plus').on('click', function(e) {
-                JSONedtr.addRowForm(e.currentTarget.parentElement);
+        if (!JSONedtr.config.locked) {
+            $('.jse--row.jse--add .jse--save').on('click', function(e) {
+                JSONedtr.addRow(e.currentTarget.parentElement.parentElement)
             });
-        })
+
+            $('.jse--row.jse--add .jse--cancel').on('click', function(e) {
+                var x = e.currentTarget.parentElement.parentElement
+                $(e.currentTarget.parentElement.parentElement).html('<button class="jse--plus">✚</button>');
+                $(x).find('.jse--plus').on('click', function(e) {
+                    JSONedtr.addRowForm(e.currentTarget.parentElement);
+                });
+            });
+        }
     }
 
     JSONedtr.addRow = function(row) {
@@ -211,21 +229,28 @@ function JSONedtr(data, outputElement, config = {}) {
             case 'array':
             case 'object':
                 $(row).find('.jse--key').addClass('jse--' + typeOf);
-                $(row).append('<div class="xxx jse--row jse--add" data-level="' + (lvl + 1) + '"><button class="jse--plus">✚</button></div>');
+                if (!JSONedtr.config.locked) {
+                    $(row).append('<div class="xxx jse--row jse--add" data-level="' + (lvl + 1) + '"><button class="jse--plus">✚</button></div>');
+                }
                 $(row).addClass('jse--row-' + typeOf);
                 break;
         }
         $(row).find('span.jse--typeof').html('(' + typeOf + ')');
 
-        $(row).append('<div class="jse--delete">✖</div>');
+        if (!JSONedtr.config.locked) {
+            $(row).append('<div class="jse--delete">✖</div>');
 
-        $(row).find('.jse--delete').on('click', function(e) {
-            JSONedtr.deleteRow(e.currentTarget.parentElement);
-        })
+
+            $(row).find('.jse--delete').on('click', function(e) {
+                JSONedtr.deleteRow(e.currentTarget.parentElement);
+            });
+        }
 
         $(row).children('div.jse--container:first-child').children('.jse--save, .jse--cancel').remove();
-        $(row).after('<div class="jse--row jse--add" data-level="' + lvl + '"><button class="jse--plus">✚</button></div>');
-        $(row).parent().find('.jse--row.jse--add .jse--plus').on('click', function(e) { JSONedtr.addRowForm(e.currentTarget.parentElement) });
+        if (!JSONedtr.config.locked) {
+            $(row).after('<div class="jse--row jse--add" data-level="' + lvl + '"><button class="jse--plus">✚</button></div>');
+            $(row).parent().find('.jse--row.jse--add .jse--plus').on('click', function(e) { JSONedtr.addRowForm(e.currentTarget.parentElement) });
+        }
 
         $(row).find('input').on('change input', function(e) {
             if (JSONedtr.config.runFunctionOnUpdate) {
@@ -265,13 +290,17 @@ function JSONedtr(data, outputElement, config = {}) {
 
         $(outputElement).addClass('jse--output').html(html).data('i', JSONedtr.i);
 
-        $(outputElement + ' .jse--row.jse--add .jse--plus').on('click', function(e) {
-            JSONedtr.addRowForm(e.currentTarget.parentElement);
-        })
+        if (!JSONedtr.config.locked) {
+            $(outputElement + ' .jse--row.jse--add .jse--plus').on('click', function(e) {
+                JSONedtr.addRowForm(e.currentTarget.parentElement);
+            });
 
-        $(outputElement + ' .jse--row .jse--delete').on('click', function(e) {
-            JSONedtr.deleteRow(e.currentTarget.parentElement);
-        })
+            $(outputElement + ' .jse--row .jse--delete').on('click', function(e) {
+                JSONedtr.deleteRow(e.currentTarget.parentElement);
+            });
+        } else {
+            $(outputElement + ' input.jse--key').attr("readonly", "readonly");
+        }
 
         $(outputElement + ' .jse--row input').on('change input', function(e) {
             if (JSONedtr.config.runFunctionOnUpdate) {

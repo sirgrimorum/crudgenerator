@@ -107,6 +107,10 @@
     max-width: 50%;
 }
 
+.jse--output .jse--container>input:read-only {
+    border: none;
+}
+
 .jse--output input.jse--value {
     font-style: italic;
 }
