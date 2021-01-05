@@ -6,8 +6,10 @@ namespace {!! $config['nameSpace'] !!};
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Sirgrimorum\CrudGenerator\Traits\CrudGenForModels;
 @else
 use Illuminate\Database\Eloquent\Model;
+use Sirgrimorum\CrudGenerator\Traits\CrudGenForModels;
 @endif
 
 @if(strtolower($config["model"])=="user")
@@ -16,6 +18,7 @@ class {Model} extends Authenticatable implements MustVerifyEmail{
 class {Model} extends Model {
 @endif
 
+    use CrudGenForModels;
     @if(strtolower($config['model'])=='user')
     use Notifiable;
     
@@ -47,6 +50,14 @@ class {Model} extends Model {
         'email_verified_at' => 'datetime',
     ];
     @else
+    
+    /**
+     * The attributes that aren't mass assignable.
+     *
+     * @var array
+     */
+    //protected $guarded = [];
+
     /**
      * The attributes that should be hidden for arrays.
      *
