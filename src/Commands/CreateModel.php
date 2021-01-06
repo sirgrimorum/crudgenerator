@@ -4,6 +4,7 @@ namespace Sirgrimorum\CrudGenerator\Commands;
 
 use Illuminate\Console\Command;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
+use Illuminate\Support\Str;
 
 class CreateModel extends Command
 {
@@ -45,7 +46,7 @@ class CreateModel extends Command
         $table = $this->argument('table');
         $options = $this->options();
         //$modelName = $singular = substr($table, 0, strlen($table) - 1);
-        $modelName = $singular = \Illuminate\Support\Str::singular($table);
+        $modelName = $singular = Str::singular($table);
         if ($options['path'] != "") {
             $path = $options['path'];
         } else {
@@ -62,7 +63,7 @@ class CreateModel extends Command
         foreach ($AuxclassName as $indice => $pedazo) {
             if ($indice == count($AuxclassName) - 1) {
                 $nameSpace = $className;
-                $fileName = \Illuminate\Support\Str::finish(ucfirst($pedazo), ".php");
+                $fileName = Str::finish(ucfirst($pedazo), ".php");
                 $modelName = strtolower($pedazo);
             } else {
                 $justPath .= $prefijoPath . $pedazo;
@@ -71,7 +72,7 @@ class CreateModel extends Command
             $className .= $prefijo . ucfirst($pedazo);
             $prefijo = "\\";
         }
-        $path = \Illuminate\Support\Str::finish($path, ".php");
+        $path = Str::finish($path, ".php");
         $bar->advance();
         $this->info("Loading details from {$table} table");
         $config = CrudGenerator::getModelDetailsFromDb($table);

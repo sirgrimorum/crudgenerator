@@ -6,8 +6,8 @@ use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use ReflectionClass;
@@ -65,9 +65,9 @@ trait CrudConfig
         /**
          * Get initial config and model name
          */
-        if (!\Illuminate\Support\Arr::has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
+        if (!Arr::has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
             $modelo = ucfirst($modelo);
-            if (!\Illuminate\Support\Arr::has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
+            if (!Arr::has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
                 //$modelo = strtolower($modelo);
             }
         }
@@ -75,7 +75,7 @@ trait CrudConfig
             if ($config == '') {
                 $config = 'render';
                 //return config(config("sirgrimorum.crudgenerator.admin_routes." . $modelo));
-                if (\Illuminate\Support\Arr::has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
+                if (Arr::has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
                     $config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modelo));
                 }
             } elseif (is_string($config)) {
@@ -262,7 +262,7 @@ trait CrudConfig
         $columns["belongsto"] = $auxArr;
         foreach ($columns["belongsto"] as $indice => $relacion) {
             //$singular = substr($relacion['patron'], 0, strlen($relacion['patron']) - 1);
-            $singular = \Illuminate\Support\Str::singular($relacion['patron']);
+            $singular = Str::singular($relacion['patron']);
             $columns["belongsto"][$indice]['patron_model_name_single'] = $singular;
             if (!$columns["belongsto"][$indice]['patron_model'] = CrudGenerator::getModel($singular, "App\\" . ucfirst($singular))) {
                 unset($columns["belongsto"][$indice]);
@@ -283,7 +283,7 @@ trait CrudConfig
                     $otro = $table_describes[1];
                 }
                 //$singular = substr($otro->otro, 0, strlen($otro->otro) - 1);
-                $singular = \Illuminate\Support\Str::singular($otro->otro);
+                $singular = Str::singular($otro->otro);
                 if ($otroModel = CrudGenerator::getModel($singular, "App\\" . ucfirst($singular))) {
                     if ($relacion['cliente'] != $otro->otro && $relacion['key'] != $otro->key) {
                         $pivotColumns = [];
@@ -341,7 +341,7 @@ trait CrudConfig
 
         foreach ($columns["hasmany"] as $indice => $relacion) {
             //$singular = substr($relacion['cliente'], 0, strlen($relacion['cliente']) - 1);
-            $singular = \Illuminate\Support\Str::singular($relacion['cliente']);
+            $singular = Str::singular($relacion['cliente']);
             $columns["hasmany"][$indice]['cliente_model_name_single'] = $singular;
             if (!$columns["hasmany"][$indice]['cliente_model'] = CrudGenerator::getModel($singular, "App\\" . ucfirst($singular))) {
                 unset($columns["hasmany"][$indice]);
@@ -425,7 +425,7 @@ trait CrudConfig
                         $tipoRelacion = class_basename(get_class($modeloE->{$method->name}()));
                         switch ($tipoRelacion) {
                             case 'BelongsToMany':
-                                $deTabla = \Illuminate\Support\Arr::where($columns['manytomany'], function ($value, $key) use ($datosQueryAux) {
+                                $deTabla = Arr::where($columns['manytomany'], function ($value, $key) use ($datosQueryAux) {
                                     return ($value['intermedia'] == $datosQueryAux[1]);
                                 });
                                 if (count($deTabla) > 0) {
@@ -455,7 +455,7 @@ trait CrudConfig
                                 break;
                             case 'BelongsTo':
                                 $foreign = $modeloE->{$method->name}()->getForeignKeyName();
-                                $deTabla = \Illuminate\Support\Arr::where($columns['belongsto'], function ($value, $key) use ($foreign, $datosQueryAux) {
+                                $deTabla = Arr::where($columns['belongsto'], function ($value, $key) use ($foreign, $datosQueryAux) {
                                     return ($value['cliente_col'] == $foreign && $value['patron_col'] == $datosQueryAux[2]);
                                 });
                                 if (count($deTabla) > 0) {
@@ -474,7 +474,7 @@ trait CrudConfig
                                 unset($columns['campos'][$datosQuery['modelRelatedId']]);
                                 break;
                             case 'HasMany':
-                                $deTabla = \Illuminate\Support\Arr::where($columns['hasmany'], function ($value, $key) use ($related) {
+                                $deTabla = Arr::where($columns['hasmany'], function ($value, $key) use ($related) {
                                     return $value['cliente'] == $related->getTable();
                                 });
                                 if (count($deTabla) > 0) {
@@ -931,7 +931,7 @@ trait CrudConfig
             }
             if (is_array($config)) {
                 foreach ($preConfig as $key => $value) {
-                    if (!\Illuminate\Support\Arr::has($config, $key)) {
+                    if (!Arr::has($config, $key)) {
                         if (is_array($value)) {
                             if ($auxValue = CrudGenerator::smartMergeConfig("", $value)) {
                                 $config[$key] = $auxValue;
@@ -1102,7 +1102,7 @@ trait CrudConfig
      */
     public static function justWithValor($config, $columna, $valor)
     {
-        $configValor = array_except($config, ['campos']);
+        $configValor = Arr::except($config, ['campos']);
         $configValor['campos'] = [];
         foreach ($config['campos'] as $campo => $configCampo) {
             if (isset($configCampo[$columna])) {
@@ -1208,7 +1208,7 @@ trait CrudConfig
                 }
                 if ($relacion['todos'] == "") {
                     $modeloM = ucfirst($relacion["modelo"]);
-                    if ($config == null || $clave == null || !($config != null && $clave != null && is_array($config) && array_has($config, 'query') && $config['query'] != null)) {
+                    if ($config == null || $clave == null || !($config != null && $clave != null && is_array($config) && Arr::has($config, 'query') && $config['query'] != null)) {
                         $modelosM = $modeloM::all();
                     } else {
                         $registros = CrudGenerator::getListFromConfig($config);

@@ -7,12 +7,10 @@ use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use App;
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Lang;
-use Illuminate\Support\Facades\Storage;
 
 class CrudController extends BaseController
 {
@@ -232,7 +230,7 @@ class CrudController extends BaseController
         }
         $modelo = strtolower(class_basename($config["modelo"]));
         //$plural = $modelo . 's';
-        $plural = \Illuminate\Support\Str::plural($modelo);
+        $plural = Str::plural($modelo);
         $modeloM = ucfirst($modelo);
         if (!is_object($objeto)) {
             $registro = $objeto;

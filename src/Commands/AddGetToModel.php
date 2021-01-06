@@ -4,6 +4,7 @@ namespace Sirgrimorum\CrudGenerator\Commands;
 
 use Illuminate\Console\Command;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
+use Illuminate\Support\Str;
 
 class AddGetToModel extends Command
 {
@@ -59,7 +60,7 @@ class AddGetToModel extends Command
         $fileName = "";
         foreach ($AuxclassName as $indice => $pedazo) {
             if ($indice == count($AuxclassName) - 1) {
-                $fileName = \Illuminate\Support\Str::finish(ucfirst($pedazo), ".php");
+                $fileName = Str::finish(ucfirst($pedazo), ".php");
                 $modelName = strtolower($pedazo);
             } else {
                 $justPath .= $prefijoPath . $pedazo;
@@ -68,7 +69,7 @@ class AddGetToModel extends Command
             $className .= $prefijo . ucfirst($pedazo);
             $prefijo = "\\";
         }
-        $path = \Illuminate\Support\Str::finish($path, ".php");
+        $path = Str::finish($path, ".php");
         $bar->advance();
         $this->info("File loaded!");
         //$this->info(print_r($config, true));

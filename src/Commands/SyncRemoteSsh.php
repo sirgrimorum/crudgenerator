@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\File;
 use phpseclib\Net\SSH2;
 use phpseclib\Net\SFTP;
 use Symfony\Component\Process\Process;
+use Illuminate\Support\Str;
 
 class SyncRemoteSsh extends Command
 {
@@ -91,9 +92,9 @@ class SyncRemoteSsh extends Command
             $this->error('You need to add environment variables! (SYNC_DB_LOCAL_MYSQL_PATH)');
             return;
         }
-        $dump_local_dir = \Illuminate\Support\Str::finish($dump_local_dir, "/");
-        $dump_remote_dir = \Illuminate\Support\Str::finish($dump_remote_dir, "/");
-        $local_mysql_path = \Illuminate\Support\Str::finish($local_mysql_path, "/");
+        $dump_local_dir = Str::finish($dump_local_dir, "/");
+        $dump_remote_dir = Str::finish($dump_remote_dir, "/");
+        $local_mysql_path = Str::finish($local_mysql_path, "/");
 
         $bar = $this->output->createProgressBar(8);
         $bar->start();
@@ -121,7 +122,7 @@ class SyncRemoteSsh extends Command
                 $confirm = $this->choice("There is a copy of the DB sync_dump.sql. Do you wish to keep it or replace it?", ['keep', 'replace'], 1);
                 if ($confirm == 'replace') {
                     $this->info("Remove local backup...");
-                    $process = new Process("rm {$dump_local_dir}sync_dump.sql -f");
+                    $process = new Process(["rm {$dump_local_dir}sync_dump.sql", "-f"]);
                     $process->run();
                     if (!$process->isSuccessful()) {
                         $bar->finish();
@@ -136,9 +137,9 @@ class SyncRemoteSsh extends Command
                 $this->info("Generating backup of local db in local...");
                 $bar->advance();
                 if (!$local_db_pass) {
-                    $process = new Process("{$local_mysql_path}mysqldump -v -h localhost -u $local_db_user $local_db > {$dump_local_dir}sync_dump.sql");
+                    $process = new Process(["{$local_mysql_path}mysqldump", "-v", "-h localhost", "-u $local_db_user", "$local_db > {$dump_local_dir}sync_dump.sql"]);
                 } else {
-                    $process = new Process("{$local_mysql_path}mysqldump -v -h localhost -u $local_db_user -p$local_db_pass $local_db > {$dump_local_dir}sync_dump.sql");
+                    $process = new Process(["{$local_mysql_path}mysqldump", "-v", "-h localhost", "-u $local_db_user", "-p$local_db_pass", "$local_db > {$dump_local_dir}sync_dump.sql"]);
                 }
                 $process->run();
                 if (!$process->isSuccessful()) {

@@ -4,6 +4,7 @@ namespace Sirgrimorum\CrudGenerator\Traits;
 
 use Closure;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Lang;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
 
@@ -154,8 +155,8 @@ trait CrudStrings
      */
     public static function inside_array($array, $key, $needle)
     {
-        if (\Illuminate\Support\Arr::has($array, $key)) {
-            foreach (\Illuminate\Support\Arr::get($array, $key) as $index => $value) {
+        if (Arr::has($array, $key)) {
+            foreach (Arr::get($array, $key) as $index => $value) {
                 if ($value == $needle) {
                     return $index;
                 }
@@ -214,7 +215,7 @@ trait CrudStrings
     {
         if (isset($item)) {
             $result = "";
-            if (\Illuminate\Support\Str::contains($item, $prefix)) {
+            if (Str::contains($item, $prefix)) {
                 if (($left = (stripos($item, $prefix))) !== false) {
                     while ($left !== false) {
                         if ((CrudGenerator::isFunction($function, null)) === 0) {
@@ -232,7 +233,7 @@ trait CrudStrings
                         }
                         $textPiece = substr($item, $left + strlen($prefix), $right - ($left + strlen($prefix)));
                         $piece = $textPiece;
-                        if (\Illuminate\Support\Str::contains($textPiece, "{")) {
+                        if (Str::contains($textPiece, "{")) {
                             $auxLeft = (stripos($textPiece, "{"));
                             $auxRight = stripos($textPiece, "}", $left) + 1;
                             $auxJson = substr($textPiece, $auxLeft, $auxRight - $auxLeft);
@@ -720,7 +721,7 @@ trait CrudStrings
                 }
                 $textPiece = substr($plantilla, $left + strlen($separadorInicial), $right - ($left + strlen($separadorInicial)));
                 $piece = $textPiece;
-                $campo = \Illuminate\Support\Str::slug($piece);
+                $campo = Str::slug($piece);
                 $pedazos .= data_get($elemento, $campo,  $piece);
                 $right += strlen($separadorFinal);
                 if ($right < strlen($plantilla)) {
@@ -743,7 +744,7 @@ trait CrudStrings
                 }
                 $textPiece = substr($plantilla, $left + strlen($separadorInicial), $right - ($left + strlen($separadorInicial)));
                 $piece = $textPiece;
-                $campo = \Illuminate\Support\Str::slug($piece);
+                $campo = Str::slug($piece);
                 $pedazos .= urlencode(data_get($elemento, $campo,  $piece));
                 $right += strlen($separadorFinal);
                 if ($right < strlen($plantilla)) {
@@ -915,7 +916,7 @@ trait CrudStrings
             if (!file_exists(resource_path("lang/vendor/crudgenerator/" . $currentLocale . "/" . $modeloClass . ".php"))) {
                 if (!file_exists(resource_path("lang/vendor/crudgenerator/" . $defaultLocale . "/" . $modeloClass . ".php"))) {
                     //$modeloClass = substr($modelo, 0, strlen($modelo) - 1);
-                    $modeloClass = \Illuminate\Support\Str::singular($modelo);
+                    $modeloClass = Str::singular($modelo);
                     if (!file_exists(resource_path("lang/vendor/crudgenerator/" . $currentLocale . "/" . $modeloClass . ".php"))) {
                         if (!file_exists(resource_path("lang/vendor/crudgenerator/" . $defaultLocale . "/" . $modeloClass . ".php"))) {
                             $modeloClass = $modelo;
@@ -923,7 +924,7 @@ trait CrudStrings
                             if (!file_exists(resource_path("lang/" . $currentLocale . "/" . $modeloClass . ".php"))) {
                                 if (!file_exists(resource_path("lang/" . $defaultLocale . "/" . $modeloClass . ".php"))) {
                                     //$modeloClass = substr($modelo, 0, strlen($modelo) - 1);
-                                    $modeloClass = \Illuminate\Support\Str::singular($modelo);
+                                    $modeloClass = Str::singular($modelo);
                                     if (!file_exists(resource_path("lang/" . $currentLocale . "/" . $modeloClass . ".php"))) {
                                         if (!file_exists(resource_path("lang/" . $defaultLocale . "/" . $modeloClass . ".php"))) {
                                             $modeloClass = false;
@@ -1325,7 +1326,7 @@ trait CrudStrings
         $deferStr = ($defer) ? "true" : "false";
         $html = "";
         if ($inner != "" && !$innerIsBlock) {
-            $id = \Illuminate\Support\Str::random(8) . "_typeahead_block";
+            $id = Str::random(8) . "_typeahead_block";
             $html = "<script id=\"$id\" type=\"text/html\">$inner</script>";
             $inner = $id;
         }

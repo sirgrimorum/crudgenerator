@@ -125,11 +125,11 @@ class ExtendedValidator extends Validator {
         $ignore_id = null;
         $ignore_column = null;
         //Si en el input se envió el valor _registro, omitirá ese valor
-        if (\Illuminate\Support\Arr::has($data, "_registro")) {
+        if (Arr::has($data, "_registro")) {
             $modeloM = ucfirst(substr($table, 0, strlen($table) - 1));
             $config = CrudGenerator::getConfig($modeloM);
             $ignore_column = $config['id'];
-            $ignore_id = \Illuminate\Support\Arr::get($data, "_registro");
+            $ignore_id = Arr::get($data, "_registro");
         } else {
             //Si el úlitmo valor del Unique es un id, omitirá ese valor
             $lastParam = end($parameters);
@@ -168,15 +168,15 @@ class ExtendedValidator extends Validator {
         $modeloM = ucfirst(substr($table, 0, strlen($table) - 1));
 
         $config = CrudGenerator::getConfig($modeloM);
-        if (\Illuminate\Support\Arr::has($config, "campos." . $attribute . ".label")) {
-            $campos = '"' . \Illuminate\Support\Arr::get($config, "campos." . $attribute . ".label") . '"';
+        if (Arr::has($config, "campos." . $attribute . ".label")) {
+            $campos = '"' . Arr::get($config, "campos." . $attribute . ".label") . '"';
         } else {
             $campos = '"' . $attribute . '"';
         }
         $prefix = ", ";
         foreach ($parameters as $parameter) {
-            if (\Illuminate\Support\Arr::has($config, "campos." . $parameter . ".label")) {
-                $campos.= $prefix . '"' . \Illuminate\Support\Arr::get($config, "campos." . $parameter . ".label") . '"';
+            if (Arr::has($config, "campos." . $parameter . ".label")) {
+                $campos.= $prefix . '"' . Arr::get($config, "campos." . $parameter . ".label") . '"';
             } else {
                 $campos.= $prefix . '"' . $parameter . '"';
             }
@@ -196,11 +196,11 @@ class ExtendedValidator extends Validator {
         $ignore_id = null;
         $ignore_column = null;
         //Si en el input se envió el valor _registro, omitirá ese valor
-        if (\Illuminate\Support\Arr::has($data, "_registro")) {
+        if (Arr::has($data, "_registro")) {
             $modeloM = ucfirst(substr($table, 0, strlen($table) - 1));
             $config = CrudGenerator::getConfig($modeloM);
             $ignore_column = $config['id'];
-            $ignore_id = \Illuminate\Support\Arr::get($data, "_registro");
+            $ignore_id = Arr::get($data, "_registro");
         } else {
             //Si el úlitmo valor del Unique es un id, omitirá ese valor
             $lastParam = end($parameters);
@@ -239,15 +239,15 @@ class ExtendedValidator extends Validator {
         $modeloM = ucfirst(substr($table, 0, strlen($table) - 1));
 
         $config = CrudGenerator::getConfig($modeloM);
-        if (\Illuminate\Support\Arr::has($config, "campos." . $attribute . ".label")) {
-            $campos = '"' . \Illuminate\Support\Arr::get($config, "campos." . $attribute . ".label") . '"';
+        if (Arr::has($config, "campos." . $attribute . ".label")) {
+            $campos = '"' . Arr::get($config, "campos." . $attribute . ".label") . '"';
         } else {
             $campos = '"' . $attribute . '"';
         }
         $prefix = ", ";
         foreach ($parameters as $parameter) {
-            if (\Illuminate\Support\Arr::has($config, "campos." . $parameter . ".label")) {
-                $campos.= $prefix . '"' . \Illuminate\Support\Arr::get($config, "campos." . $parameter . ".label") . '"';
+            if (Arr::has($config, "campos." . $parameter . ".label")) {
+                $campos.= $prefix . '"' . Arr::get($config, "campos." . $parameter . ".label") . '"';
             } else {
                 $campos.= $prefix . '"' . $parameter . '"';
             }
@@ -308,7 +308,7 @@ class ExtendedValidator extends Validator {
             if ($field_name == $column) {
                 $column = $column_name;
             } else {
-                $extra[$column_name] = \Illuminate\Support\Arr::get($this->data, $field_name);
+                $extra[$column_name] = Arr::get($this->data, $field_name);
             }
         }
 

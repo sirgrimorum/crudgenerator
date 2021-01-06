@@ -7,11 +7,15 @@ use Error;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
 use Illuminate\Support\Str;
 use Sirgrimorum\CrudGenerator\DynamicCompare;
@@ -220,7 +224,7 @@ trait CrudModels
             $botones = [];
         }
         $tabla = $config['tabla'];
-        $tablaid = $tabla . "_" . \Illuminate\Support\Str::random(5);
+        $tablaid = $tabla . "_" . Str::random(5);
         if (isset($config['relaciones'])) {
             $relaciones = $config['relaciones'];
         }
@@ -451,8 +455,8 @@ trait CrudModels
             if (is_array($datos['value'])) {
                 if (array_key_exists($value->{$columna}, $datos['value'])) {
                     $auxcelda = $datos['value'][$value->{$columna}];
-                } elseif (strpos($value->{$columna}, array_get($datos, 'glue', '_')) !== false) {
-                    $auxdata = explode(array_get($datos, 'glue', '_'), $value->{$columna});
+                } elseif (strpos($value->{$columna}, Arr::get($datos, 'glue', '_')) !== false) {
+                    $auxdata = explode(Arr::get($datos, 'glue', '_'), $value->{$columna});
                     $auxdataLabels = [];
                     $auxcelda = "";
                     $precelda = "";
@@ -461,7 +465,7 @@ trait CrudModels
                         if (array_key_exists($datico, $datos['value'])) {
                             $auxDatico = $datos['value'][$datico];
                             if (is_array($auxDatico)) {
-                                $auxDatico = array_get($auxDatico, 'label', array_get($auxDatico, 'description', array_get($auxDatico, 'help', $datico)));
+                                $auxDatico = Arr::get($auxDatico, 'label', Arr::get($auxDatico, 'description', Arr::get($auxDatico, 'help', $datico)));
                             }
                             $auxdataLabels[$datico] = $auxDatico;
                             $auxcelda .= $precelda . $auxDatico;
@@ -541,9 +545,9 @@ trait CrudModels
             $celda['data'] = $date;
             $celda['label'] = $datos['label'];
             $celda['value'] = $dato;
-        } elseif ($datos['tipo'] == "url" || ($datos['tipo'] == "file" && \Illuminate\Support\Str::startsWith(strtolower($value->{$columna}), ["http:", "https:"]))) {
-            if ($datos['tipo'] == "url" && !\Illuminate\Support\Str::startsWith(strtolower($value->{$columna}), ["http:", "https:"])) {
-                $url = \Illuminate\Support\Str::start($value->{$columna}, "http://");
+        } elseif ($datos['tipo'] == "url" || ($datos['tipo'] == "file" && Str::startsWith(strtolower($value->{$columna}), ["http:", "https:"]))) {
+            if ($datos['tipo'] == "url" && !Str::startsWith(strtolower($value->{$columna}), ["http:", "https:"])) {
+                $url = Str::start($value->{$columna}, "http://");
             } else {
                 $url = $value->{$columna};
             }
@@ -849,14 +853,14 @@ trait CrudModels
             }
         }
         if (isset($celda['post']) && is_string($celda['value'])) {
-            $celda['value'] = $celda['value'] . \Illuminate\Support\Str::start($celda['post'], " ");
+            $celda['value'] = $celda['value'] . Str::start($celda['post'], " ");
             if (isset($celda['html_show'])) {
-                $celda['html_show'] = $celda['html_show'] . \Illuminate\Support\Str::start($celda['post'], " ");
+                $celda['html_show'] = $celda['html_show'] . Str::start($celda['post'], " ");
             } elseif (isset($celda['html'])) {
-                $celda['html_show'] = $celda['html'] . \Illuminate\Support\Str::start($celda['post'], " ");
+                $celda['html_show'] = $celda['html'] . Str::start($celda['post'], " ");
             }
             if (isset($celda['html_cell'])) {
-                $celda['html_cell'] = $celda['html_cell'] . \Illuminate\Support\Str::start($celda['post'], " ");
+                $celda['html_cell'] = $celda['html_cell'] . Str::start($celda['post'], " ");
             }
         }
         $celda['value'] = CrudGenerator::translateDato($celda['value'], $value, $config);
@@ -1606,8 +1610,8 @@ trait CrudModels
         if (count($rules) > 0) {
             $customAttributes = [];
             foreach ($rules as $field => $datos) {
-                if (\Illuminate\Support\Arr::has($config, "campos." . $field . ".label")) {
-                    $customAttributes[$field] = \Illuminate\Support\Arr::get($config, "campos." . $field . ".label");
+                if (Arr::has($config, "campos." . $field . ".label")) {
+                    $customAttributes[$field] = Arr::get($config, "campos." . $field . ".label");
                 }
             }
             $error_messages = [];
@@ -1625,7 +1629,7 @@ trait CrudModels
                 }
             }
             $error_messages = array_merge(trans("crudgenerator::admin.error_messages"), $error_messages);
-            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), $rules, $error_messages, $customAttributes);
+            $validator = Validator::make($request->all(), $rules, $error_messages, $customAttributes);
             return $validator;
         }
         return false;
@@ -1671,7 +1675,7 @@ trait CrudModels
                         case 'json':
                             if ($input->has($campo)) {
                                 if (is_array($input->input($campo))) {
-                                    $objModelo->{$campo} = implode(array_get($detalles, 'glue', '_'), $input->input($campo));
+                                    $objModelo->{$campo} = implode(Arr::get($detalles, 'glue', '_'), $input->input($campo));
                                 } else {
                                     $objModelo->{$campo} = $input->input($campo);
                                 }
@@ -1793,7 +1797,7 @@ trait CrudModels
                                                     $article->lang = $localeCode;
                                                     $article->activated = true;
                                                 }
-                                                $article->user_id = \Illuminate\Support\Facades\Auth::user()->id;
+                                                $article->user_id = Auth::user()->id;
                                                 $article->content = $textoArticulo;
                                                 $article->save();
                                             }
@@ -1853,11 +1857,11 @@ trait CrudModels
                                                 $detalles['removeFunction']($objModelo, $existFile, $detalles);
                                             } else {
                                                 if (isset($detalles['path'])) {
-                                                    $path = \Illuminate\Support\Str::finish($detalles['path'], '\\');
+                                                    $path = Str::finish($detalles['path'], '\\');
                                                 } else {
                                                     $path = "";
                                                 }
-                                                CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile, $path), \Illuminate\Support\Arr::get($detalles, "disk", "local"));
+                                                CrudGenerator::removeFile(Str::start($existFile, $path), Arr::get($detalles, "disk", "local"));
                                             }
                                         }
                                     } else {
@@ -1870,11 +1874,11 @@ trait CrudModels
                                             $detalles['removeFunction']($objModelo, $existFile, $detalles);
                                         } else {
                                             if (isset($detalles['path'])) {
-                                                $path = \Illuminate\Support\Str::finish($detalles['path'], '\\');
+                                                $path = Str::finish($detalles['path'], '\\');
                                             } else {
                                                 $path = "";
                                             }
-                                            CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile, $path), \Illuminate\Support\Arr::get($detalles, "disk", "local"));
+                                            CrudGenerator::removeFile(Str::start($existFile, $path), Arr::get($detalles, "disk", "local"));
                                         }
                                         $filename = "";
                                         $existFile = "";
@@ -1935,11 +1939,11 @@ trait CrudModels
                                                 $detalles['removeFunction']($objModelo, $existFile['file'], $detalles);
                                             } else {
                                                 if (isset($detalles['path'])) {
-                                                    $path = \Illuminate\Support\Str::finish($detalles['path'], '\\');
+                                                    $path = Str::finish($detalles['path'], '\\');
                                                 } else {
                                                     $path = "";
                                                 }
-                                                CrudGenerator::removeFile(\Illuminate\Support\Str::start($existFile['file'], $path), \Illuminate\Support\Arr::get($detalles, "disk", "local"));
+                                                CrudGenerator::removeFile(Str::start($existFile['file'], $path), Arr::get($detalles, "disk", "local"));
                                             }
                                         }
                                     }
@@ -1966,7 +1970,7 @@ trait CrudModels
                 }
             }
             if ($config['tabla'] == "articles") {
-                \Illuminate\Support\Facades\Artisan::call('view:clear');
+                Artisan::call('view:clear');
             }
             return $objModelo;
         } else {
@@ -2022,7 +2026,7 @@ trait CrudModels
                     $new_name = mb_ereg_replace("([\.]{2,})", '', $new_name);
                     $new_name = "__" . $new_name;
                 }
-                $filename .= \Illuminate\Support\Str::random($numRand) . $new_name;
+                $filename .= Str::random($numRand) . $new_name;
                 $filename .= "." . $file->getClientOriginalExtension();
                 $destinationPath = false;
                 if (isset($detalles['saveFunction']) && is_callable($detalles['saveFunction'])) {
@@ -2030,11 +2034,11 @@ trait CrudModels
                     $esImagen = false;
                 } else {
                     if (isset($detalles['path'])) {
-                        $destinationPath = \Illuminate\Support\Str::finish($detalles['path'], '/');
+                        $destinationPath = Str::finish($detalles['path'], '/');
                     } else {
                         $destinationPath = '';
                     }
-                    $disk = \Illuminate\Support\Arr::get($detalles, "disk", "local");
+                    $disk = Arr::get($detalles, "disk", "local");
                     $path = $file->storeAs($destinationPath, $filename, $disk);
                 }
                 $upload_success = $path !== false;
@@ -2043,7 +2047,7 @@ trait CrudModels
                     if (isset($detalles['saveCompletePath'])) {
                         if ($detalles['saveCompletePath']) {
                             $newFilename = $path;
-                            //$newFilename = \Illuminate\Support\Str::finish(str_replace("/", "\\", $detalles['path']), "\\") . $filename;
+                            //$newFilename = Str::finish(str_replace("/", "\\", $detalles['path']), "\\") . $filename;
                         }
                     }
                     if ($esImagen && isset($detalles['resize']) && class_exists('Intervention\Image\Image')) {
@@ -2068,7 +2072,7 @@ trait CrudModels
                                     $image_resize->resize($width, $height);
                                 }
                             }
-                            $destinationPath = \Illuminate\Support\Str::finish(public_path($resize['path']), '/');
+                            $destinationPath = Str::finish(public_path($resize['path']), '/');
                             $quality = 90;
                             if (isset($resize['quality'])) {
                                 $quality = $resize['quality'];

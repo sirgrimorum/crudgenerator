@@ -5,6 +5,7 @@ namespace Sirgrimorum\CrudGenerator\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\App;
 use Symfony\Component\Process\Process;
+use Illuminate\Support\Str;
 
 class SyncRemote extends Command
 {
@@ -81,8 +82,8 @@ class SyncRemote extends Command
             $this->error('You need to add environment variables! (SYNC_DB_LOCAL_MYSQL_PATH)');
             return;
         }
-        $dump_local_dir = \Illuminate\Support\Str::finish($dump_local_dir, "/");
-        $local_mysql_path = \Illuminate\Support\Str::finish($local_mysql_path, "/");
+        $dump_local_dir = Str::finish($dump_local_dir, "/");
+        $local_mysql_path = Str::finish($local_mysql_path, "/");
 
         $bar = $this->output->createProgressBar(6);
         $bar->start();
@@ -94,7 +95,7 @@ class SyncRemote extends Command
                 $confirm = $this->choice("There is a copy of the DB sync_dump.sql. Do you wish to keep it or replace it?", ['keep', 'replace'], 1);
                 if ($confirm == 'replace') {
                     $this->info("Remove local backup...");
-                    $process = new Process("rm {$dump_local_dir}sync_dump.sql -f");
+                    $process = new Process(["rm {$dump_local_dir}sync_dump.sql", "-f"]);
                     $process->run();
                     if (!$process->isSuccessful()) {
                         $bar->finish();
@@ -108,9 +109,9 @@ class SyncRemote extends Command
                 $this->info("Generating backup of local db in local...");
                 $bar->advance();
                 if (!$local_db_pass) {
-                    $process = new Process("{$local_mysql_path}mysqldump -v -h localhost -u $local_db_user $local_db > {$dump_local_dir}sync_dump.sql");
+                    $process = new Process(["{$local_mysql_path}mysqldump", "-v", "-h localhost", "-u $local_db_user", "$local_db > {$dump_local_dir}sync_dump.sql"]);
                 } else {
-                    $process = new Process("{$local_mysql_path}mysqldump -v -h localhost -u $local_db_user -p$local_db_pass $local_db > {$dump_local_dir}sync_dump.sql");
+                    $process = new Process(["{$local_mysql_path}mysqldump", "-v", "-h localhost", "-u $local_db_user", "-p$local_db_pass", "$local_db > {$dump_local_dir}sync_dump.sql"]);
                 }
                 $process->run();
                 if (!$process->isSuccessful()) {
@@ -123,9 +124,9 @@ class SyncRemote extends Command
             $this->info("Delete remote DB...");
             $bar->advance();
             if (!$remote_db_pass) {
-                $process = new Process("{$local_mysql_path}mysqladmin -h $remote_url -u $remote_db_user drop $remote_db -f || true");
+                $process = new Process(["{$local_mysql_path}mysqladmin", "-h $remote_url", "-u $remote_db_user", "drop $remote_db", "-f || true"]);
             } else {
-                $process = new Process("{$local_mysql_path}mysqladmin -h $remote_url -u $remote_db_user -p$remote_db_pass drop $remote_db -f || true");
+                $process = new Process(["{$local_mysql_path}mysqladmin", "-h $remote_url", "-u $remote_db_user", "-p$remote_db_pass", "drop $remote_db", "-f || true"]);
             }
             $process->run();
             if (!$process->isSuccessful()) {
@@ -136,9 +137,9 @@ class SyncRemote extends Command
             $this->info("Create remote DB...");
             $bar->advance();
             if (!$remote_db_pass) {
-                $process = new Process("{$local_mysql_path}mysqladmin -h $remote_url -u $remote_db_user create $remote_db");
+                $process = new Process(["{$local_mysql_path}mysqladmin", "-h $remote_url", "-u $remote_db_user", "create $remote_db"]);
             } else {
-                $process = new Process("{$local_mysql_path}mysqladmin -h $remote_url -u $remote_db_user -p$remote_db_pass create $remote_db");
+                $process = new Process(["{$local_mysql_path}mysqladmin", "-h $remote_url", "-u $remote_db_user", "-p$remote_db_pass", "create $remote_db"]);
             }
             $process->run();
             if (!$process->isSuccessful()) {

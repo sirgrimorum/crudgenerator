@@ -3,20 +3,11 @@
 namespace Sirgrimorum\CrudGenerator;
 
 use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Response;
-use Exception;
 use Illuminate\Database\Eloquent\Builder;
-use Sirgrimorum\CrudGenerator\CrudController;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\DB;
-use ReflectionClass;
-use ReflectionMethod;
-use Illuminate\Support\Facades\File;
-use Sirgrimorum\CrudGenerator\SuperClosure;
 use Sirgrimorum\CrudGenerator\Traits;
 use Illuminate\Support\Facades\Lang;
 
@@ -78,7 +69,7 @@ class CrudGenerator
                 $config['botones'] = trans("crudgenerator::admin.layout.crear");
             }
         } elseif (is_array($config['url'])) {
-            $config['url'] = array_get($config['url'], 'store', route("sirgrimorum_modelo::store", ["modelo" => $modelo]));
+            $config['url'] = Arr::get($config['url'], 'store', route("sirgrimorum_modelo::store", ["modelo" => $modelo]));
         }
         if (!isset($config['botones'])) {
             if (Lang::has('crudgenerator::' . $modelo . '.labels.create')) {
@@ -213,7 +204,7 @@ class CrudGenerator
                 $config['botones'] = trans("crudgenerator::admin.layout.editar");
             }
         }elseif (is_array($config['url'])) {
-            $config['url'] = array_get($config['url'], 'update', route("sirgrimorum_modelo::update", ["modelo" => $modelo, "registro" => $registro->id]));
+            $config['url'] = Arr::get($config['url'], 'update', route("sirgrimorum_modelo::update", ["modelo" => $modelo, "registro" => $registro->id]));
         }
         if (Lang::has('crudgenerator::' . $modelo . '.labels.edit')) {
             $config['botones'] = trans("crudgenerator::$modelo.labels.edit");
@@ -290,7 +281,7 @@ class CrudGenerator
             if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.plural")) {
                 $plurales = trans("crudgenerator::" . strtolower($modelo) . ".labels.plural");
             } else {
-                $plurales = \Illuminate\Support\Str::plural($modelo);
+                $plurales = Str::plural($modelo);
             }
             if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
                 $singulares = trans("crudgenerator::" . strtolower($modelo) . ".labels.singular");
@@ -307,10 +298,10 @@ class CrudGenerator
                 ];
             }elseif (is_array($config['url'])) {
                 $urls = [
-                    "show" =>  array_get($config['url'], 'show', url($base_url . "/" . strtolower($modelo) . "/:modelId")),
-                    "edit" => array_get($config['url'], 'edit', url($base_url . "/" . strtolower($modelo) . "/:modelId/edit")),
-                    "remove" => array_get($config['url'], 'remove', url($base_url . "/" . strtolower($modelo) . "/:modelId/destroy")),
-                    "create" => array_get($config['url'], 'create', url($base_url . "/" . strtolower($modelo) . "s/create")),
+                    "show" =>  Arr::get($config['url'], 'show', url($base_url . "/" . strtolower($modelo) . "/:modelId")),
+                    "edit" => Arr::get($config['url'], 'edit', url($base_url . "/" . strtolower($modelo) . "/:modelId/edit")),
+                    "remove" => Arr::get($config['url'], 'remove', url($base_url . "/" . strtolower($modelo) . "/:modelId/destroy")),
+                    "create" => Arr::get($config['url'], 'create', url($base_url . "/" . strtolower($modelo) . "s/create")),
                 ];
             }
             $config['botones'] = [

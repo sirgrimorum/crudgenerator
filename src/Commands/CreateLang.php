@@ -4,6 +4,7 @@ namespace Sirgrimorum\CrudGenerator\Commands;
 
 use Illuminate\Console\Command;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
+use Illuminate\Support\Str;
 
 class CreateLang extends Command
 {
@@ -50,7 +51,7 @@ class CreateLang extends Command
             $path = "lang/vendor/crudgenerator/" . config("app.locale");
         }
         $path = str_replace("//", "/", str_replace(["\\", " "], ["/", ""], $path));
-        $filename = \Illuminate\Support\Str::finish(strtolower($model), ".php");
+        $filename = Str::finish(strtolower($model), ".php");
         $bar->advance();
         $this->info("Loading config array for {$model}");
         $config = CrudGenerator::getConfig($model, false);
@@ -72,7 +73,7 @@ class CreateLang extends Command
                     $confirm = $this->choice("Do you wisth to create a Lang File for the model in {$local}?", ['yes', 'no'], 0);
                     if ($confirm == 'yes') {
                         $path = "lang/vendor/crudgenerator/{$local}";
-                        $filename = \Illuminate\Support\Str::finish(strtolower($model), ".php");
+                        $filename = Str::finish(strtolower($model), ".php");
                         $this->info("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
                         if (CrudGenerator::saveResource("sirgrimorum::templates.langes", false, resource_path($path), $filename, $config)) {
                             $this->info("Model Lang file saved!");

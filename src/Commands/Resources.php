@@ -4,6 +4,7 @@ namespace Sirgrimorum\CrudGenerator\Commands;
 
 use Illuminate\Console\Command;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
+use Illuminate\Support\Str;
 
 class Resources extends Command
 {
@@ -118,7 +119,7 @@ class Resources extends Command
         $confirm = $this->choice("Do you wisth to create a Lang File for the model?", ['yes', 'no'], 0);
         if ($confirm == 'yes') {
             $path = "lang/vendor/crudgenerator/" . config("app.locale");
-            $filename = \Illuminate\Support\Str::finish(strtolower($model), ".php");
+            $filename = Str::finish(strtolower($model), ".php");
             $this->info("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
             if (CrudGenerator::saveResource("sirgrimorum::templates.lang", $localized, resource_path($path), $filename, $config)) {
                 $this->info("Model Lang file saved!");
@@ -130,7 +131,7 @@ class Resources extends Command
         $confirm = $this->choice("Do you wisth to create a Lang File for the model in es?", ['yes', 'no'], 0);
         if ($confirm == 'yes') {
             $path = "lang/vendor/crudgenerator/es";
-            $filename = \Illuminate\Support\Str::finish(strtolower($model), ".php");
+            $filename = Str::finish(strtolower($model), ".php");
             $this->info("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
             if (CrudGenerator::saveResource("sirgrimorum::templates.langes", $localized, resource_path($path), $filename, $config)) {
                 $this->info("Model Lang file saved!");

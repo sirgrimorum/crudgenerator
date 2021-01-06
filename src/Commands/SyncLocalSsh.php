@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use phpseclib\Net\SSH2;
 use phpseclib\Net\SFTP;
 use Symfony\Component\Process\Process;
@@ -97,8 +98,8 @@ class SyncLocalSsh extends Command
             $this->error('You need to add environment variables! (SYNC_DB_LOCAL_MYSQL_PATH)');
             return;
         }
-        $dump_remote_dir = \Illuminate\Support\Str::finish($dump_remote_dir, "/");
-        $local_mysql_path = \Illuminate\Support\Str::finish($local_mysql_path, "/");
+        $dump_remote_dir = Str::finish($dump_remote_dir, "/");
+        $local_mysql_path = Str::finish($local_mysql_path, "/");
 
         $bar = $this->output->createProgressBar(9);
         $bar->start();
@@ -152,9 +153,9 @@ class SyncLocalSsh extends Command
             $this->info("Delete local DB...");
             $bar->advance();
             if (!$local_db_pass) {
-                $process = new Process("{$local_mysql_path}mysqladmin -h localhost -u $local_db_user drop $local_db -f || true");
+                $process = new Process(["{$local_mysql_path}mysqladmin", "-h localhost", "-u $local_db_user", "drop $local_db", "-f || true"]);
             } else {
-                $process = new Process("{$local_mysql_path}mysqladmin -h localhost -u $local_db_user -p$local_db_pass drop $local_db -f || true");
+                $process = new Process(["{$local_mysql_path}mysqladmin", "-h localhost", "-u $local_db_user", "-p$local_db_pass", "drop $local_db", "-f || true"]);
             }
             $process->run();
             if (!$process->isSuccessful()) {
@@ -164,9 +165,9 @@ class SyncLocalSsh extends Command
             $this->info("Create local DB...");
             $bar->advance();
             if (!$local_db_pass) {
-                $process = new Process("{$local_mysql_path}mysqladmin -h localhost -u $local_db_user create $local_db");
+                $process = new Process(["{$local_mysql_path}mysqladmin", "-h localhost", "-u $local_db_user", "create $local_db"]);
             } else {
-                $process = new Process("{$local_mysql_path}mysqladmin -h localhost -u $local_db_user -p$local_db_pass create $local_db");
+                $process = new Process(["{$local_mysql_path}mysqladmin", "-h localhost", "-u $local_db_user", "-p$local_db_pass", "create $local_db"]);
             }
             $process->run();
             if (!$process->isSuccessful()) {

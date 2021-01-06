@@ -2,6 +2,8 @@
 
 namespace Sirgrimorum\CrudGenerator;
 
+use Illuminate\Support\Str;
+
 class CrudGeneratorCommands {
 
     protected $console;
@@ -78,7 +80,7 @@ class CrudGeneratorCommands {
         $bar = $this->console->output->createProgressBar(4);
         $options = $this->console->options('path');
         //$modelName = $singular = substr($table, 0, strlen($table) - 1);
-        $modelName = $singular = \Illuminate\Support\Str::singular($table);
+        $modelName = $singular = Str::singular($table);
         if ($options['path'] != "") {
             $path = $options['path'];
         } else {
@@ -95,7 +97,7 @@ class CrudGeneratorCommands {
         foreach ($AuxclassName as $indice => $pedazo) {
             if ($indice == count($AuxclassName) - 1) {
                 $nameSpace = $className;
-                $fileName = \Illuminate\Support\Str::finish(ucfirst($pedazo), ".php");
+                $fileName = Str::finish(ucfirst($pedazo), ".php");
                 $modelName = strtolower($pedazo);
             } else {
                 $justPath .=$prefijoPath . $pedazo;
@@ -104,7 +106,7 @@ class CrudGeneratorCommands {
             $className .= $prefijo . ucfirst($pedazo);
             $prefijo = "\\";
         }
-        $path = \Illuminate\Support\Str::finish($path, ".php");
+        $path = Str::finish($path, ".php");
         $bar->advance();
         $this->console->line("Loading details from {$table} table");
         $config = CrudGenerator::getModelDetailsFromDb($table);
@@ -143,7 +145,7 @@ class CrudGeneratorCommands {
             $path = "lang/vendor/crudgenerator/" . config("app.locale");
         }
         $path = str_replace("//", "/", str_replace(["\\", " "], ["/", ""], $path));
-        $filename = \Illuminate\Support\Str::finish(strtolower($model), ".php");
+        $filename = Str::finish(strtolower($model), ".php");
         $bar->advance();
         $this->console->line("Loading config array for {$model}");
         $config = CrudGenerator::getConfig($model, false);
@@ -165,7 +167,7 @@ class CrudGeneratorCommands {
                     $confirm = $this->console->choice("Do you wisth to create a Lang File for the model in {$local}?", ['yes', 'no'], 0);
                     if ($confirm == 'yes') {
                         $path = "lang/vendor/crudgenerator/{$local}";
-                        $filename = \Illuminate\Support\Str::finish(strtolower($model), ".php");
+                        $filename = Str::finish(strtolower($model), ".php");
                         $this->console->line("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
                         if (CrudGenerator::saveResource("sirgrimorum::templates.langes", false, resource_path($path), $filename, $config)) {
                             $this->console->info("Model Lang file saved!");
@@ -329,7 +331,7 @@ class CrudGeneratorCommands {
         $confirm = $this->console->choice("Do you wisth to create a Lang File for the model?", ['yes', 'no'], 0);
         if ($confirm == 'yes') {
             $path = "lang/vendor/crudgenerator/" . config("app.locale");
-            $filename = \Illuminate\Support\Str::finish(strtolower($model), ".php");
+            $filename = Str::finish(strtolower($model), ".php");
             $this->console->line("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
             if (CrudGenerator::saveResource("sirgrimorum::templates.lang", $localized, resource_path($path), $filename, $config)) {
                 $this->console->info("Model Lang file saved!");
@@ -341,7 +343,7 @@ class CrudGeneratorCommands {
         $confirm = $this->console->choice("Do you wisth to create a Lang File for the model in es?", ['yes', 'no'], 0);
         if ($confirm == 'yes') {
             $path = "lang/vendor/crudgenerator/es";
-            $filename = \Illuminate\Support\Str::finish(strtolower($model), ".php");
+            $filename = Str::finish(strtolower($model), ".php");
             $this->console->line("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
             if (CrudGenerator::saveResource("sirgrimorum::templates.langes", $localized, resource_path($path), $filename, $config)) {
                 $this->console->info("Model Lang file saved!");
