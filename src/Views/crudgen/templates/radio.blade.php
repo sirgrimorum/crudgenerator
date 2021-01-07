@@ -52,7 +52,7 @@ $help = array_get($datos, 'help', "");
     <div class="{{ $config['class_offset'] }} {{ $config['class_divinput'] }}">
         {{ Form::hidden($extraId, $valor_unchecked, array('class' => 'form-check-input ' . $claseError , 'id' => $tabla . '_' . $extraId . '_unchecked')) }}
         @if (is_array($datos['value']))
-        <div class="card">
+        <div class="card {{ $claseError }}">
             <div class="card-body">
                 @if (array_get($datos,'label', '') != '')
                 {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 card-title' . $config['class_label']]) }}
@@ -153,7 +153,7 @@ $help = array_get($datos, 'help', "");
             $checked = false;
         }
         ?>
-        <div class="input-group {{ ($help != '') ? 'mb-0' : 'mb-3' }}">
+        <div class="input-group {{ $claseError }} {{ ($help != '') ? 'mb-0' : 'mb-3' }}">
             <div class="input-group-prepend">
                 <div class="input-group-text">
                     {{ Form::radio($extraId, $datos['value'], $checked, array_merge(

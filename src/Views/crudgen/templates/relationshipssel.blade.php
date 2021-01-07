@@ -93,7 +93,7 @@ $help = array_get($datos, 'help', "");
         </small>
         @endif
     </div>
-    <div class="{{ $config['class_divinput'] }}" id="{{ $tabla . '_' . $columna }}_container">
+    <div class="{{ $config['class_divinput'] }} {{ $claseError }}" id="{{ $tabla . '_' . $columna }}_container">
         <div class="typeahead__container">
             <div class="typeahead__field">
                 <span class="typeahead__query">

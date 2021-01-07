@@ -52,7 +52,7 @@ $help = array_get($datos, 'help', "");
         @endif
     </div>
     <div class="{{ $config['class_divinput'] }}">
-        <div class="input-group">
+        <div class="input-group {{ $claseError }}">
             <div class="input-group-prepend">
                 <div class="rounded-left border border-secondary">
                     <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="toogleUrl(this);">{!! CrudGenerator::getIcon('url',true,'mt-2') !!}</div>

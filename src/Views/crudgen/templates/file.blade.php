@@ -126,7 +126,7 @@ $help = array_get($datos, 'help', "");
                 <div class="input-group-text rounded-left">{{trans("crudgenerator::admin.layout.labels.new_file")}}</div>
             </div>
             {{ Form::text($extraId . "_name", $dato, ['class' => 'form-control ' . $claseError, 'placeholder'=>trans("crudgenerator::admin.layout.labels.name"), 'id'=>$tabla . "_" . $extraId . "_name_nuevo",$readonly]) }}
-            <div class="custom-file">
+            <div class="custom-file {{ $claseError }}">
                 {{ Form::file($extraId . "", array_merge(
                     $extraDataInput,
                     ['class' => "custom-file-input form-control $claseError $extraClassInput", $placeholder, $readonly,"data-toggle"=>"custom-file"])) }}

@@ -84,7 +84,7 @@ $help = array_get($datos, 'help', "");
             </li>
             @endforeach
         </ul>
-        <div class="tab-content" id="{{$tabla . '_' . $extraId . '_tabContent_' . $localeCode}}">
+        <div class="tab-content {{ $claseError }}" id="{{$tabla . '_' . $extraId . '_tabContent_' . $localeCode}}">
             @foreach(config("sirgrimorum.crudgenerator.list_locales") as $localeCode)
             <div class="tab-pane fade {{ ($loop->first) ? 'show active': ''}}" id="{{$tabla . '_' . $extraId . '_tab_' . $localeCode}}" role="tabpanel" aria-labelledby="{{$tabla . '_' . $extraId . '_nav_' . $localeCode}}">
                 @if(is_array($dato))

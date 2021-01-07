@@ -53,7 +53,7 @@ $help = array_get($datos, 'help', "");
     </div>
     <div class="{{ $config['class_divinput'] }}">
         @if (isset($datos["pre"]) || isset($datos["post"]))
-        <div class="input-group">
+        <div class="input-group {{ $claseError }}">
             @endif
             @if (isset($datos["pre"]))
             <div class="input-group-prepend"><div class="input-group-text">{{ $datos["pre"] }}</div></div>
