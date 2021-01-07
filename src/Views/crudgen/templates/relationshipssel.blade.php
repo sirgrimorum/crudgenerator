@@ -143,7 +143,7 @@ $help = array_get($datos, 'help', "");
         @include('sirgrimorum::crudgen.templates.relationshipssel_item')
         @endforeach
         @if($help != "")
-        <small class="form-text text-muted {{ $help }} mt-0">
+        <small class="form-text text-muted mt-0">
             {{ $help }}
         </small>
         @endif

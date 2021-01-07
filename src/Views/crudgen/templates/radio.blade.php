@@ -181,7 +181,7 @@ $help = array_get($datos, 'help', "");
         </div>
         @endif
         @if($help != "")
-        <small class="form-text text-muted {{ $help }} mt-0 mb-3">
+        <small class="form-text text-muted mt-0 mb-3">
             {{ $help }}
         </small>
         @endif
