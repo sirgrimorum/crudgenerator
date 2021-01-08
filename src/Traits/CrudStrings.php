@@ -664,7 +664,12 @@ trait CrudStrings
                     $strNombre = "";
                     $preNombre = "";
                     foreach ($campo as $indiceCampo => $nombreCampo) {
-                        $strNombre .= $preNombre . $elemento->{$nombreCampo};
+                        if (is_string($elemento->{$nombreCampo})){
+                            $stringDato = $elemento->{$nombreCampo};
+                        }else{
+                            $stringDato = json_encode($elemento->{$nombreCampo});
+                        }
+                        $strNombre .= $preNombre . $stringDato;
                         $preNombre = $separador;
                     }
                     return $strNombre;

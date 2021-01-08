@@ -455,6 +455,11 @@ trait CrudModels
             if (is_array($datos['value'])) {
                 if (array_key_exists($value->{$columna}, $datos['value'])) {
                     $auxcelda = $datos['value'][$value->{$columna}];
+                    $auxcelda = $datos['value'][$value->{$columna}];
+                    if (is_array($auxcelda)){
+                        $auxcelda = Arr::get($auxcelda, 'label', Arr::get($auxcelda, 'description', Arr::get($auxcelda, 'help', $value->{$columna})));
+                    }
+                    $celda['data_labels'][$value->{$columna}] = $datos['value'][$value->{$columna}];
                 } elseif (strpos($value->{$columna}, Arr::get($datos, 'glue', '_')) !== false) {
                     $auxdata = explode(Arr::get($datos, 'glue', '_'), $value->{$columna});
                     $auxdataLabels = [];
