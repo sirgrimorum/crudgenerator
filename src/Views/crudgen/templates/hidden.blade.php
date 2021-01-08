@@ -26,8 +26,8 @@ if ($dato == "") {
         $dato = $datos["valor"];
     }
 }
-$extraClassInput = array_get($datos, 'extraClassInput', "");
-$extraDataInput = array_get($datos, 'extraDataInput', []);
+$extraClassInput = \Illuminate\Support\Arr::get($datos, 'extraClassInput', "");
+$extraDataInput = \Illuminate\Support\Arr::get($datos, 'extraDataInput', []);
 ?>
 {{ Form::hidden($extraId, $dato, array_merge(
     $extraDataInput,

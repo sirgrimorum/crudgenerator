@@ -18,7 +18,7 @@ if ($dato === "") {
     }
 }
 if (is_array($dato)){
-    $dato = implode(array_get($datos, 'glue', '_'), $dato);
+    $dato = implode(\Illuminate\Support\Arr::get($datos, 'glue', '_'), $dato);
 }
 $error_campo = false;
 $claseError = '';
@@ -43,10 +43,10 @@ if (isset($datos["readonly"])) {
 } else {
     $readonly = "";
 }
-$extraClassDiv = array_get($datos, 'extraClassDiv', "");
-$extraClassInput = array_get($datos, 'extraClassInput', "");
-$extraDataInput = array_get($datos, 'extraDataInput', []);
-$help = array_get($datos, 'help', "");
+$extraClassDiv = \Illuminate\Support\Arr::get($datos, 'extraClassDiv', "");
+$extraClassInput = \Illuminate\Support\Arr::get($datos, 'extraClassInput', "");
+$extraDataInput = \Illuminate\Support\Arr::get($datos, 'extraDataInput', []);
+$help = \Illuminate\Support\Arr::get($datos, 'help', "");
 ?>
 <div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class="{{ $config['class_offset'] }} {{ $config['class_divinput'] }}">
@@ -54,10 +54,10 @@ $help = array_get($datos, 'help', "");
         @if (is_array($datos['value']))
         <div class="card {{ $claseError }}">
             <div class="card-body">
-                @if (array_get($datos,'label', '') != '')
+                @if (\Illuminate\Support\Arr::get($datos,'label', '') != '')
                 {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 card-title' . $config['class_label']]) }}
                 @endif
-                @if (array_get($datos,'description', '') != '')
+                @if (\Illuminate\Support\Arr::get($datos,'description', '') != '')
                 <p class="card-text">
                     <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $extraId }}_help">
                         {{ $datos['description'] }}
@@ -79,16 +79,16 @@ $help = array_get($datos, 'help', "");
                 $extraDataInput = [];
                 $separador = false;
                 if (isset($datos2) && is_array($datos2)){
-                    $separador = array_get($datos2, 'separador', $separador);
+                    $separador = \Illuminate\Support\Arr::get($datos2, 'separador', $separador);
                     if ($separador){
                         $labelOpcion = "";
                     }
-                    $labelOpcion = array_get($datos2, 'label', $labelOpcion);
-                    $descriptionOpcion = array_get($datos2, 'description', $descriptionOpcion);
-                    $infoOpcion = array_get($datos2, 'help', $infoOpcion);
-                    $extraClassDiv = array_get($datos2, 'extraClassDiv', $extraClassDiv);
-                    $extraClassInput = array_get($datos2, 'extraClassInput', $extraClassInput);
-                    $extraDataInput = array_get($datos2, 'extraDataInput', []);
+                    $labelOpcion = \Illuminate\Support\Arr::get($datos2, 'label', $labelOpcion);
+                    $descriptionOpcion = \Illuminate\Support\Arr::get($datos2, 'description', $descriptionOpcion);
+                    $infoOpcion = \Illuminate\Support\Arr::get($datos2, 'help', $infoOpcion);
+                    $extraClassDiv = \Illuminate\Support\Arr::get($datos2, 'extraClassDiv', $extraClassDiv);
+                    $extraClassInput = \Illuminate\Support\Arr::get($datos2, 'extraClassInput', $extraClassInput);
+                    $extraDataInput = \Illuminate\Support\Arr::get($datos2, 'extraDataInput', []);
                     
                 }elseif(isset($datos2) && is_string($datos2)){
                     $labelOpcion = $datos2;

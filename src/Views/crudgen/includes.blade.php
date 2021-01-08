@@ -180,7 +180,7 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
                 $left = (stripos($csss, '__asset__'));
             }
         }
-        echo "<script>var urlAssetsCkEditor = [" . $csss . "];</script>";
+        echo "<script>var urlAssetsCkEditor = " . $csss . ";</script>";
         if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.ckeditor_path"), ['http', '://'])) {
             echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(config("sirgrimorum.crudgenerator.ckeditor_path"),false);
         } else {

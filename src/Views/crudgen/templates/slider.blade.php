@@ -57,10 +57,10 @@ if (isset($datos["pre"])) {
 } else {
     $pre = "";
 }
-$extraClassDiv = array_get($datos, 'extraClassDiv', "");
-$extraClassInput = array_get($datos, 'extraClassInput', "");
-$extraDataInput = array_get($datos, 'extraDataInput', []);
-$help = array_get($datos, 'help', "");
+$extraClassDiv = \Illuminate\Support\Arr::get($datos, 'extraClassDiv', "");
+$extraClassInput = \Illuminate\Support\Arr::get($datos, 'extraClassInput', "");
+$extraDataInput = \Illuminate\Support\Arr::get($datos, 'extraDataInput', []);
+$help = \Illuminate\Support\Arr::get($datos, 'help', "");
 ?>
 <div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>

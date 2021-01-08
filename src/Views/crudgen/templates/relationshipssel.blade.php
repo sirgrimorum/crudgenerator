@@ -79,10 +79,10 @@ if (is_array($datos['campo'])) {
 } else {
     $camposQuery = $datos['campo'];
 }
-$extraClassDiv = array_get($datos, 'extraClassDiv', "");
-$extraClassInput = array_get($datos, 'extraClassInput', "");
-$extraDataInput = array_get($datos, 'extraDataInput', []);
-$help = array_get($datos, 'help', "");
+$extraClassDiv = \Illuminate\Support\Arr::get($datos, 'extraClassDiv', "");
+$extraClassInput = \Illuminate\Support\Arr::get($datos, 'extraClassInput', "");
+$extraDataInput = \Illuminate\Support\Arr::get($datos, 'extraDataInput', []);
+$help = \Illuminate\Support\Arr::get($datos, 'help', "");
 ?>
 <div class="form-group row {{ $claseError }} {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $columna}}'>
     <div class='{{$config['class_labelcont']}}'>

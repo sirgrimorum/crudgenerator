@@ -43,10 +43,10 @@ if (isset($datos["placeholder"])) {
 } else {
     $placeholder = "";
 }
-$extraClassDiv = array_get($datos, 'extraClassDiv', "");
-$extraClassInput = array_get($datos, 'extraClassInput', "");
-$extraDataInput = array_get($datos, 'extraDataInput', []);
-$help = array_get($datos, 'help', "");
+$extraClassDiv = \Illuminate\Support\Arr::get($datos, 'extraClassDiv', "");
+$extraClassInput = \Illuminate\Support\Arr::get($datos, 'extraClassInput', "");
+$extraDataInput = \Illuminate\Support\Arr::get($datos, 'extraDataInput', []);
+$help = \Illuminate\Support\Arr::get($datos, 'help', "");
 $atributos = [
     'multiple' => 'multiple',
     'class' => "form-control {$config['class_input']} $claseError $extraClassInput",
