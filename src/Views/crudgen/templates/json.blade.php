@@ -99,7 +99,8 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
             json_{{ $tabla . "_" . $extraId }} = new JSONedtr(jsonInicial, '#contenedor_json_{{ $tabla . "_" . $extraId }}',{
                 'instantChange' : true,
                 'runFunctionOnUpdate' : 'json_{{ $tabla . "_" . $extraId }}_onChange',
-                'locked' : $('#{{ $tabla . "_" . $extraId }}').data('locked') == 'si'
+                'locked' : $('#{{ $tabla . "_" . $extraId }}').data('locked') == 'si',
+                'readonly' : $('#{{ $tabla . "_" . $extraId }}').is('[readonly]'),
             });
         }
         {{ $tabla . "_" . $extraId }}Ejecutado = true;

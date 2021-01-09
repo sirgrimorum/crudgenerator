@@ -456,7 +456,7 @@ trait CrudModels
                 if (array_key_exists($value->{$columna}, $datos['value'])) {
                     $auxcelda = $datos['value'][$value->{$columna}];
                     $auxcelda = $datos['value'][$value->{$columna}];
-                    if (is_array($auxcelda)){
+                    if (is_array($auxcelda)) {
                         $auxcelda = Arr::get($auxcelda, 'label', Arr::get($auxcelda, 'description', Arr::get($auxcelda, 'help', $value->{$columna})));
                     }
                     $celda['data_labels'][$value->{$columna}] = $datos['value'][$value->{$columna}];
@@ -617,7 +617,16 @@ trait CrudModels
             $celda['data'] = json_decode($value->{$columna}, true);
             $celda['label'] = $datos['label'];
             $celda['value'] = $value->{$columna};
-            $celda['html'] = "<pre>" . print_r($celda['data'], true) . "</pre>";
+            $celda['html'] = "<pre><code>" . json_encode($celda['data'], JSON_PRETTY_PRINT) . "</code></pre>";
+            $fileHtml = '<div class="card text-left">' .
+                '<div class="card-header">' .
+                'JSON' .
+                '</div>' .
+                '<div class="card-body w-100" style="max-height:20em;overflow-y:scroll;">' .
+                $celda['html'] .
+                '</div>' .
+                '</div>';
+            $celda['html_show'] = $fileHtml;
             $celda['html_cell'] = '<div style="max-height:200px;overflow-y:scroll;">' . $celda['html'] . '</div>';
         } elseif ($datos['tipo'] == "file") {
             if ($value->{$columna} == "") {
