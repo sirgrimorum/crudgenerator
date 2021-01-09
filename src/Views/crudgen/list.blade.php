@@ -150,8 +150,8 @@ if (old("__parametros","") != ""){
             "campos" => $campos,
         ])
         @else
-        @include("sirgrimorum::crudgen.list_inner_completo",[
-            "registros" => $registros,
+        @include("sirgrimorum::crudgen.list_inner",[
+            "registros" => CrudGenerator::lists_array($config, $registros, 'complete'),
             "config" => $config,
             "tablaid" => $tablaid,
             "campos" => $campos,

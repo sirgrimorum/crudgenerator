@@ -23,15 +23,15 @@ $nombre = $config['nombre'];
 <div class="card border-dark">
     @if (is_array($registro))
         @include("sirgrimorum::crudgen.show_inner",[
-            "registros" => $registro,
+            "registro" => $registro,
             "config" => $config,
             "tabla" => $tabla,
             "campos" => $campos,
             "nombre" => $nombre,
         ])
     @else
-        @include("sirgrimorum::crudgen.show_inner_completo",[
-            "registros" => $registro,
+        @include("sirgrimorum::crudgen.show_inner",[
+            "registro" => CrudGenerator::registry_array($config, $registro, 'complete'),
             "config" => $config,
             "tabla" => $tabla,
             "campos" => $campos,
