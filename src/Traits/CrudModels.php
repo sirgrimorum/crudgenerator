@@ -1654,9 +1654,10 @@ trait CrudModels
      * @param array $config The configuration array
      * @param Request $input Optional the request. If null, it will use request() function
      * @param type $obj Optional, the object to save or edit. If null, it would look for one using its $config['id'] value in the $input, or create a new one if not found
-     * @return Object|boolean True or an erro response in case of error with uploaded files
+     * @param bool $returnChanges Optional if return an array with all the changes made to the object after saving, default false
+     * @return Object|array|boolean Object changed, array with changes if $returnChanges is true, or an error response in case of error with uploaded files
      */
-    public static function saveObjeto(array $config, \Illuminate\Http\Request $input = null, $obj = null)
+    public static function saveObjeto(array $config, \Illuminate\Http\Request $input = null, $obj = null, $returnChanges = false)
     {
         if (is_null($input)) {
             $input = request();
@@ -1786,6 +1787,10 @@ trait CrudModels
             }
             $objModelo->save();
 
+            if ($returnChanges){
+                $cambios = $objModelo->getChanges();
+            }
+
             if ($objModelo) {
                 foreach ($config['campos'] as $campo => $detalles) {
                     if (!isset($detalles["nodb"])) {
@@ -1827,6 +1832,9 @@ trait CrudModels
                                     }
                                 }
                                 $objModelo->save();
+                                if ($returnChanges){
+                                    $cambios = array_merge($cambios,$objModelo->getChanges());
+                                }
                                 break;
                             case 'relationships':
                                 if ($input->has($campo)) {
@@ -1906,6 +1914,9 @@ trait CrudModels
                                     $objModelo->{$campo} = null;
                                 }
                                 $objModelo->save();
+                                if ($returnChanges){
+                                    $cambios = array_merge($cambios,$objModelo->getChanges());
+                                }
                                 break;
                             case 'files':
                                 $existFiles = $objModelo->{$campo};
@@ -1976,6 +1987,9 @@ trait CrudModels
                                     $objModelo->{$campo} = json_encode($finalFiles);
                                 }
                                 $objModelo->save();
+                                if ($returnChanges){
+                                    $cambios = array_merge($cambios,$objModelo->getChanges());
+                                }
                                 break;
                             default:
                                 break;
@@ -1985,6 +1999,9 @@ trait CrudModels
             }
             if ($config['tabla'] == "articles") {
                 Artisan::call('view:clear');
+            }
+            if ($returnChanges){
+                return $cambios;
             }
             return $objModelo;
         } else {
