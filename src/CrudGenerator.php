@@ -291,17 +291,17 @@ class CrudGenerator
             $urls = [];
             if ($config['url'] == "Sirgrimorum_CrudAdministrator") {
                 $urls = [
-                    "show" => url($base_url . "/" . strtolower($modelo) . "/:modelId"),
-                    "edit" => url($base_url . "/" . strtolower($modelo) . "/:modelId/edit"),
-                    "remove" => url($base_url . "/" . strtolower($modelo) . "/:modelId/destroy"),
-                    "create" => url($base_url . "/" . strtolower($modelo) . "s/create"),
+                    "show" => route('sirgrimorum_modelo::show',['modelo'=>$modelo, 'registro' => ':modelId']),
+                    "edit" => route('sirgrimorum_modelo::edit',['modelo'=>$modelo, 'registro' => ':modelId']),
+                    "remove" => route('sirgrimorum_modelo::destroy',['modelo'=>$modelo, 'registro' => ':modelId']),
+                    "create" => route('sirgrimorum_modelos::create',['modelo'=>$modelo]),
                 ];
             }elseif (is_array($config['url'])) {
                 $urls = [
-                    "show" =>  Arr::get($config['url'], 'show', url($base_url . "/" . strtolower($modelo) . "/:modelId")),
-                    "edit" => Arr::get($config['url'], 'edit', url($base_url . "/" . strtolower($modelo) . "/:modelId/edit")),
-                    "remove" => Arr::get($config['url'], 'remove', url($base_url . "/" . strtolower($modelo) . "/:modelId/destroy")),
-                    "create" => Arr::get($config['url'], 'create', url($base_url . "/" . strtolower($modelo) . "s/create")),
+                    "show" =>  Arr::get($config['url'], 'show', route('sirgrimorum_modelo::show',['modelo'=>$modelo, 'registro' => ':modelId'])),
+                    "edit" => Arr::get($config['url'], 'edit', route('sirgrimorum_modelo::edit',['modelo'=>$modelo, 'registro' => ':modelId'])),
+                    "remove" => Arr::get($config['url'], 'remove', route('sirgrimorum_modelo::destroy',['modelo'=>$modelo, 'registro' => ':modelId'])),
+                    "create" => Arr::get($config['url'], 'create', route('sirgrimorum_modelos::create',['modelo'=>$modelo])),
                 ];
             }
             $config['botones'] = [

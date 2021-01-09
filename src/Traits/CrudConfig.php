@@ -746,7 +746,7 @@ trait CrudConfig
                             'modelo' => $datos['relation']['related']['model'],
                             'id' => $datos['relation']['datosQuery']['relatedId'],
                             'campo' => "<-{$datos['relation']['related']['name']}-> (<-{$datos['relation']['related']['id']}->)",
-                            'enlace' => "__route__sirgrimorum_modelo::show,{'localecode':'__getLocale__','modelo':'{$modeloSimple}','registro':'<-{$datos['relation']['related']['id']}->'}__",
+                            'enlace' => "__route__sirgrimorum_modelo::show,{'modelo':'{$modeloSimple}','registro':'<-{$datos['relation']['related']['id']}->'}__",
                             "todos" => "",
                         ];
                         $rulesStr .= $prefixRules . 'required|exists:' . $datos['relation']['related']['tabla'] . ',' . $datos['relation']['datosQuery']['relatedId'];
@@ -768,7 +768,7 @@ trait CrudConfig
                             'modelo' => $datos['relation']['related']['model'],
                             'id' => "<-{$datos['relation']['related']['name']}-> (<-{$datos['relation']['related']['id']}->)",
                             'campo' => $datos['relation']['related']['name'],
-                            'enlace' => "__route__sirgrimorum_modelo::show,{'localecode':'__getLocale__','modelo':'{$modeloSimple}','registro':'<-{$datos['relation']['related']['id']}->'}__",
+                            'enlace' => "__route__sirgrimorum_modelo::show,{'modelo':'{$modeloSimple}','registro':'<-{$datos['relation']['related']['id']}->'}__",
                             'card_class' => 'bg-light',
                             "todos" => "",
                         ];
