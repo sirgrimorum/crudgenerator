@@ -130,8 +130,8 @@
  *                      "format" => [(number of decimals), "[decimal separator]", "[mil separator]"], // for number types, aplies format to the number []
                         "valor" => "[default value of the field]", // use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
                    ],],
-                   "readonly" => "readonly", // for all types, if set adds the value to the attribute "readonly" in the input and hide the field in create
-                   "nodb" => "nodb", // for all types, if set means is not a field to use to update the model (just for show) when url is "Sirgrimorum_CrudAdministrator" and hide the field in create
+                   "readonly" => ["create","list"], // for all types, if set adds the value to the attribute "readonly" in the input 
+                   "nodb" => "nodb", // for all types where readonly not applies, if set means is not a field to use to update the model (just for show) when url is "Sirgrimorum_CrudAdministrator" and hide the field in create
                    "pre_html" => "[Html code]", // for all types, code to be inserted before the <div class="form-group row"> tag opening for this field
                    "post_html" => "[Html code]", // for all types, code to be inserted after the <div class="form-group row"> tag closing for this field
                    "es_html" => true, // for article types, if use a wysig editor or not

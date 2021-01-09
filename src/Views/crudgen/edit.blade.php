@@ -29,7 +29,7 @@ if (isset($config['relaciones'])) {
     $relaciones = $config['relaciones'];
 }
 $identificador = $config['id'];
-$url = $config['url'];
+$url = CrudGenerator::translateDato($config['url'], $registro, $config);
 $config = CrudGenerator::loadDefaultClasses($config);
 $action = 'edit';
 ?>
@@ -48,6 +48,18 @@ if (isset($config['parametros'])){
 }
 foreach ($campos as $columna => $datos) {
     if (CrudGenerator::inside_array($datos, "hide", "edit") === false) {
+        if (isset($datos['readonly'])){
+            if (is_array($datos['readonly'])){
+                if (CrudGenerator::inside_array($datos, "readonly", "edit") !== false){
+                    $datos['readonly'] = 'readonly';
+                }else{
+                    unset($datos['readonly']);
+                }
+            }
+        }
+        if (isset($datos['nodb']) && !isset($datos['readonly'])){
+            $datos['readonly'] = 'readonly';
+        }
         if (isset($datos['pre_html'])){
             echo $datos['pre_html'];
         }

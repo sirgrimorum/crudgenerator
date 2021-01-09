@@ -47,6 +47,15 @@ if (isset($config['parametros'])){
 
 foreach ($campos as $columna => $datos) {
     if (!isset($datos['nodb']) && CrudGenerator::inside_array($datos, "hide", "create") === false) {
+        if (isset($datos['readonly'])){
+            if (is_array($datos['readonly'])){
+                if (CrudGenerator::inside_array($datos, "readonly", "edit") !== false){
+                    $datos['readonly'] = 'readonly';
+                }else{
+                    unset($datos['readonly']);
+                }
+            }
+        }
         if (isset($datos['pre_html'])){
             echo $datos['pre_html'];
         }
