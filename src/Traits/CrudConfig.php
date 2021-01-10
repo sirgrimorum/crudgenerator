@@ -1128,13 +1128,14 @@ trait CrudConfig
      * @param string|array $valor Optional Value for the column to look for
      * @return array The new config array 
      */
-    public static function getCamposNames($config, $nombreOriginal = false, $columna = null, $valor = null){
+    public static function getCamposNames($config, $nombreOriginal = false, $columna = null, $valor = null)
+    {
         $columns = [];
-        foreach($config['campos'] as $campo => $configCampo){
+        foreach ($config['campos'] as $campo => $configCampo) {
             $campoPoner = "";
-            if ($columna == null || $valor == null){
+            if ($columna == null || $valor == null) {
                 $campoPoner = $campo;
-            }elseif (isset($configCampo[$columna])) {
+            } elseif (isset($configCampo[$columna])) {
                 if (is_array($valor)) {
                     if (in_array(strtolower($configCampo[$columna]), $valor)) {
                         $campoPoner = $campo;
@@ -1143,8 +1144,8 @@ trait CrudConfig
                     $campoPoner = $campo;
                 }
             }
-            if ($campoPoner != ""){
-                if ($nombreOriginal){
+            if ($campoPoner != "") {
+                if ($nombreOriginal) {
                     if ($configCampo['tipo'] == "relationship" && CrudGenerator::hasRelation($config['modelo'], $campo)) {
                         $campoPoner = (new $config['modelo']())->{$campo}()->getForeignKeyName();
                     }
@@ -1155,8 +1156,9 @@ trait CrudConfig
         return $columns;
     }
 
-    public static function turnNodbIntoReadonly($config){
-        CrudGenerator::forValor($config,"nodb","nodb",function($campo, $configCampo) use (&$config){
+    public static function turnNodbIntoReadonly($config)
+    {
+        CrudGenerator::forValor($config, "nodb", "nodb", function ($campo, $configCampo) use (&$config) {
             $config['campos'][$campo]["readonly"] = "readonly";
         });
         return $config;
@@ -1189,7 +1191,7 @@ trait CrudConfig
      * 
      * @return array The configuration array for the field with "todos" option nomalized
      */
-    public static function loadTodosForField($relacion, $clave = null, $config = null, $conAdicional = false, $adicionalText = null, $adicionalValor = "-" )
+    public static function loadTodosForField($relacion, $clave = null, $config = null, $conAdicional = false, $adicionalText = null, $adicionalValor = "-")
     {
         if ($relacion['tipo'] == "relationship" || $relacion['tipo'] == "relationships" || $relacion['tipo'] == "relationshipssel") {
             if (is_array($relacion['todos'])) {
@@ -1216,24 +1218,24 @@ trait CrudConfig
                             $modelosM = $registros->map(function ($objeto) use ($relacion, $config) {
                                 return [$objeto->getKey() => CrudGenerator::translateDato($relacion['campo'], $objeto, $config)];
                             })->values()->unique()->toArray();
-                        }elseif ($registros instanceof Builder) {
+                        } elseif ($registros instanceof Builder) {
                             if ($relacion['tipo'] == "relationship") {
                                 $foreign = (new $config['modelo']())->{$clave}()->getForeignKeyName();
-                                $foreignQ =(new $config['modelo']())->{$clave}()->getQualifiedForeignKeyName();
+                                $foreignQ = (new $config['modelo']())->{$clave}()->getQualifiedForeignKeyName();
                                 $ids = DB::query()->fromSub($registros, "ids")->selectRaw("distinct {$foreign}")->get()->map(function ($objeto) use ($foreign) {
                                     return $objeto->{$foreign};
                                 })->values()->unique()->toArray();
-                                $modelosM = $modeloM::whereIn($relacion['id'],$ids);
-                            }elseif ($relacion['tipo'] == "relationships") {
-                                $foreignQ =(new $config['modelo']())->{$clave}()->getQualifiedForeignKeyName();
+                                $modelosM = $modeloM::whereIn($relacion['id'], $ids);
+                            } elseif ($relacion['tipo'] == "relationships") {
+                                $foreignQ = (new $config['modelo']())->{$clave}()->getQualifiedForeignKeyName();
                                 $ids = DB::query()->fromSub($registros, "ids")->selectRaw("distinct {$config['id']}")->get()->map(function ($objeto) use ($config) {
                                     return $objeto->{$config['id']};
                                 })->values()->unique()->toArray();
                                 $modelosM = $modeloM::whereIn($foreignQ, $ids);
-                            }elseif ($relacion['tipo'] == "relationshipssel") {
+                            } elseif ($relacion['tipo'] == "relationshipssel") {
                                 /**Pendiente */
                                 $modelosM = $modeloM::all();
-                            }else{
+                            } else {
                                 $modelosM = $modeloM::all();
                             }
                         } else {
@@ -1249,7 +1251,7 @@ trait CrudConfig
                     $modelosM = $modelosM->get();
                 }
                 if ($modelosM instanceof Collection) {
-                    
+
                     if (isset($relacion['groupby'])) {
                         $groupBy = $relacion['groupby'];
                         $modelosM->sortBy(function ($elemento) use ($groupBy, $config) {
@@ -1283,8 +1285,8 @@ trait CrudConfig
                 }
             }
         }
-        if ($conAdicional){
-            if ($adicionalText == null){
+        if ($conAdicional) {
+            if ($adicionalText == null) {
                 $adicionalText = trans("crudgenerator::admin.layout.labels.seleccione");
             }
             $relacion['todos'] = [$adicionalValor => $adicionalText] + $relacion['todos'];
@@ -1331,5 +1333,31 @@ trait CrudConfig
             $config['post_html'] = "";
         }
         return $config;
+    }
+
+    /**
+     * Get just the value of a field from a complete registry_array
+     * 
+     * @param string $campo The field name
+     * @param array $value The array obtained from callin CrunGenerator::registry_array($config, $registro, 'complete')
+     * @param array $config The configuration array
+     * @param string $default The default value in case the field is not found, normally is '-'
+     * @param 
+     */
+    public static function getJustValue($campo, $value, $config, $default = "-")
+    {
+        $result = $default;
+        if (isset($value[$config[$campo]])) {
+            if (is_array($value[$config[$campo]]) && isset($value[$config[$campo]]['value'])) {
+                $result = $value[$config[$campo]]['value'];
+            } elseif (is_array($value[$config[$campo]])) {
+                if (count($value[$config[$campo]]) > 0) {
+                    $result = $value[$config[$campo]][0];
+                }
+            } else {
+                $result = $value[$config[$campo]];
+            }
+        }
+        return $result ?? $default;
     }
 }

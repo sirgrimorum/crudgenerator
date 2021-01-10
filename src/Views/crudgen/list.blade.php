@@ -288,6 +288,7 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
             }else{
                 d._token = $('meta[name="csrf-token"]').attr('content');
                 d._return = "datatablesjson";
+                d._tablaId = '{{ $tablaid }}';
                 @if ($usarAjax && $tienePrefiltro)
                 d._or = false;
                 @foreach ($configPrefiltro['campos'] as $columna => $configCampo)

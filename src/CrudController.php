@@ -299,7 +299,7 @@ class CrudController extends BaseController
                         break;
                     case "index":
                         if (strtolower($request->_return) == 'datatablesjson') {
-                            $result = CrudGenerator::lists_array($config, null, 'todo');
+                            $result = CrudGenerator::lists_array($config, null, 'todo', $request);
                         } else {
                             $result = CrudGenerator::lists_array($config, null, 'complete');
                         }

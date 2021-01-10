@@ -112,7 +112,7 @@ trait CrudModels
      *
      * @param array $config Configuration array
      * @param Collection|Array|Builder $registros Optional Objects to show if null it will look for the 'query' field in config, if not found, will take all the records of model. Use start and length of request to paginate
-     * @param boolean|string $solo Optional if false or 'todo' will return the complete and simple array, if 'todo' will also return numTotal y numFiltrados, if 'simple' only the simple one, if 'complete' only the complete one
+     * @param boolean|string $solo Optional if false or 'todo' will return the complete and simple array, if 'todo' will also return numTotal y numFiltrados and a special camp '_id' with '$request->tableid__id|nombre', if 'simple' only the simple one, if 'complete' only the complete one
      * @param Request $request Optional The current request
      * @return array with the objects in the config format
      */
@@ -161,14 +161,26 @@ trait CrudModels
         }
         $return = [];
         $returnSimple = [];
+        $index = 0;
+        $_tablaId = $request->get('_tablaId', $config['tabla']);
         foreach ($registros as $registro) {
             if ($solo == 'simple') {
                 $returnSimple[] = CrudGenerator::registry_array($config, $registro, $solo);
             } elseif ($solo == 'complete') {
                 $return[] = CrudGenerator::registry_array($config, $registro, $solo);
             } else {
+                $index++;
                 list($row, $rowSimple) = CrudGenerator::registry_array($config, $registro, $solo);
                 $return[] = $row;
+                $_id = e(CrudGenerator::getJustValue('id', $row, $config, CrudGenerator::getJustValue('id', $rowSimple, $config, $index)));
+                $_nombre = e(CrudGenerator::getJustValue('nombre', $row, $config, CrudGenerator::getJustValue('nombre', $rowSimple, $config, $index)));
+                $rowSimple['_id'] = "{$_tablaId}__{$_id}|{$_nombre}";
+                if (strtolower($request->get('_return', '')) == 'datatablesjson') {
+                    $rowSimple['_id'] = $rowSimple['id'];
+                    $rowSimple['id'] = "{$_tablaId}__{$_id}|{$_nombre}";
+                } else {
+                    $rowSimple['_id'] = "{$_tablaId}__{$_id}|{$_nombre}";
+                }
                 $returnSimple[] = $rowSimple;
             }
         }
@@ -1787,7 +1799,7 @@ trait CrudModels
             }
             $objModelo->save();
 
-            if ($returnChanges){
+            if ($returnChanges) {
                 $cambios = $objModelo->getChanges();
             }
 
@@ -1832,8 +1844,8 @@ trait CrudModels
                                     }
                                 }
                                 $objModelo->save();
-                                if ($returnChanges){
-                                    $cambios = array_merge($cambios,$objModelo->getChanges());
+                                if ($returnChanges) {
+                                    $cambios = array_merge($cambios, $objModelo->getChanges());
                                 }
                                 break;
                             case 'relationships':
@@ -1914,8 +1926,8 @@ trait CrudModels
                                     $objModelo->{$campo} = null;
                                 }
                                 $objModelo->save();
-                                if ($returnChanges){
-                                    $cambios = array_merge($cambios,$objModelo->getChanges());
+                                if ($returnChanges) {
+                                    $cambios = array_merge($cambios, $objModelo->getChanges());
                                 }
                                 break;
                             case 'files':
@@ -1987,8 +1999,8 @@ trait CrudModels
                                     $objModelo->{$campo} = json_encode($finalFiles);
                                 }
                                 $objModelo->save();
-                                if ($returnChanges){
-                                    $cambios = array_merge($cambios,$objModelo->getChanges());
+                                if ($returnChanges) {
+                                    $cambios = array_merge($cambios, $objModelo->getChanges());
                                 }
                                 break;
                             default:
@@ -2000,7 +2012,7 @@ trait CrudModels
             if ($config['tabla'] == "articles") {
                 Artisan::call('view:clear');
             }
-            if ($returnChanges){
+            if ($returnChanges) {
                 return $cambios;
             }
             return $objModelo;

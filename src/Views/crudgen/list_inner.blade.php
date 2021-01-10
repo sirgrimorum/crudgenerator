@@ -1,29 +1,7 @@
 @foreach($registros as $key => $value)
 <?php
-$id = $key;
-if (isset($value[$config['id']])){
-    if (is_array($value[$config['id']]) && isset($value[$config['id']]['value'])){
-        $id = $value[$config['id']]['value'];
-    }elseif (is_array($value[$config['id']])){
-        if (count($value[$config['id']])>0){
-            $id = $value[$config['id']][0];
-        }
-    }else{
-        $id = $value[$config['id']];
-    }
-}
-$nombre = $key;
-if (isset($value[$config['nombre']])){
-    if (is_array($value[$config['nombre']]) && isset($value[$config['nombre']]['value'])){
-        $nombre = $value[$config['nombre']]['value'];
-    }elseif (is_array($value[$config['nombre']])){
-        if (count($value[$config['nombre']])>0){
-            $nombre = $value[$config['nombre']][0];
-        }
-    }else{
-        $nombre = $value[$config['nombre']];
-    }
-}
+$id = CrudGenerator::getJustValue('id',$value,$config, $key);
+$nombre = CrudGenerator::getJustValue('nombre',$value,$config, $key);
 ?>
 <tr id = "{{ $tablaid }}__{{ $id }}|{!! $nombre !!}">
     @foreach($campos as $columna => $datos)
