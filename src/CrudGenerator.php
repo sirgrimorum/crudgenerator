@@ -273,7 +273,7 @@ class CrudGenerator
             $css_section = "";
         }
         $modelo = basename($modeloM);
-        if (!isset($config['botones'])) {
+        if (!isset($config['botones']) || (isset($config['botones']) && !is_array($config['botones']))) {
             $base_url = route("sirgrimorum_home", App::getLocale());
             if (($textConfirm = trans('crudgenerator::' . strtolower($modelo) . '.messages.confirm_destroy')) == 'crudgenerator::' . strtolower($modelo) . '.mensajes.confirm_destroy') {
                 $textConfirm = trans('crudgenerator::admin.messages.confirm_destroy');
