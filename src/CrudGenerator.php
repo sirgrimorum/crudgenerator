@@ -5,9 +5,7 @@ namespace Sirgrimorum\CrudGenerator;
 use Illuminate\Support\Facades\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\App;
 use Sirgrimorum\CrudGenerator\Traits;
 use Illuminate\Support\Facades\Lang;
 
@@ -203,7 +201,7 @@ class CrudGenerator
             } else {
                 $config['botones'] = trans("crudgenerator::admin.layout.editar");
             }
-        }elseif (is_array($config['url'])) {
+        } elseif (is_array($config['url'])) {
             $config['url'] = Arr::get($config['url'], 'update', route("sirgrimorum_modelo::update", ["modelo" => $modelo, "registro" => $registro->id]));
         }
         if (Lang::has('crudgenerator::' . $modelo . '.labels.edit')) {
@@ -273,50 +271,33 @@ class CrudGenerator
             $css_section = "";
         }
         $modelo = basename($modeloM);
-        if (!isset($config['botones']) || (isset($config['botones']) && !is_array($config['botones']))) {
-            $base_url = route("sirgrimorum_home", App::getLocale());
-            if (($textConfirm = trans('crudgenerator::' . strtolower($modelo) . '.messages.confirm_destroy')) == 'crudgenerator::' . strtolower($modelo) . '.mensajes.confirm_destroy') {
-                $textConfirm = trans('crudgenerator::admin.messages.confirm_destroy');
+        if (isset($config['botones']) && is_array($config['botones'])) {
+            foreach (Arr::only($config['botones'], ['create', 'show', 'edit', 'remove']) as $butName => $button) {
+                if (!is_string($button)) {
+                    unset($config['botones'][$butName]);
+                }
             }
-            if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.plural")) {
-                $plurales = trans("crudgenerator::" . strtolower($modelo) . ".labels.plural");
-            } else {
-                $plurales = Str::plural($modelo);
+            $config['botones'] = array_merge(CrudGenerator::generateArrBotones($modelo, $config), $config['botones']);
+        } else {
+            $config['botones'] = CrudGenerator::generateArrBotones($modelo, $config);
+        }
+        $tienePrefiltro = CrudGenerator::hasValor($config, 'datatables', 'prefiltro');
+        $preFiltros = false;
+        if ($tienePrefiltro) {
+            $preFiltroStr = Arr::get($_COOKIE, strtolower($modelo) . "_index_preFiltros", false);
+            if (request()->has("preFiltros") && CrudGenerator::isJsonString(request()->get("preFiltros", ""))) {
+                $preFiltros = json_decode(request()->get("preFiltros"), true);
+            } elseif ($preFiltroStr != false && CrudGenerator::isJsonString($preFiltroStr)) {
+                $preFiltros = json_decode($preFiltroStr, true);
             }
-            if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
-                $singulares = trans("crudgenerator::" . strtolower($modelo) . ".labels.singular");
-            } else {
-                $singulares = $modelo;
-            }
-            $urls = [];
-            if ($config['url'] == "Sirgrimorum_CrudAdministrator") {
-                $urls = [
-                    "show" => route('sirgrimorum_modelo::show',['modelo'=>$modelo, 'registro' => ':modelId']),
-                    "edit" => route('sirgrimorum_modelo::edit',['modelo'=>$modelo, 'registro' => ':modelId']),
-                    "remove" => route('sirgrimorum_modelo::destroy',['modelo'=>$modelo, 'registro' => ':modelId']),
-                    "create" => route('sirgrimorum_modelos::create',['modelo'=>$modelo]),
-                ];
-            }elseif (is_array($config['url'])) {
-                $urls = [
-                    "show" =>  Arr::get($config['url'], 'show', route('sirgrimorum_modelo::show',['modelo'=>$modelo, 'registro' => ':modelId'])),
-                    "edit" => Arr::get($config['url'], 'edit', route('sirgrimorum_modelo::edit',['modelo'=>$modelo, 'registro' => ':modelId'])),
-                    "remove" => Arr::get($config['url'], 'remove', route('sirgrimorum_modelo::destroy',['modelo'=>$modelo, 'registro' => ':modelId'])),
-                    "create" => Arr::get($config['url'], 'create', route('sirgrimorum_modelos::create',['modelo'=>$modelo])),
-                ];
-            }
-            $config['botones'] = [
-                'show' => "<a class='btn btn-info' href='{$urls['show']}' title='" . trans('crudgenerator::datatables.buttons.t_show') . " $singulares'>" . trans("crudgenerator::datatables.buttons.show") . "</a>",
-                'edit' => "<a class='btn btn-success' href='{$urls['edit']}' title='" . trans('crudgenerator::datatables.buttons.t_edit') . " $singulares'>" . trans("crudgenerator::datatables.buttons.edit") . "</a>",
-                'remove' => "<a class='btn btn-danger' href='{$urls['remove']}' data-confirm='$textConfirm' data-yes='" . trans('crudgenerator::admin.layout.labels.yes') . "' data-no='" . trans('crudgenerator::admin.layout.labels.no') . "' data-confirmtheme='" . config('sirgrimorum.crudgenerator.confirm_theme') . "' data-confirmicon='" . config('sirgrimorum.crudgenerator.confirm_icon') . "' data-confirmtitle='' data-method='delete' rel='nofollow' title='" . trans('crudgenerator::datatables.buttons.t_remove') . " $plurales'>" . trans("crudgenerator::datatables.buttons.remove") . "</a>",
-                'create' => "<a class='btn btn-info' href='{$urls['create']}' title='" . trans('crudgenerator::datatables.buttons.t_create') . " $singulares'>" . trans("crudgenerator::datatables.buttons.create") . "</a>",
-            ];
         }
         $view = View::make('sirgrimorum::crudgen.list', [
             'config' => $config,
             'registros' => $registros,
             'usarAjax' => $usarAjax,
             'serverSide' => $serverSide,
-            'tienePrefiltro' => CrudGenerator::hasValor($config, 'datatables', 'prefiltro'),
+            'tienePrefiltro' => $tienePrefiltro,
+            'preFiltros' => $preFiltros,
             'modales' => $modales,
             'js_section' => $js_section,
             'css_section' => $css_section,

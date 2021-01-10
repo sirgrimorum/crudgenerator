@@ -86,6 +86,14 @@ return [
                 "not" => 'Diferente a',
                 "notEmpty" => 'Lleno',
                 "startsWith" => 'Empieza con',
+            ],
+            "array" => [
+                "contains" => 'Contiene',
+                "empty" => 'Vacío',
+                "equals" => 'Igual a',
+                "not" => 'Diferente a',
+                "notEmpty" => 'Lleno',
+                "without" => 'No incluye',
             ]
         ]
     ],

@@ -113,6 +113,9 @@ if (old("__parametros","") != ""){
             }elseif($configCampo['tipo'] == 'select'){
                 $configCampo['multiple'] = 'multiple';
             }
+            if ($preFiltros !== false && Illuminate\Support\Arr::get($preFiltros,$columna, false) !== false){
+                $configCampo['valor'] = $preFiltros[$columna];
+            }
             if (View::exists("sirgrimorum::crudgen.templates." . $configCampo['tipo'])) {
                 ?>
                 @include("sirgrimorum::crudgen.templates." . $configCampo['tipo'], ['datos'=>$configCampo,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$modelo, 'action'=>$action])
@@ -295,6 +298,10 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
                 @foreach ($configPrefiltro['campos'] as $columna => $configCampo)
                 d._preFiltros.{{ $columna }} = $('#{{ "{$tabla}_{$tablaid}_prefiltro_$columna" }}').val();
                 @endforeach
+                var expiration = new Date();
+                expiration.setTime(expiration.getTime() + ({{ Illuminate\Support\Arr::get($config ,"rememberPreFiltersFor",(5*60)) }}*1000));
+                var expires = "expires="+ expiration.toUTCString();
+                document.cookie = "{{ $modelo }}_index_preFiltros=" + JSON.stringify(d._preFiltros) + ";expires="+ expiration.toUTCString() + ";";
                 @endif
                 console.log('Loading data',d);
                 $.ajax({
@@ -337,9 +344,7 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
                 processing: true,
                 @if($serverSide)
                 serverSide: true,
-                scrollCollapse: false,
                 @else
-                scrollCollapse: true,
                 serverSide: false,
                 @endif
                 searchPanes:{
@@ -376,6 +381,7 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
                 scroller: {
                     loadingIndicator: true,
                 },
+                scrollCollapse: true,
                 orderCellsTop: true,
                 paging: true,
                 @if (isset($config['orden']))
@@ -394,12 +400,27 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
                 keys: false,
                 autoFill: false,
             });
+            @if($tienePrefiltro)
+            @if ($preFiltros !== false)
+            setTimeout(() => { 
+                {{ $tablaid }}ReloadData();
+                document.cookie = "{{ $modelo }}_index_preFiltros=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+            }, 1000);
+            @endif
+            @endif
             //new $.fn.dataTable.FixedHeader(lista_{{ $tabla }});
         }
         {{ $tablaid }}DataTablesCargado = true;
     });
 </script>
+@include("sirgrimorum::crudgen.list_botones_scripts",[
+        "botones" => $botones,
+        "config" => $config,
+        "tablaid" => $tablaid,
+        "tabla" => $tabla,
+])
 @loadScript('',true,"{$tablaid}_datatables_block")
+
 <?php
 if ($js_section != "") {
     ?>

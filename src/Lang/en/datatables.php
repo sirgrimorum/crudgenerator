@@ -84,6 +84,14 @@ return [
                 "not" => 'Not',
                 "notEmpty" => 'Not Empty',
                 "startsWith" => 'Starts With',
+            ],
+            "array" => [
+                "contains" => 'Contains',
+                "empty" => 'Empty',
+                "equals" => 'Equals',
+                "not" => 'Not',
+                "notEmpty" => 'Not Empty',
+                "without" => 'Without',
             ]
         ]
     ],

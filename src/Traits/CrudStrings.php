@@ -596,7 +596,7 @@ trait CrudStrings
                             }
                         }
                     }
-                    if (is_array($request->get('_preFiltros',''))) {
+                    if (is_array($request->get('_preFiltros', ''))) {
                         $arrayFiltros = $request->get('_preFiltros', []);
                     } else {
                         $camposConPrefiltro = CrudGenerator::getCamposNames(CrudGenerator::justWithValor($config, 'datatables', 'prefiltro'));
@@ -617,22 +617,24 @@ trait CrudStrings
                     }
                 } else {
                     //are from a regular form
-                    if (is_array($request->get('_preFiltros',''))) {
+                    if (is_array($request->get('_preFiltros', ''))) {
                         $arrayFiltros = $request->get('_preFiltros', []);
                     } else {
                         $arrayFiltros = $request->except(['_token', '_return', '_tablaId', $orOperation]);
                     }
                     foreach ($arrayFiltros as $attriR => $queryR) {
-                        if (in_array($attriR, $columnas)) {
-                            $attriFinal = $attriR;
-                            if (isset($config['campos'][$attriR])) {
-                                if ($config['campos'][$attriR]['tipo'] == "relationship" && CrudGenerator::hasRelation($config['modelo'], $attriR)) {
-                                    $attriFinal = (new $config['modelo']())->{$attriR}()->getForeignKeyName();
+                        if ($queryR != "" && ((is_array($queryR) && count($queryR) > 0) || !is_array($queryR))) {
+                            if (in_array($attriR, $columnas)) {
+                                $attriFinal = $attriR;
+                                if (isset($config['campos'][$attriR])) {
+                                    if ($config['campos'][$attriR]['tipo'] == "relationship" && CrudGenerator::hasRelation($config['modelo'], $attriR)) {
+                                        $attriFinal = (new $config['modelo']())->{$attriR}()->getForeignKeyName();
+                                    }
                                 }
+                                $atributos[] = $attriFinal;
+                                $atributosParaConfig[] = $attriR;
+                                $querys[] = $queryR;
                             }
-                            $atributos[] = $attriFinal;
-                            $atributosParaConfig[] = $attriR;
-                            $querys[] = $queryR;
                         }
                     }
                     if (!empty($request->input('order'))) {

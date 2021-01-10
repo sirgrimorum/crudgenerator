@@ -255,14 +255,29 @@ trait CrudModels
             $rowSimple[$columna] = $celda['value'];
         }
         if (is_array($botones)) {
-            $celda = "";
+            $celda = [];
             foreach ($botones as $boton) {
-                $celda .= str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $boton));
+                if (is_array($boton)) {
+                    $subBoton = [];
+                    foreach ($boton as $keySubBoton => $valueSubBoton) {
+                        if (is_string($valueSubBoton)) {
+                            $subBoton[$keySubBoton] = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $valueSubBoton));
+                        } else {
+                            $subBoton[$keySubBoton] = $valueSubBoton;
+                        }
+                    }
+                } elseif (is_string($boton)) {
+                    $celda[] = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $boton));
+                } else {
+                    $celda[] = $boton;
+                }
             }
             $row["botones"] = $celda;
-        } else {
+        } elseif (is_string($botones)) {
             $celda = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $botones));
             $row["botones"] = $celda;
+        } else {
+            $row["botones"] = $botones;
         }
         if ($solo == 'simple') {
             return $rowSimple;
@@ -1040,7 +1055,7 @@ trait CrudModels
         $operador = "";
         if ($buscar == "else") {
             //Pendiente
-        } elseif (str_contains($buscar, "|")) {
+        } elseif ($buscar != null && Str::contains($buscar, "|")) {
             $auxDatos = explode("|", $buscar);
             if ($columna["tipo"] == "date") {
                 $datos = [
@@ -1146,48 +1161,48 @@ trait CrudModels
             } else {
                 $query = $query->whereNotNull($campo);
             }
-        } elseif (Str::contains($buscar, ">=")) {
+        } elseif ($buscar != null && Str::contains($buscar, ">=")) {
             $buscar = str_replace(">=", "", $buscar);
             if ($negado) {
                 $operador = "<";
             } else {
                 $operador = ">=";
             }
-        } elseif (Str::contains($buscar, "<=")) {
+        } elseif ($buscar != null && Str::contains($buscar, "<=")) {
             $buscar = str_replace("<=", "", $buscar);
             if ($negado) {
                 $operador = ">";
             } else {
                 $operador = "<=";
             }
-        } elseif (Str::contains($buscar, ">")) {
+        } elseif ($buscar != null && Str::contains($buscar, ">")) {
             $buscar = str_replace(">", "", $buscar);
             if ($negado) {
                 $operador = "<=";
             } else {
                 $operador = ">";
             }
-        } elseif (Str::contains($buscar, "<")) {
+        } elseif ($buscar != null && Str::contains($buscar, "<")) {
             $buscar = str_replace("<", "", $buscar);
             if ($negado) {
                 $operador = ">=";
             } else {
                 $operador = "<";
             }
-        } elseif ((Str::contains($buscar, "!=") && !$negado) || (Str::contains($buscar, "=") && $negado)) {
+        } elseif ($buscar != null && (Str::contains($buscar, "!=") && !$negado) || (Str::contains($buscar, "=") && $negado)) {
             $buscar = str_replace(["!=", "="], "", $buscar);
             $operador = "<>";
-        } elseif ((Str::contains($buscar, "!=") && $negado) || (Str::contains($buscar, "=") && !$negado)) {
+        } elseif ($buscar != null && (Str::contains($buscar, "!=") && $negado) || (Str::contains($buscar, "=") && !$negado)) {
             $buscar = str_replace(["!=", "="], "", $buscar);
             $operador = "=";
-        } elseif ((Str::contains($buscar, "contiene:") && !$negado) || (Str::contains($buscar, "nocontiene:") && $negado)) {
+        } elseif ($buscar != null && (Str::contains($buscar, "contiene:") && !$negado) || (Str::contains($buscar, "nocontiene:") && $negado)) {
             $buscar = str_replace(["nocontiene:", "contiene:"], "", $buscar);
             if ($orOperation) {
                 $query = $query->orWhereRaw("$campo LIKE '%$buscar%'");
             } else {
                 $query = $query->whereRaw("$campo LIKE '%$buscar%'");
             }
-        } elseif ((Str::contains($buscar, "contiene:") && $negado) || (Str::contains($buscar, "nocontiene:") && !$negado)) {
+        } elseif ($buscar != null && (Str::contains($buscar, "contiene:") && $negado) || (Str::contains($buscar, "nocontiene:") && !$negado)) {
             $buscar = str_replace(["nocontiene:", "contiene:"], "", $buscar);
             if ($orOperation) {
                 $query = $query->orWhereRaw("$campo NOT LIKE '%$buscar%'");
@@ -1556,37 +1571,36 @@ trait CrudModels
                 $query = json_decode($query, true);
             } elseif (stripos($query, "|")) {
                 $arrQuery = [];
-                foreach(explode("|", $query) as $campoOrden){
+                foreach (explode("|", $query) as $campoOrden) {
                     if (stripos($campoOrden, "__")) {
                         $auxQuery = explode("__", $campoOrden);
-                        $arrQuery[$auxQuery[0]] = (isset($auxQuery[1])? $auxQuery[1] : "asc");
-                    }else{
+                        $arrQuery[$auxQuery[0]] = (isset($auxQuery[1]) ? $auxQuery[1] : "asc");
+                    } else {
                         $arrQuery[$campoOrden] = "asc";
                     }
                 }
                 $query = $arrQuery;
             }
             if ($registros instanceof Collection) {
-                foreach($query as $key => $orden){
-                    if ($registros->has($key)){
-                        if (strtolower($orden) == "desc"){
+                foreach ($query as $key => $orden) {
+                    if ($registros->has($key)) {
+                        if (strtolower($orden) == "desc") {
                             $registros = $registros->sortByDesc($key);
-                        }else{
+                        } else {
                             $registros = $registros->sortBy($key);
                         }
                         break;
                     }
                 }
-            }elseif ($registros instanceof Builder) {
-                foreach($query as $key => $orden){
-                    if (strtolower($orden) == "desc"){
+            } elseif ($registros instanceof Builder) {
+                foreach ($query as $key => $orden) {
+                    if (strtolower($orden) == "desc") {
                         $registros = $registros->orderBy($key, 'desc');
-                    }else{
+                    } else {
                         $registros = $registros->orderBy($key, 'asc');
                     }
                 }
             }
-
         }
         return $registros;
     }

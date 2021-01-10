@@ -21,6 +21,23 @@
                 'edit' => "<a class='btn btn-success' href='__route__sirgrimorum_modelo::edit,{'modelo':'article','registro':':modelId'}__' title='__trans__crudgenerator::datatables.buttons.t_edit__ Article'>__trans__crudgenerator::datatables.buttons.edit__</a>",
                 'remove' => "<a class='btn btn-danger' href='__route__sirgrimorum_modelo::destroy,{'modelo':'article','registro':':modelId'}__' data-confirm='__trans__crudgenerator::admin.messages.confirm_destroy__' data-yes='__trans__crudgenerator::admin.layout.labels.yes__' data-no='__trans__crudgenerator::admin.layout.labels.no__' data-confirmtheme='" . config('sirgrimorum.crudgenerator.confirm_theme'). "' data-confirmicon='" . config('sirgrimorum.crudgenerator.icons.confirm'). "' data-confirmtitle='' data-method='delete' rel='nofollow' title='__trans__crudgenerator::datatables.buttons.t_remove__ Articles'>__trans__crudgenerator::datatables.buttons.remove__</a>",
                 'create' => "<a class='btn btn-info' href='__route__sirgrimorum_modelos::create,{'modelo':'article'}__' title='__trans__crudgenerator::datatables.buttons.t_create__ Article'>__trans__crudgenerator::datatables.buttons.create__</a>",
+                'boton_adicional1' => [ // Aditional buttons to use in lists, The show, edit, remove or create ones must bue only strings
+                    "title" => "[Title of the button (on mouseover)]",
+                    "text" => "[Content of the button, could be html]",
+                    "extendSelected" => false, // If it should extend selected, when true, it would be disabled if no row is selected
+                    "class" => "[Class for the button]",
+                    "callback" => "[name of the javascript function to be called on click]", // Will be called with 3 arguments: idsSelected (int|string), namesSelected (string), rowsSelected (object)
+                    "script" => "[url to de external script where de function is]", // could use __asset__, __url__ or __route__
+                ],
+                'boton_adicional2' => [
+                    "title" => "[Title of the button (on mouseover)]",
+                    "text" => "[Content of the button, could be html]",
+                    "extendSelected" => true, // If it should extend selected, when true, it would be disabled if no row is selected
+                    "class" => "[Class for the button]",
+                    "callback" => "function(idsSelected, namesSelected, rowsSelected){
+                        console.log('boton_adicional2 clicked', idsSelected, namesSelected, rowsSelected.data().toArray());
+                    }", // Will be called with 3 arguments: idsSelected (int|string), namesSelected (string), rowsSelected (object)
+                ]
             ],
             "botones" => [ //option B for lists using defaults for Button options
                 'show' => "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/article/:modelId__",
@@ -28,6 +45,7 @@
                 'remove' => "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/article/:modelId/destroy",
                 'create' => "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/articles/create",
             ],
+            "rememberPreFiltersFor" => (5*60), // Duration in seconds of the cookie to remember pre_filters in index, default is 5 minutes. put 0 to not remember pre-filters
             "ajax" => false, // true if the table of list will be load using ajax
             "serverSide" => false, // true if the table of list will be load using ajax on server side
             "conditions" => true, // default true, show conditions buton in list view
