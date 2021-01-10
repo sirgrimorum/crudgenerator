@@ -1298,7 +1298,7 @@ trait CrudModels
      * @param string $attri The attribute to compare
      * @param array $config The configuration array
      * @param boolean $orOperation Optional (only when $registro is Builder), if use or operation, false will use and operation.
-     * @return boolean
+     * @return Builder
      */
     public static function evaluateQueryFilterWithSingleQuery($queryBuilder, $query, $attri, $config, $orOperation = true)
     {
@@ -1495,9 +1495,10 @@ trait CrudModels
      * @param string $queryStr Optional the key of the query in $datos
      * @param string $attriStr Optional the key of the attributes in $datos
      * @param string $aByAStr Optional the key of the value indicating if the $query and $attribute must be evaluated one by one (ej: $query[0] vs $attribute[0] AND $query[1] vs $attribute[1], ...)
+     * @param string $orderStr Optional the key of the order field(s) in $datos
      * @return Collection|Builder Collection filtered or Query Builder with the necesario operations performed
      */
-    public static function filterWithQuery($registros, $config, $datos = [], $orOperation = "_or", $queryStr = "_q", $attriStr = "_a", $aByAStr = "_aByA")
+    public static function filterWithQuery($registros, $config, $datos = [], $orOperation = "_or", $queryStr = "_q", $attriStr = "_a", $aByAStr = "_aByA", $orderStr = '_order')
     {
         $datos = CrudGenerator::normalizeDataForSearch($config, $datos, $orOperation, $queryStr, $attriStr, $aByAStr);
         if (!is_bool($orOperation)) {
@@ -1548,6 +1549,44 @@ trait CrudModels
                 }
                 $registros = CrudGenerator::evaluateFilter($registros, $query, $attri, $orOperation, $fbf, $config);
             }
+        }
+        if (isset($datos[$orderStr])) {
+            $query = $datos[$orderStr];
+            if (CrudGenerator::isJsonString($query)) {
+                $query = json_decode($query, true);
+            } elseif (stripos($query, "|")) {
+                $arrQuery = [];
+                foreach(explode("|", $query) as $campoOrden){
+                    if (stripos($campoOrden, "__")) {
+                        $auxQuery = explode("__", $campoOrden);
+                        $arrQuery[$auxQuery[0]] = (isset($auxQuery[1])? $auxQuery[1] : "asc");
+                    }else{
+                        $arrQuery[$campoOrden] = "asc";
+                    }
+                }
+                $query = $arrQuery;
+            }
+            if ($registros instanceof Collection) {
+                foreach($query as $key => $orden){
+                    if ($registros->has($key)){
+                        if (strtolower($orden) == "desc"){
+                            $registros = $registros->sortByDesc($key);
+                        }else{
+                            $registros = $registros->sortBy($key);
+                        }
+                        break;
+                    }
+                }
+            }elseif ($registros instanceof Builder) {
+                foreach($query as $key => $orden){
+                    if (strtolower($orden) == "desc"){
+                        $registros = $registros->orderBy($key, 'desc');
+                    }else{
+                        $registros = $registros->orderBy($key, 'asc');
+                    }
+                }
+            }
+
         }
         return $registros;
     }

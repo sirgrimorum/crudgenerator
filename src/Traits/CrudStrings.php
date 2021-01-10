@@ -539,9 +539,10 @@ trait CrudStrings
      * @param string $queryStr Optional the key of the query in $datos
      * @param string $attriStr Optional the key of the attributes in $datos
      * @param string $aByAStr Optional the key of the value indicating if the $query and $attribute must be evaluated one by one (ej: $query[0] vs $attribute[0] AND $query[1] vs $attribute[1], ...)
+     * @param string $orderStr Optional the key of the order field(s) in $datos
      * @return array the normalize array of search directives
      */
-    public static function normalizeDataForSearch($config, $datos = [], $orOperation = "_or", $queryStr = "_q", $attriStr = "_a", $aByAStr = "_aByA")
+    public static function normalizeDataForSearch($config, $datos = [], $orOperation = "_or", $queryStr = "_q", $attriStr = "_a", $aByAStr = "_aByA", $orderStr = '_order')
     {
         if (count($datos) == 0) {
             $request = request();
@@ -554,6 +555,7 @@ trait CrudStrings
                 $atributos = [];
                 $atributosParaConfig = [];
                 $querys = [];
+                $ordenes = [];
                 if ($request->has("columns")) {
                     //is a datatables query
                     $datos[$orOperation] = false;
@@ -585,9 +587,22 @@ trait CrudStrings
                             }
                         }
                     }
-                } else {
-                    //are from a regular form
-                    foreach (request()->except(['_token', '_return', $orOperation]) as $attriR => $queryR) {
+                    if (!empty($request->input('order'))) {
+                        foreach ($request->input('order') as $key => $columnaData) {
+                            $columna = $request->input("order.$key.column");
+                            $dir = $request->input("order.$key.dir", "asc");
+                            if ($request->input("columns.$columna.data", "") != "" && $dir != "") {
+                                $ordenes[$request->input("columns.$columna.data")] = $dir;
+                            }
+                        }
+                    }
+                    if (is_array($request->get('_preFiltros',''))) {
+                        $arrayFiltros = $request->get('_preFiltros', []);
+                    } else {
+                        $camposConPrefiltro = CrudGenerator::getCamposNames(CrudGenerator::justWithValor($config, 'datatables', 'prefiltro'));
+                        $arrayFiltros = $request->only($camposConPrefiltro);
+                    }
+                    foreach ($arrayFiltros as $attriR => $queryR) {
                         if (in_array($attriR, $columnas)) {
                             $attriFinal = $attriR;
                             if (isset($config['campos'][$attriR])) {
@@ -600,10 +615,40 @@ trait CrudStrings
                             $querys[] = $queryR;
                         }
                     }
+                } else {
+                    //are from a regular form
+                    if (is_array($request->get('_preFiltros',''))) {
+                        $arrayFiltros = $request->get('_preFiltros', []);
+                    } else {
+                        $arrayFiltros = $request->except(['_token', '_return', '_tablaId', $orOperation]);
+                    }
+                    foreach ($arrayFiltros as $attriR => $queryR) {
+                        if (in_array($attriR, $columnas)) {
+                            $attriFinal = $attriR;
+                            if (isset($config['campos'][$attriR])) {
+                                if ($config['campos'][$attriR]['tipo'] == "relationship" && CrudGenerator::hasRelation($config['modelo'], $attriR)) {
+                                    $attriFinal = (new $config['modelo']())->{$attriR}()->getForeignKeyName();
+                                }
+                            }
+                            $atributos[] = $attriFinal;
+                            $atributosParaConfig[] = $attriR;
+                            $querys[] = $queryR;
+                        }
+                    }
+                    if (!empty($request->input('order'))) {
+                        foreach ($request->input('order') as $key => $columnaData) {
+                            $columna = $request->input("order.$key.column");
+                            $dir = $request->input("order.$key.dir", "asc");
+                            if ($request->input("columns.$columna.data", "") != "" && $dir != "") {
+                                $ordenes[$request->input("columns.$columna.data")] = $dir;
+                            }
+                        }
+                    }
                 }
                 $datos[$attriStr] = json_encode($atributos);
                 $datos["{$attriStr}__C"] = json_encode($atributosParaConfig);
                 $datos[$queryStr] = json_encode($querys);
+                $datos[$orderStr] = json_encode($ordenes);
                 $datos[$aByAStr] = true;
             }
         }
@@ -664,9 +709,9 @@ trait CrudStrings
                     $strNombre = "";
                     $preNombre = "";
                     foreach ($campo as $indiceCampo => $nombreCampo) {
-                        if (is_string($elemento->{$nombreCampo})){
+                        if (is_string($elemento->{$nombreCampo})) {
                             $stringDato = $elemento->{$nombreCampo};
-                        }else{
+                        } else {
                             $stringDato = json_encode($elemento->{$nombreCampo});
                         }
                         $strNombre .= $preNombre . $stringDato;

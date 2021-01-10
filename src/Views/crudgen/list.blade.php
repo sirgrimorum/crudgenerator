@@ -291,8 +291,9 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
                 d._tablaId = '{{ $tablaid }}';
                 @if ($usarAjax && $tienePrefiltro)
                 d._or = false;
+                d._preFiltros = {};
                 @foreach ($configPrefiltro['campos'] as $columna => $configCampo)
-                d.{{ $columna }} = $('#{{ "{$tabla}_{$tablaid}_prefiltro_$columna" }}').val();
+                d._preFiltros.{{ $columna }} = $('#{{ "{$tabla}_{$tablaid}_prefiltro_$columna" }}').val();
                 @endforeach
                 @endif
                 console.log('Loading data',d);
@@ -303,9 +304,7 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
                     data: d,
                     success: function(json) {
                         console.log("devuelve", json);
-                        resolve({
-                            data: json.data,
-                        });
+                        resolve(json);
                     },
                 });
             }
@@ -338,7 +337,9 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
                 processing: true,
                 @if($serverSide)
                 serverSide: true,
+                scrollCollapse: false,
                 @else
+                scrollCollapse: true,
                 serverSide: false,
                 @endif
                 searchPanes:{
@@ -371,7 +372,6 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
                 fixedHeader: false,
                 scrollY: "60vh",
                 sScrollX: "100%",
-                scrollCollapse: true,
                 deferRender: true,
                 scroller: {
                     loadingIndicator: true,
