@@ -108,7 +108,7 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
                 inline: true,
                 sideBySide: true,
                 extraFormats: ["HH:mm:ss"],
-            });
+            }).val('{{ $dato }}');;
             $('#{{ $tabla . "_" . $extraId }}').closest("form").on('submit',function(e){
                 var momento = $('#{{ $tabla . "_" . $extraId }}').data("DateTimePicker").date();
                 $('#{{ $tabla . "_" . $extraId }}').val(momento.format("HH:mm:ss"));
