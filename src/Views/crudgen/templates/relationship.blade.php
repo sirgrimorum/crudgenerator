@@ -48,10 +48,10 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
 $atributos = [
     'class' => "form-control {$config['class_input']} $claseError $extraClassInput",
     'id' => $tabla . '_' . $extraId,
-    //'placeholder' => $placeholder,
     $readonly
 ];
 array_merge($extraDataInput, $atributos);
+$opciones = array_merge([""=>$placeholder],$datos['todos']);
 ?>
 <div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>
@@ -63,7 +63,7 @@ array_merge($extraDataInput, $atributos);
         @endif
     </div>
     <div class="{{ $config['class_divinput'] }}">
-        {{ Form::select($extraId, $datos["todos"], $dato, $atributos) }}
+        {{ Form::select($extraId, $opciones, $dato, $atributos) }}
         @if ($error_campo)
         <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}

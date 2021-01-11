@@ -54,8 +54,10 @@ if (isset($datos['multiple'])) {
     $arrayAttr = ['class' => "form-control {$config['class_input']} $claseError $extraClassInput", 'id' => $tabla . '_' . $extraId, $readonly];
 }
 $arrayAttr = array_merge($extraDataInput,$arrayAttr);
-
-//$arrayAttr["placeholder"]=$placeholder;
+$opciones = array_merge([""=>$placeholder],$datos['opciones']);
+if (stripos(\Illuminate\Support\Arr::get($config,"rules.{$columna}", ""), "required")!==false){
+    data_set($arrayAttr,'required',"required");
+}
 ?>
 <div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>
@@ -67,7 +69,7 @@ $arrayAttr = array_merge($extraDataInput,$arrayAttr);
         @endif
     </div>
     <div class="{{ $config['class_divinput'] }}">
-        {{ Form::select($nomColumna, $datos['opciones'], $dato, $arrayAttr) }}
+        {{ Form::select($nomColumna, $opciones, $dato, $arrayAttr) }}
         @if ($error_campo)
         <div class="invalid-feedback">
             {{ $errors->get($columna)[0] }}
