@@ -123,3 +123,6 @@ $botones = str_replace([":modelId", ":modelName"], [$registro->{$config['id']}, 
 @endif
 {!! $config['post_html'] !!}
 {{ Form::close() }}
+@include("sirgrimorum::crudgen.general_scripts", [
+    'js_section' => $js_section,
+])

@@ -112,3 +112,6 @@ if ($botones != "") {
 echo $config['post_html'];
 echo Form::close();
 ?>
+@include("sirgrimorum::crudgen.general_scripts", [
+    'js_section' => $js_section,
+])

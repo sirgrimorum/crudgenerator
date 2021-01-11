@@ -92,7 +92,8 @@ if (is_string($butName)) {
         className:'{!! $buttonClass !!}',
         action: function(){
             @if($butName != "create")
-            var rowsSelected = lista_{{ $tabla }}.rows({selected:true});
+            var tablaId = '{{ $tablaid }}';
+            var rowsSelected = lista_{{ $tablaid }}.rows({selected:true});
             var datos = rowsSelected.ids().toArray();
             countSelected = rowsSelected.count();
             idsSelected = [];
@@ -124,7 +125,7 @@ if (is_string($butName)) {
                 @if ($callback == "function")
                 {!! $contentCallback !!}
                 @else
-                {{ $callback }}(idsSelected, namesSelected, rowsSelected);
+                {{ $callback }}(idsSelected, namesSelected, rowsSelected, tablaId);
                 @endif
             @endif
             @else

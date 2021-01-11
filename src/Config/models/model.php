@@ -26,7 +26,7 @@
                     "text" => "[Content of the button, could be html]",
                     "extendSelected" => false, // If it should extend selected, when true, it would be disabled if no row is selected
                     "class" => "[Class for the button]",
-                    "callback" => "[name of the javascript function to be called on click]", // Will be called with 3 arguments: idsSelected (int|string), namesSelected (string), rowsSelected (object)
+                    "callback" => "[name of the javascript function to be called on click]", // Will be called with 4 arguments: idsSelected (int|string), namesSelected (string), rowsSelected (object), tablaid (string), remember to use showLoading() and hideLoading() if needed
                     "script" => "[url to de external script where de function is]", // could use __asset__, __url__ or __route__
                 ],
                 'boton_adicional2' => [
@@ -34,9 +34,9 @@
                     "text" => "[Content of the button, could be html]",
                     "extendSelected" => true, // If it should extend selected, when true, it would be disabled if no row is selected
                     "class" => "[Class for the button]",
-                    "callback" => "function(idsSelected, namesSelected, rowsSelected){
+                    "callback" => "function(idsSelected, namesSelected, rowsSelected, tablaId){
                         console.log('boton_adicional2 clicked', idsSelected, namesSelected, rowsSelected.data().toArray());
-                    }", // Will be called with 3 arguments: idsSelected (int|string), namesSelected (string), rowsSelected (object)
+                    }", // Will be called with 4 arguments: idsSelected (int|string), namesSelected (string), rowsSelected (object), tablaid (string), remember to use showLoading() and hideLoading() if needed
                 ]
             ],
             "botones" => [ //option B for lists using defaults for Button options
@@ -46,6 +46,7 @@
                 'create' => "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/articles/create",
             ],
             "rememberPreFiltersFor" => (5*60), // Duration in seconds of the cookie to remember pre_filters in index, default is 5 minutes. put 0 to not remember pre-filters
+            "forguetPreFiltersAfterFirstUse" => false, // If the Prefilters should be forget after the first remember (comeback to the page and leaving without changing them)
             "multiRemove" => true, // Alows to remove several registries at once in the list view, default is true,
             "ajax" => false, // true if the table of list will be load using ajax
             "serverSide" => false, // true if the table of list will be load using ajax on server side

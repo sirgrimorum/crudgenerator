@@ -244,7 +244,7 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.jqueryta
             if (!{{ $tablaid }}MomentEjecutado){
                 {{ $nameScriptLoader }}('{{ asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/datatables.min.js") }}',false,"");
             }
-            {{ $tablaid }}Ejecutado = true;
+            {{ $tablaid }}MomentEjecutado = true;
         }
         window.addEventListener('load', function() {
             {{ $tablaid }}MomentLoader();
@@ -256,7 +256,7 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.jqueryta
             if (!{{ $tablaid }}DataTablesEjecutado){
                 {{ $nameScriptLoader }}('{{ asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/datetime-moment.js") }}',false,"");
             }
-            {{ $tablaid }}Ejecutado = true;
+            {{ $tablaid }}DataTablesEjecutado = true;
         }
         window.addEventListener('load', function() {
             {{ $tablaid }}DataTablesLoader();
@@ -277,6 +277,9 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
     echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(asset(config("sirgrimorum.crudgenerator.confirm_path") . "/js/rails.js"),false);
 }
 ?>
+@include("sirgrimorum::crudgen.general_scripts", [
+    'js_section' => $js_section,
+])
 <script id="{{ $tablaid }}_datatables_block">
     var {{ $tablaid }}DataTablesCargado = false;
     
@@ -319,11 +322,11 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
     }
     function {{ $tablaid }}ReloadData(){
         console.log("recargando");
-        lista_{{ $tabla }}.ajax.reload();
+        lista_{{ $tablaid }}.ajax.reload();
     }
     @endif
 
-    var lista_{{ $tabla }};
+    var lista_{{ $tablaid }};
     window.addEventListener('load', function() {
         if (!{{ $tablaid }}DataTablesCargado){
             @if ((old("_action")=="create" || old("_action")=="edit") && $siOld)
@@ -340,7 +343,7 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
                 }
             });
             ?>
-            lista_{{ $tabla }} = $('#list_{{ $tablaid }}').DataTable({
+            lista_{{ $tablaid }} = $('#list_{{ $tablaid }}').DataTable({
                 processing: true,
                 @if($serverSide)
                 serverSide: true,
@@ -404,11 +407,13 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
             @if ($preFiltros !== false)
             setTimeout(() => { 
                 {{ $tablaid }}ReloadData();
+                @if (\Illuminate\Support\Arr::get($config,"forguetPreFiltersAfterFirstUse", false))
                 document.cookie = "{{ $modelo }}_index_preFiltros=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+                @endif
             }, 1000);
             @endif
             @endif
-            //new $.fn.dataTable.FixedHeader(lista_{{ $tabla }});
+            //new $.fn.dataTable.FixedHeader(lista_{{ $tablaid }});
         }
         {{ $tablaid }}DataTablesCargado = true;
     });

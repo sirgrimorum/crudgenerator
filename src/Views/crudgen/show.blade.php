@@ -39,3 +39,6 @@ $nombre = $config['nombre'];
         ])
     @endif
 </div>
+@include("sirgrimorum::crudgen.general_scripts", [
+    'js_section' => $js_section,
+])

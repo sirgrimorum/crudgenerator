@@ -163,11 +163,30 @@ if ($tieneHtml || $tieneDate || $tieneSlider || $tieneSelect || $tieneSearch || 
     if ($tieneDate) {
         if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.datetimepicker_path"), ['http', '://'])) {
             echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(asset("vendor/sirgrimorum/datetimepicker/js/moment-with-locales.min.js"),false);
-            echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(config("sirgrimorum.crudgenerator.datetimepicker_path") ,false);
         } else {
             echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(asset(config("sirgrimorum.crudgenerator.datetimepicker_path") . '/js/moment-with-locales.min.js'),false);
-            echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(asset(config("sirgrimorum.crudgenerator.datetimepicker_path") . '/js/bootstrap-datetimepicker.min.js') ,false);
         }
+        ?>
+        <script>
+            if (typeof window['MomentLoader'] !== 'function') {
+                var MomentEjecutado = false;
+                function MomentLoader(){
+                    if (!MomentEjecutado){
+                        @if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.datetimepicker_path"), ['http', '://']))
+                        scriptLoader('{{ config("sirgrimorum.crudgenerator.datetimepicker_path") }}',false,"");
+                        @else
+                        scriptLoader('{{ asset(config("sirgrimorum.crudgenerator.datetimepicker_path") . "/js/bootstrap-datetimepicker.min.js") }}',false,"");
+                        @endif
+                    }
+                    MomentEjecutado = true;
+                }
+                window.addEventListener('load', function() {
+                    MomentLoader();
+                });
+                {{ config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader") . "Creator" }}('moment-with-locales_min_js',"MomentLoader();");
+            }
+        </script>
+        <?php
     }
     if ($tieneHtml) {
         $csss = config("sirgrimorum.crudgenerator.principal_css");
