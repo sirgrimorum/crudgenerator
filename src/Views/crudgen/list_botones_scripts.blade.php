@@ -64,6 +64,9 @@ if (is_string($butName)) {
 function {{ $tablaid }}{{ $butName }}Pressed (
     @if ($butName != 'create')
     idSelected, nameSelected
+    @if ($butName == 'remove')
+    , rowSelected
+    @endif
     @endif
     ) {
     var url = '{!! $urlBoton !!}';
@@ -84,7 +87,7 @@ function {{ $tablaid }}{{ $butName }}Pressed (
         buttons: {
             ['{{$confirmYes}}']: function () {
             @endif
-                @if ($modales)
+                @if ($modales || ($butName == "remove" && \Illuminate\Support\Arr::get($config,"multiRemove", true)))
                 $.ajax({
                     type: '{{$typeAjax}}',
                     dataType: 'json',
@@ -93,12 +96,7 @@ function {{ $tablaid }}{{ $butName }}Pressed (
                     success:function(data){
                         if (data.status == 200){
                         @if ($butName == 'remove')
-                            lista_{{ $tabla }}.rows({selected:true}, 0).every(function (rowIdx, tableLoop, rowLoop) {
-                                if (rowLoop == 0){
-                                    lista_{{ $tabla }}.rows(rowIdx).remove().draw();
-                                }
-                                console.log("loop", rowIdx, tableLoop, rowLoop);
-                            }); //.remove().draw();
+                        lista_{{ $tabla }}.rows('#'+rowSelected).remove().draw(); 
                         @endif
                             if ($.type(data.result) == "object"){
                                 $.alert({

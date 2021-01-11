@@ -105,19 +105,21 @@ if (is_string($butName)) {
                     idsSelected.push(datos[index]);
                     namesSelected.push("");
                 }
-                @if ($butName == "remove")
-                {{ $tablaid }}{{ $butName }}Pressed (idsSelected[index], namesSelected[index]);
+                @if ($butName == "remove" && \Illuminate\Support\Arr::get($config,"multiRemove", true))
+                {{ $tablaid }}{{ $butName }}Pressed (idsSelected[index], namesSelected[index], datos[index]);
                 @endif
             }
             console.log("seleccionados", idsSelected, namesSelected, rowsSelected.data().toArray());
-            @if($butName == "edit" || $butName == "show")
+            @if($butName == "edit" || $butName == "show" || ($butName == "remove" && !\Illuminate\Support\Arr::get($config,"multiRemove", true)))
             var idSelected = 0;
             var nameSelected = "";
+            var rowSelected = "";
             if (countSelected > 0){
                 idSelected = idsSelected[0];
                 nameSelected = namesSelected[0];
+                rowSelected = datos[0];
             }
-            {{ $tablaid }}{{ $butName }}Pressed (idSelected, nameSelected);
+            {{ $tablaid }}{{ $butName }}Pressed (idSelected, nameSelected, rowSelected);
             @elseif($butName != "remove" && $callback != "")
                 @if ($callback == "function")
                 {!! $contentCallback !!}

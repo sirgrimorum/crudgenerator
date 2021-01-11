@@ -46,6 +46,7 @@
                 'create' => "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/articles/create",
             ],
             "rememberPreFiltersFor" => (5*60), // Duration in seconds of the cookie to remember pre_filters in index, default is 5 minutes. put 0 to not remember pre-filters
+            "multiRemove" => true, // Alows to remove several registries at once in the list view, default is true,
             "ajax" => false, // true if the table of list will be load using ajax
             "serverSide" => false, // true if the table of list will be load using ajax on server side
             "conditions" => true, // default true, show conditions buton in list view
