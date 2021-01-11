@@ -74,7 +74,6 @@ function {{ $tablaid }}{{ $butName }}Pressed (
     url = url.replace(":modelId", idSelected).replace(":modelName", nameSelected);
     @endif
     @if ($butName === 'remove')
-    console.log('{{$butName}}', '{{($butName == 'remove')}}');
     confirmTitle = '{{$confirmTitle}}';
     confirmTitle = confirmTitle.replace(":modelId", idSelected).replace(":modelName", nameSelected);
     confirmContent = '{!!$confirmContent!!}';
@@ -118,7 +117,7 @@ function {{ $tablaid }}{{ $butName }}Pressed (
                                 title: data.title,
                                 content: data.statusText,
                             });
-                            console.log(data);
+                            //console.log(data);
                         }
                     },
                     error:function(jqXHR, textStatus, errorThrown){

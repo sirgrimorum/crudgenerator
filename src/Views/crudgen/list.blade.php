@@ -75,6 +75,7 @@ if (old("__parametros","") != ""){
         $siOld = true;
     }
 }
+$tieneDate = false;
 ?>
 @if ($usarAjax && $tienePrefiltro)
 <div class="card border-dark mb-3">
@@ -86,11 +87,14 @@ if (old("__parametros","") != ""){
         $configPrefiltro = CrudGenerator::justWithValor($config,'datatables','prefiltro');
         $action = "create";
         //echo "<p>Datos Todos</p><pre>" . print_r([CrudGenerator::hasTipo($configPrefiltro, ['date', 'datetime', 'time']), $configPrefiltro], true) . "</pre>";
+        if (!$tieneDate){
+            $tieneDate = CrudGenerator::hasTipo($configPrefiltro, ['date', 'datetime', 'time']);
+        }
         ?>
         @include("sirgrimorum::crudgen.includes", [
             'config' => $configPrefiltro,
             'tieneHtml' => CrudGenerator::hasTipo($configPrefiltro, ['html', 'article']),
-            'tieneDate' => CrudGenerator::hasTipo($configPrefiltro, ['date', 'datetime', 'time']),
+            'tieneDate' => $tieneDate,
             'tieneSlider' => CrudGenerator::hasTipo($configPrefiltro, 'slider'),
             'tieneSelect' => CrudGenerator::hasTipo($configPrefiltro, ['select', 'relationship', 'relationships']),
             'tieneSearch' => CrudGenerator::hasTipo($configPrefiltro, ['relationshipssel']),
@@ -231,40 +235,50 @@ if ($js_section != "") {
 
 $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader");
 if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.jquerytables_path"), ['http', '://'])) {
-    echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml('https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js',false);
-    echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(config("sirgrimorum.crudgenerator.jquerytables_path") ,false);
-    echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml('https://cdn.datatables.net/plug-ins/1.10.21/sorting/datetime-moment.js',false);
+    if(!$tieneDate){
+        echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml('https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js',false);
+    }
+    //echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml('https://cdn.datatables.net/plug-ins/1.10.21/sorting/datetime-moment.js',false);
 } else {
-    //echo '<script src="' . asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/datatables.min.js") . '"></script>';
-    echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/moment.min.js"),false);
-    ?>
-    <script>
-        var {{ $tablaid }}MomentEjecutado = false;
-        function {{ $tablaid }}MomentLoader(){
-            if (!{{ $tablaid }}MomentEjecutado){
-                {{ $nameScriptLoader }}('{{ asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/datatables.min.js") }}',false,"");
-            }
-            {{ $tablaid }}MomentEjecutado = true;
-        }
-        window.addEventListener('load', function() {
-            {{ $tablaid }}MomentLoader();
-        });
-        {{ $nameScriptLoader. "Creator" }}('moment_min_js',"{{ $tablaid }}MomentLoader();");
-        
-        var {{ $tablaid }}DataTablesEjecutado = false;
-        function {{ $tablaid }}DataTablesLoader(){
-            if (!{{ $tablaid }}DataTablesEjecutado){
-                {{ $nameScriptLoader }}('{{ asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/datetime-moment.js") }}',false,"");
-            }
-            {{ $tablaid }}DataTablesEjecutado = true;
-        }
-        window.addEventListener('load', function() {
-            {{ $tablaid }}DataTablesLoader();
-        });
-        {{ $nameScriptLoader. "Creator" }}('datatables_min_js',"{{ $tablaid }}DataTablesLoader();");
-    </script>
-    <?php
+    if(!$tieneDate){
+        echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/moment.min.js"),false);
+    }
 }
+?>
+<script>
+    var {{ $tablaid }}MomentEjecutado = false;
+    function {{ $tablaid }}MomentLoader(){
+        if (!{{ $tablaid }}MomentEjecutado){
+            @if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.jquerytables_path"), ['http', '://']))
+            {{ $nameScriptLoader }}('{{ config("sirgrimorum.crudgenerator.jquerytables_path") }}',false,"");
+            @else
+            {{ $nameScriptLoader }}('{{ asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/datatables.min.js") }}',false,"");
+            @endif
+        }
+        {{ $tablaid }}MomentEjecutado = true;
+    }
+    window.addEventListener('load', function() {
+        {{ $tablaid }}MomentLoader();
+    });
+    @if($tieneDate)
+    {{ $nameScriptLoader. "Creator" }}('moment-with-locales_min_js',"{{ $tablaid }}MomentLoader();");
+    @else
+    {{ $nameScriptLoader. "Creator" }}('moment_min_js',"{{ $tablaid }}MomentLoader();");
+    @endif
+    var {{ $tablaid }}DataTablesEjecutado = false;
+    function {{ $tablaid }}DataTablesLoader(){
+        if (!{{ $tablaid }}DataTablesEjecutado){
+            {{ $nameScriptLoader }}('{{ asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/datetime-moment.js") }}',false,"");
+        }
+        {{ $tablaid }}DataTablesEjecutado = true;
+    }
+    window.addEventListener('load', function() {
+        {{ $tablaid }}DataTablesLoader();
+    });
+    {{ $nameScriptLoader. "Creator" }}('datatables_min_js',"{{ $tablaid }}DataTablesLoader();");
+</script>
+<?php
+
 if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
     //echo '<script src="' . config("sirgrimorum.crudgenerator.confirm_path") . '"></script>';
     //echo '<script src="' . asset("vendor/sirgrimorum/confirm/js/rails.js") . '"></script>';
@@ -306,14 +320,14 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
                 var expires = "expires="+ expiration.toUTCString();
                 document.cookie = "{{ $modelo }}_index_preFiltros=" + JSON.stringify(d._preFiltros) + ";expires="+ expiration.toUTCString() + ";";
                 @endif
-                console.log('Loading data',d);
+                //console.log('Loading data',d);
                 $.ajax({
                     url: "{{ route('sirgrimorum_modelos::index',['modelo'=> $modelo ]) }}",
                     dataType: "json",
                     type: "POST",
                     data: d,
                     success: function(json) {
-                        console.log("devuelve", json);
+                        //console.log("devuelve", json);
                         resolve(json);
                     },
                 });
@@ -321,7 +335,6 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
         });
     }
     function {{ $tablaid }}ReloadData(){
-        console.log("recargando");
         lista_{{ $tablaid }}.ajax.reload();
     }
     @endif

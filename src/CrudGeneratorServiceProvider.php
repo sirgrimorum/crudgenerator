@@ -135,61 +135,67 @@ class CrudGeneratorServiceProvider extends ServiceProvider
             $name = config("sirgrimorum.crudgenerator.scriptLoader_name", "scriptLoader");
             $html = "<script>" .
                 "var callbacksFunctions = [];" .
+                "var callbacksFunctionsLoaded = [];" .
                 "function {$name}Creator(callbackName, functionBody){" .
-                "if(!(callbackName in callbacksFunctions)){" .
-                "callbacksFunctions[callbackName] = [];" .
-                "}" .
-                "callbacksFunctions[callbackName].push(new Function(functionBody));" .
+                    "if(!(callbackName in callbacksFunctions)){" .
+                        "callbacksFunctions[callbackName] = [];" .
+                    "}" .
+                    "if(callbackName in callbacksFunctionsLoaded){" .
+                        "(new Function(functionBody))();" .
+                    "}else{" .
+                        "callbacksFunctions[callbackName].push(new Function(functionBody));" .
+                    "}" .
                 "}" .
                 "function {$name}Runner(callbackName){" .
-                "if(callbackName in callbacksFunctions){" .
-                "for (var i = 0; i < callbacksFunctions[callbackName].length; i++){" .
-                "callbacksFunctions[callbackName][i]();" .
-                "}" .
-                "}" .
+                    "if(callbackName in callbacksFunctions){" .
+                        "for (var i = 0; i < callbacksFunctions[callbackName].length; i++){" .
+                            "callbacksFunctions[callbackName][i]();" .
+                        "}" .
+                        "callbacksFunctionsLoaded[callbackName] = [];" .
+                    "}" .
                 "}" .
                 "function $name(path, diferir, inner=''){" .
-                "let scripts = Array .from(document.querySelectorAll('script')).map(scr => scr.src);" .
-                "var callbackName = inner;" .
-                "if (inner=='' && path != ''){" .
-                "callbackName = path.split('/').pop().split('#')[0].split('?')[0].replaceAll('.','_');" .
-                "}" .
-                "if (!scripts.includes(path) || path == ''){" .
-                "var tag = document.createElement('script');" .
-                "tag.type = 'text/javascript';" .
-                "if (callbackName!= ''){" .
-                "if(tag.readyState) {" .
-                "tag.onreadystatechange = function() {" .
-                "if ( tag.readyState === 'loaded' || tag.readyState === 'complete' ) {" .
-                "tag.onreadystatechange = null;" .
-                "{$name}Runner(callbackName);" .
-                "}" .
-                "};" .
-                "}else{" .
-                "tag.onload = function() {" .
-                "{$name}Runner(callbackName);" .
-                "};" .
-                "}" .
-                "}" .
-                "if (path != ''){" .
-                "tag.src = path;" .
-                "}" .
-                "if (diferir){" .
-                "var attd = document.createAttribute('defer');" .
-                "tag.setAttributeNode(attd);" .
-                "}" .
-                "if (inner != ''){" .
-                "var innerBlock = document.getElementById(inner);" .
-                "if (typeof innerBlock !== 'undefined' && innerBlock !== null){" .
-                "tag.innerHTML = innerBlock.innerHTML;" .
-                "}" .
-                "}" .
-                "document.getElementsByTagName('body')[document.getElementsByTagName('body').length-1].appendChild(tag);" .
-                "}else{" .
-                "if (callbackName!= ''){" .
-                "if(callbackName in window){window[callbackName]();}" .
-                "}" .
-                "}" .
+                    "let scripts = Array .from(document.querySelectorAll('script')).map(scr => scr.src);" .
+                    "var callbackName = inner;" .
+                    "if (inner=='' && path != ''){" .
+                        "callbackName = path.split('/').pop().split('#')[0].split('?')[0].replaceAll('.','_');" .
+                    "}" .
+                    "if (!scripts.includes(path) || path == ''){" .
+                        "var tag = document.createElement('script');" .
+                        "tag.type = 'text/javascript';" .
+                        "if (callbackName!= ''){" .
+                            "if(tag.readyState) {" .
+                                "tag.onreadystatechange = function() {" .
+                                    "if ( tag.readyState === 'loaded' || tag.readyState === 'complete' ) {" .
+                                        "tag.onreadystatechange = null;" .
+                                        "{$name}Runner(callbackName);" .
+                                    "}" .
+                                "};" .
+                            "}else{" .
+                                "tag.onload = function() {" .
+                                    "{$name}Runner(callbackName);" .
+                                "};" .
+                            "}" .
+                        "}" .
+                        "if (path != ''){" .
+                            "tag.src = path;" .
+                        "}" .
+                        "if (diferir){" .
+                            "var attd = document.createAttribute('defer');" .
+                            "tag.setAttributeNode(attd);" .
+                        "}" .
+                        "if (inner != ''){" .
+                            "var innerBlock = document.getElementById(inner);" .
+                            "if (typeof innerBlock !== 'undefined' && innerBlock !== null){" .
+                                "tag.innerHTML = innerBlock.innerHTML;" .
+                            "}" .
+                        "}" .
+                        "document.getElementsByTagName('body')[document.getElementsByTagName('body').length-1].appendChild(tag);" .
+                    "}else{" .
+                        "if (callbackName!= ''){" .
+                            "if(callbackName in window){window[callbackName]();}" .
+                        "}" .
+                    "}" .
                 "}" .
                 "</script>";
             return $html;

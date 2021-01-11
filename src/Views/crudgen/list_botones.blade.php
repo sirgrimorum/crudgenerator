@@ -110,7 +110,7 @@ if (is_string($butName)) {
                 {{ $tablaid }}{{ $butName }}Pressed (idsSelected[index], namesSelected[index], datos[index]);
                 @endif
             }
-            console.log("seleccionados", idsSelected, namesSelected, rowsSelected.data().toArray());
+            //console.log("seleccionados", idsSelected, namesSelected, rowsSelected.data().toArray());
             @if($butName == "edit" || $butName == "show" || ($butName == "remove" && !\Illuminate\Support\Arr::get($config,"multiRemove", true)))
             var idSelected = 0;
             var nameSelected = "";
