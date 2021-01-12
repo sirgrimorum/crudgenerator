@@ -32,6 +32,9 @@ function comenzarCheckeador() {
         mostrarSelecteador($(this));
         $(".ya_checkeado").removeClass("ya_checkeado");
     });
+    $(".selecteador").each(function() {
+        mostrarSelecteador($(this));
+    });
 }
 
 function mostrarSelecteador(elemento) {
@@ -41,7 +44,7 @@ function mostrarSelecteador(elemento) {
         var contenedor = $(elemento).attr("data-contenedor");
         var pre1 = "class";
         var pre2 = ".";
-        console.log("primer caracter", contenedor.substr(0, 1));
+        //console.log("primer caracter", contenedor.substr(0, 1));
         if (contenedor.substr(0, 1) == "#") {
             pre1 = "id";
             pre2 = "#";
