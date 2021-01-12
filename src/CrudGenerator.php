@@ -47,7 +47,7 @@ class CrudGenerator
             }
         }
         if (!CrudGenerator::checkPermission($config, 0, 'create')) {
-            return View::make('sirgrimorum::crudgen.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
+            return View::make('sirgrimorum::crudgen.partials.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
         }
         $modelo = strtolower(class_basename($config["modelo"]));
         $config = CrudGenerator::loadTodosFromConfig($config);
@@ -141,7 +141,7 @@ class CrudGenerator
             }
         }
         if (!CrudGenerator::checkPermission($config, $id, 'show')) {
-            return View::make('sirgrimorum::crudgen.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
+            return View::make('sirgrimorum::crudgen.partials.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
         }
         if (!$simple) {
             $js_section = config("sirgrimorum.crudgenerator.js_section");
@@ -192,7 +192,7 @@ class CrudGenerator
             }
         }
         if (!CrudGenerator::checkPermission($config, $registro->getKey(), 'edit')) {
-            return View::make('sirgrimorum::crudgen.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
+            return View::make('sirgrimorum::crudgen.partials.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
         }
         if ($config['url'] == "Sirgrimorum_CrudAdministrator") {
             $config['url'] = route("sirgrimorum_modelo::update", ["modelo" => $modelo, "registro" => $registro->id]);
@@ -252,7 +252,7 @@ class CrudGenerator
     {
         //$config = CrudGenerator::translateConfig($config);
         if (!CrudGenerator::checkPermission($config, 0, 'index')) {
-            return View::make('sirgrimorum::crudgen.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
+            return View::make('sirgrimorum::crudgen.partials.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
         }
         $modeloM = $config['modelo'];
         $usarAjax = Arr::get($config, 'ajax', false);

@@ -75,7 +75,7 @@
                     'extraClassDiv' => "extra_class_div_field", // for the form group div, use 'contenedor_field_value' or 'contenedor_field_value_not' for 'chekeador' or 'selecteador' conditioning
                     'extraClassInput' => "extra_class_field", // for the input, use 'checkeador' for conditional fields in 'checkbox' or 'radio' types and 'selecteador' for 'select' type
                     'extraDataInput' => [ // for the input, aditional attributes
-                        'data-dato1' => 'valor_dato_1' // use data-contenedor' => '.contenedor_field' with 'chekeador' o 'selecteador' class
+                        'data-dato1' => 'valor_dato_1' // use 'data-contenedor' => '.contenedor_field' with 'chekeador' o 'selecteador' class
                     ]
                     "valor" => "[default value of the field]", // use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
                     "value" => "[value or lists of values to be taken by de field]" | [ // required for checkbox and radio types, on json types makes the json locked (only values can be changed) use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
@@ -89,7 +89,7 @@
                             'extraClassDiv' => "extra_class_div_valor3", // for the input group div, use 'contenedor_field_value2' or 'contenedor_field_value2_not' for 'chekeador' conditioning
                             'extraClassInput' => "extra_class_input_valor3", // for the input, use 'checkeador' for conditional fields
                             'extraDataInput' => [ // for the input, aditiona attributes
-                                'data-dato1' => 'valor_dato_1' // use data-contenedor' => '.contenedor_field_valor3' with 'chekeador' class
+                                'data-dato1' => 'valor_dato_1' // use 'data-contenedor' => '.contenedor_field_valor3' with 'chekeador' class
                             ]
                         ]
                     ],

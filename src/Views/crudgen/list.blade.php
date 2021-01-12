@@ -91,7 +91,7 @@ $tieneDate = false;
             $tieneDate = CrudGenerator::hasTipo($configPrefiltro, ['date', 'datetime', 'time']);
         }
         ?>
-        @include("sirgrimorum::crudgen.includes", [
+        @include("sirgrimorum::crudgen.partials.includes", [
             'config' => $configPrefiltro,
             'tieneHtml' => CrudGenerator::hasTipo($configPrefiltro, ['html', 'article']),
             'tieneDate' => $tieneDate,
@@ -150,14 +150,14 @@ $tieneDate = false;
     @if (!$usarAjax)
     <tbody>
         @if (is_array($registros))
-        @include("sirgrimorum::crudgen.list_inner",[
+        @include("sirgrimorum::crudgen.partials.list_inner",[
             "registros" => $registros,
             "config" => $config,
             "tablaid" => $tablaid,
             "campos" => $campos,
         ])
         @else
-        @include("sirgrimorum::crudgen.list_inner",[
+        @include("sirgrimorum::crudgen.partials.list_inner",[
             "registros" => CrudGenerator::lists_array($config, $registros, 'complete'),
             "config" => $config,
             "tablaid" => $tablaid,
@@ -291,7 +291,7 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
     echo Sirgrimorum\CrudGenerator\CrudGenerator::addScriptLoaderHtml(asset(config("sirgrimorum.crudgenerator.confirm_path") . "/js/rails.js"),false);
 }
 ?>
-@include("sirgrimorum::crudgen.general_scripts", [
+@include("sirgrimorum::crudgen.partials.general_scripts", [
     'js_section' => $js_section,
 ])
 <script id="{{ $tablaid }}_datatables_block">
@@ -403,7 +403,7 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
                 @if (isset($config['orden']))
                 order : {{ json_encode($config['orden']) }},
                 @endif
-                @include("sirgrimorum::crudgen.list_botones",[
+                @include("sirgrimorum::crudgen.partials.list_botones",[
                     "botones" => $botones,
                     "config" => $config,
                     "tablaid" => $tablaid,
@@ -431,7 +431,7 @@ if (\Illuminate\Support\Str::contains(config("sirgrimorum.crudgenerator.confirm_
         {{ $tablaid }}DataTablesCargado = true;
     });
 </script>
-@include("sirgrimorum::crudgen.list_botones_scripts",[
+@include("sirgrimorum::crudgen.partials.list_botones_scripts",[
         "botones" => $botones,
         "config" => $config,
         "tablaid" => $tablaid,

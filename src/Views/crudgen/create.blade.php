@@ -33,7 +33,7 @@ $url = $config['url'];
 $config = CrudGenerator::loadDefaultClasses($config);
 $action = 'create';
 ?>
-@include("sirgrimorum::crudgen.includes")
+@include("sirgrimorum::crudgen.partials.includes")
 <?php
 echo Form::open(array('url' => $url, 'class' => $config['class_form'], 'files' => $files));
 echo $config['pre_html'];
@@ -112,6 +112,6 @@ if ($botones != "") {
 echo $config['post_html'];
 echo Form::close();
 ?>
-@include("sirgrimorum::crudgen.general_scripts", [
+@include("sirgrimorum::crudgen.partials.general_scripts", [
     'js_section' => $js_section,
 ])

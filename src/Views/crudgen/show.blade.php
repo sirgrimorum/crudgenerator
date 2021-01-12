@@ -22,7 +22,7 @@ $nombre = $config['nombre'];
 ?>
 <div class="card border-dark">
     @if (is_array($registro))
-        @include("sirgrimorum::crudgen.show_inner",[
+        @include("sirgrimorum::crudgen.partials.show_inner",[
             "registro" => $registro,
             "config" => $config,
             "tabla" => $tabla,
@@ -30,7 +30,7 @@ $nombre = $config['nombre'];
             "nombre" => $nombre,
         ])
     @else
-        @include("sirgrimorum::crudgen.show_inner",[
+        @include("sirgrimorum::crudgen.partials.show_inner",[
             "registro" => CrudGenerator::registry_array($config, $registro, 'complete'),
             "config" => $config,
             "tabla" => $tabla,
@@ -39,6 +39,6 @@ $nombre = $config['nombre'];
         ])
     @endif
 </div>
-@include("sirgrimorum::crudgen.general_scripts", [
+@include("sirgrimorum::crudgen.partials.general_scripts", [
     'js_section' => $js_section,
 ])

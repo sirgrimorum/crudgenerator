@@ -33,7 +33,7 @@ $url = CrudGenerator::translateDato($config['url'], $registro, $config);
 $config = CrudGenerator::loadDefaultClasses($config);
 $action = 'edit';
 ?>
-@include("sirgrimorum::crudgen.includes")
+@include("sirgrimorum::crudgen.partials.includes")
 <?php
 echo Form::open(array('url' => $url, 'class' => $config['class_form'], 'method' => 'PUT', 'files' => $files));
 echo $config['pre_html'];
@@ -123,6 +123,6 @@ $botones = str_replace([":modelId", ":modelName"], [$registro->{$config['id']}, 
 @endif
 {!! $config['post_html'] !!}
 {{ Form::close() }}
-@include("sirgrimorum::crudgen.general_scripts", [
+@include("sirgrimorum::crudgen.partials.general_scripts", [
     'js_section' => $js_section,
 ])
