@@ -111,6 +111,9 @@ return [
         '__trans__' => '__',
         '__transarticle__' => 'trans_article',
         '__config__' => [true,'config'],
+        '__view__' => function ($string) {
+            return view($string)->render();
+        },
         '__function__' => function ($string) {
             return $string;
         },
