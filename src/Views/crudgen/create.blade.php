@@ -19,6 +19,7 @@
 
 <?php
 $tabla = $config['tabla'];
+$formId = \Illuminate\Support\Arr::get($config, 'formId', $tabla . "_" . \Illuminate\Support\Str::random(5));
 $campos = $config['campos'];
 $botones = $config['botones'];
 if (isset($config['files'])) {
@@ -35,7 +36,8 @@ $action = 'create';
 ?>
 @include("sirgrimorum::crudgen.partials.includes")
 <?php
-echo Form::open(array('url' => $url, 'class' => $config['class_form'], 'files' => $files));
+echo str_replace(":formId", $formId, $config['pre_form_html']);
+echo Form::open(array('url' => $url, 'class' => $config['class_form'], 'files' => $files, 'id' => $formId));
 echo $config['pre_html'];
 if (Request::has('_return')) {
     echo Form::hidden("_return", Request::get('_return'), array('id' => $tabla . '__return'));
@@ -111,6 +113,7 @@ if ($botones != "") {
 }
 echo $config['post_html'];
 echo Form::close();
+echo str_replace(":formId", $formId, $config['post_form_html']);
 ?>
 @include("sirgrimorum::crudgen.partials.general_scripts", [
     'js_section' => $js_section,

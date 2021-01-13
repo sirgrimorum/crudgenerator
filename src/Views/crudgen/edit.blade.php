@@ -18,6 +18,7 @@
 @endif
 <?php
 $tabla = $config['tabla'];
+$formId = \Illuminate\Support\Arr::get($config, 'formId', $tabla . "_" . \Illuminate\Support\Str::random(5));
 $campos = $config['campos'];
 $botones = $config['botones'];
 if (isset($config['files'])) {
@@ -35,7 +36,8 @@ $action = 'edit';
 ?>
 @include("sirgrimorum::crudgen.partials.includes")
 <?php
-echo Form::open(array('url' => $url, 'class' => $config['class_form'], 'method' => 'PUT', 'files' => $files));
+echo str_replace(":formId", $formId, $config['pre_form_html']);
+echo Form::open(array('url' => $url, 'class' => $config['class_form'], 'method' => 'PUT', 'files' => $files, 'id' => $formId));
 echo $config['pre_html'];
 //echo Form::model($registro, array('url' => $url, $registro->{$identificador}, array('class' => $config['class_form']), 'method' => 'PUT', 'files'=> $files))
 if (Request::has('_return')) {
@@ -123,6 +125,7 @@ $botones = str_replace([":modelId", ":modelName"], [$registro->{$config['id']}, 
 @endif
 {!! $config['post_html'] !!}
 {{ Form::close() }}
+{!! str_replace(":formId", $formId, $config['post_form_html']); !!}
 @include("sirgrimorum::crudgen.partials.general_scripts", [
     'js_section' => $js_section,
 ])

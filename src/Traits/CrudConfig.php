@@ -1332,6 +1332,12 @@ trait CrudConfig
         if (!isset($config['post_html'])) {
             $config['post_html'] = "";
         }
+        if (!isset($config['pre_form_html'])) {
+            $config['pre_form_html'] = "";
+        }
+        if (!isset($config['post_form_html'])) {
+            $config['post_form_html'] = "";
+        }
         return $config;
     }
 

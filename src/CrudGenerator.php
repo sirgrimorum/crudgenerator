@@ -5,6 +5,7 @@ namespace Sirgrimorum\CrudGenerator;
 use Illuminate\Support\Facades\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Sirgrimorum\CrudGenerator\Traits;
 use Illuminate\Support\Facades\Lang;
@@ -51,7 +52,6 @@ class CrudGenerator
         }
         $modelo = strtolower(class_basename($config["modelo"]));
         $config = CrudGenerator::loadTodosFromConfig($config);
-
         if (!$simple) {
             $js_section = config("sirgrimorum.crudgenerator.js_section");
             $css_section = config("sirgrimorum.crudgenerator.css_section");
@@ -77,17 +77,20 @@ class CrudGenerator
             }
         }
         if (request()->has('_itemRelSel')) {
+            $tabla = (new $config['campos'][$itemsRelSelCampo]['modelo'])->getTable();
+            $config['formId'] = Arr::get($config, 'formId', $tabla . "_" . Str::random(5));
             $view = View::make('sirgrimorum::crudgen.templates.relationshipssel_simple', [
                 'config' => $config,
                 'datoId' => $itemsRelSelId,
                 'columna' => $itemsRelSelCampo,
-                'tabla' => (new $config['campos'][$itemsRelSelCampo]['modelo'])->getTable(),
+                'tabla' => $tabla,
                 'datos' => $config['campos'][$itemsRelSelCampo],
                 'js_section' => $js_section,
                 'css_section' => $css_section,
                 'modelo' => $modelo
             ]);
         } else {
+            $config['formId'] = Arr::get($config, 'formId', $config['tabla'] . "_" . Str::random(5));
             if ($botonModal) {
                 $vista = 'sirgrimorum::admin.create.boton_modal';
             } else {
@@ -179,7 +182,7 @@ class CrudGenerator
         //$config = CrudGenerator::translateConfig($config);
         $modelo = strtolower(class_basename($config["modelo"]));
         $config = CrudGenerator::loadTodosFromConfig($config);
-
+        $config['formId'] = Arr::get($config, 'formId', $config['tabla'] . "_" . Str::random(5));
         if ($registro == null) {
             $modeloM = ucfirst($config['modelo']);
             if ($id == null) {
