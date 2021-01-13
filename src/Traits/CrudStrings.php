@@ -815,6 +815,57 @@ trait CrudStrings
     }
 
     /**
+     * Extract the fields names from a string used to be replaced
+     * 
+     * @param string $plantilla The string to be "translated"
+     * @param string $separadorInicial Optional The string used to identify de begining of the field's name in $plantilla, default "<-"
+     * @param string $separadorFinal Optional The string used to identify de end of the field's name in $plantilla, default "->"
+     * @return array The list of fields in $plantilla
+     */
+    public static function getCamposDeReplacementString($plantilla, $separadorInicial = "<-", $separadorFinal = "->"){
+        $listOfFields = [];
+        if (($left = strpos($plantilla, $separadorInicial)) !== false) {
+            $right = 0;
+            while ($left !== false) {
+                if (($right = stripos($plantilla, $separadorFinal, $right)) === false) {
+                    $right = strlen($plantilla);
+                }
+                $textPiece = substr($plantilla, $left + strlen($separadorInicial), $right - ($left + strlen($separadorInicial)));
+                $piece = $textPiece;
+                $campo = Str::slug($piece);
+                $listOfFields[] = $campo;
+                $right += strlen($separadorFinal);
+                if ($right < strlen($plantilla)) {
+                    $left = (stripos($plantilla, $separadorInicial, $right));
+                } else {
+                    $left = false;
+                }
+            }
+        } elseif (($left = strpos($plantilla, urlencode($separadorInicial))) !== false) {
+            $separadorInicial = urlencode($separadorInicial);
+            $separadorFinal = urlencode($separadorFinal);
+            $right = 0;
+            while ($left !== false) {
+                if (($right = stripos($plantilla, $separadorFinal, $right)) === false) {
+                    $right = strlen($plantilla);
+                }
+                $textPiece = substr($plantilla, $left + strlen($separadorInicial), $right - ($left + strlen($separadorInicial)));
+                $piece = $textPiece;
+                $campo = Str::slug($piece);
+                $right += strlen($separadorFinal);
+                if ($right < strlen($plantilla)) {
+                    $left = (stripos($plantilla, $separadorInicial, $right));
+                } else {
+                    $left = false;
+                }
+            }
+        } else {
+            $listOfFields[] = $plantilla;
+        }
+        return $listOfFields;
+    }
+
+    /**
      * Get the listo of distinct values for a field in a model
      *
      * @param string $modelo Model name or class

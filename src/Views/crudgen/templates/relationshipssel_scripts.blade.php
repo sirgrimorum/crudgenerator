@@ -18,22 +18,19 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
                 accent: true,
                 searchOnFocus: true,
                 //cache: true,
-                @if(is_array($datos['campo']))
-                    <?php
-                    $auxTexto = "";
-                    $prefijoAuxTexto = "[";
-                    foreach($datos['campo'] as $auxTextocampo){
-                        $auxTexto .= $prefijoAuxTexto . "'" . $auxTextocampo . "'";
-                        $prefijoAuxTexto = ", ";
-                    }
-                    if ($auxTexto!=""){
-                        $auxTexto .= "]";
-                    }
-                    ?>
-                    display: {!!$auxTexto!!},
-                @else
-                    display: ["{!!$datos['campo']!!}.value"],
-                @endif
+                <?php
+                $datoCampo = CrudGenerator::getCamposDeReplacementString($datos['campo']);
+                $auxTexto = "";
+                $prefijoAuxTexto = "[";
+                foreach($datoCampo as $auxTextocampo){
+                    $auxTexto .= "{$prefijoAuxTexto}'{$auxTextocampo}.value'";
+                    $prefijoAuxTexto = ", ";
+                }
+                if ($auxTexto!=""){
+                    $auxTexto .= "]";
+                }
+                ?>
+                display: {!!$auxTexto!!},
                 hint: true,
                 @if(isset($datos['groupby']))
                 group: {
