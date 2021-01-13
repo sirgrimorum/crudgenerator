@@ -573,6 +573,9 @@ trait CrudConfig
                             ];
                             if (CrudGenerator::getTypeByName($campo, 'html')) {
                                 $configCampos[$campo]['tipo'] = "html";
+                            } elseif (CrudGenerator::getTypeByName($campo, 'json')) {
+                                $configCampos[$campo]['tipo'] = "json";
+                                $configCampos[$campo]['valor'] = "{}";
                             } elseif (CrudGenerator::getTypeByName($campo, 'article')) {
                                 $configCampos[$campo]['tipo'] = "article";
                                 $configCampos[$campo]['scope'] = "$tabla.$campo";
@@ -664,9 +667,6 @@ trait CrudConfig
                                 $prefixRules = "|";
                             } elseif (CrudGenerator::getTypeByName($campo, 'color')) {
                                 $configCampos[$campo]['tipo'] = "color";
-                            } elseif (CrudGenerator::getTypeByName($campo, 'json')) {
-                                $configCampos[$campo]['tipo'] = "json";
-                                $configCampos[$campo]['valor'] = "{}";
                             } elseif (CrudGenerator::getTypeByName($campo, 'password')) {
                                 $configCampos[$campo]['tipo'] = "password";
                                 $configCampos[$campo]['hide'] = ["show", "list", "edit"];
@@ -814,6 +814,9 @@ trait CrudConfig
                                             $pivotColumnAux['type'] = 'textarea';
                                             if (CrudGenerator::getTypeByName($pivotColumn['name'], 'html')) {
                                                 $pivotColumnAux['type'] = "html";
+                                            } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'json')) {
+                                                $pivotColumnAux['type'] = "json";
+                                                $pivotColumnAux['valor'] = "{}";
                                             } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
                                                 $pivotColumnAux['type'] = "files";
                                                 $pivotColumnAux['path'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
