@@ -106,7 +106,6 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
         {{ $tabla . "_" . $extraId }}Ejecutado = true;
     }
     function json_{{ $tabla . "_" . $extraId }}_onChange(data){
-        console.log('llega', data.getDataString());
         $('#{{ $tabla . "_" . $extraId }}').val(data.getDataString());
     }
     window.addEventListener('load', function() {
