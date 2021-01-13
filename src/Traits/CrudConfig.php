@@ -877,6 +877,8 @@ trait CrudConfig
                                 }
                                 if (count($pivotColumns) > 0) {
                                     $configCampos[$campo]['tipo'] = 'relationshipssel';
+                                    $configCampos[$campo]['minLength'] = 1;
+                                    $configCampos[$campo]['maxItem'] = 15;
                                     $configCampos[$campo]['columnas'] = $pivotColumns;
                                 }
                             }

@@ -12,13 +12,23 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
         if (!{{ $tabla . "_" . $columna }}Ejecutado){
             $.typeahead({
                 input: '#{{ $tabla . '_' . $columna }}_search',
-                minLength: 1,
-                maxItem: 15,
+                minLength: {{ \Illuminate\Support\Arr::get($datos, 'minLength', 1) }},
+                maxItem: {{ \Illuminate\Support\Arr::get($datos, 'maxItem', 15) }},
                 order: "asc",
                 accent: true,
                 searchOnFocus: true,
                 //cache: true,
                 <?php
+                $backdrop = \Illuminate\Support\Arr::get($datos, 'backdrop', null);
+                if (is_array($backdrop)){
+                    $backdrop = json_encode($backdrop);
+                }elseif($backdrop === true){
+                    $backdrop = "true";
+                }elseif($backdrop === false){
+                    $backdrop = "false";
+                }elseif($backdrop === null){
+                    $backdrop = "true";
+                }
                 $datoCampo = CrudGenerator::getCamposDeReplacementString($datos['campo']);
                 $auxTexto = "";
                 $prefijoAuxTexto = "[";
@@ -41,10 +51,8 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
                 @else
                 //href: "/beers/@{{group|slugify}}/@{{display|slugify}}/",
                 @endif
-                maxItemPerGroup: 4,
-                backdrop: {
-                    "background-color": "#fff"
-                },
+                maxItemPerGroup: {{ \Illuminate\Support\Arr::get($datos, 'maxItemPerGroup', 4) }},
+                backdrop: {!! $backdrop !!},
                 emptyTemplate: '{{ trans("crudgenerator::admin.messages.no_result_query") }}',
                 source: {
                     @if (isset($datos['groupby']))
@@ -80,10 +88,8 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
                             url:'{!! route('sirgrimorum_modelos::create',['modelo'=>$modeloMio]) !!}?_return=simple&_itemRelSel={!!$columna!!}|' + item.id,
                             data:'',
                             success:function(data){
-                                console.log('llega ajax',data);
                                 if (data.status == 200){
                                     if ($("#{{$columna . "_"}}" + item.id +"_principal").length == 0){
-                                        console.log('pegando a',  $("#{{ $tabla . '_' . $columna }}_container").find('div[data-pivote="principal"]').last());
                                         $("#{{ $tabla . '_' . $columna }}_container").find('div[data-pivote="principal"]').last().after(data.result);
                                     }else{
                                         $.alert({

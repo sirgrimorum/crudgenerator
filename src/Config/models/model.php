@@ -148,6 +148,12 @@
                         "})".
                     "",
                     "card_class" => [name of the class] // for the relationshipssel type, set additional classes for the cards
+                    "minLength" => 1, // for the relationshipssel type, set the minimum number of characters needed to start searching. 0 will start search on focus
+                    "maxItem" => 15, // for the relationshipssel type, set the maximum number of items to display on the search, 0 to show all
+                    "maxItemPerGroup" => 4, // for the relationshipssel type, set the maximum number of itemps to show per gour on the results
+                    "backdrop" => [ // for the relationshipssel type, shows a backdrop behind the search on focus, if false, no backdrop, true (default), a backdrop, us an array of styles to override the styles
+                        "background-color" => "#fff",
+                    ],
                     "columnas" => [[ // required for the relationshipssel type, list of columns to show in the table
                         "label" => "[Header for the column]", // required, use the 'trans_prefix' value if you want localization
                         "placeholder" => "[Placeholder for the column]", // required for 'text' and 'number' types, use the 'trans_prefix' value if you want localization
