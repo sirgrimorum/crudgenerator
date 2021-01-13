@@ -392,74 +392,77 @@ trait CrudModels
                 $celda = [];
                 $auxcelda3 = "";
                 $prefijo = "<ul><li>";
-                $htmlShow = '<dl class="row border-top border-secondary">';
-                foreach ($value->{$columna}()->get() as $sub) {
-                    $celda[$sub->getKey()] = [];
-                    $auxcelda = "";
-                    $htmlShow .= '<dt class="col-sm-3 border-bottom border-secondary pt-2">';
-                    if (array_key_exists('enlace', $datos)) {
-                        $auxcelda = '<a href = "' . CrudGenerator::getNombreDeLista($sub, $datos['enlace']) . '">';
-                        $htmlShow .= $auxcelda;
-                    }
-                    $auxcelda2 = CrudGenerator::getNombreDeLista($sub, $datos['campo']);
-                    $htmlShow .= $auxcelda2;
-                    $auxcelda .= $auxcelda2;
-                    if (array_key_exists('enlace', $datos)) {
-                        $auxcelda .= '</a>';
-                        $htmlShow .= '</a>';
-                    }
-                    $auxcelda3 .= $prefijo . $auxcelda;
-                    $auxcelda4 = "";
-                    $auxcelda5 = "";
-                    $prefijo2 = "<ul><li>";
-                    $htmlShow .= '</dt>';
-                    if (array_key_exists('columnas', $datos)) {
-                        if (is_array($datos['columnas'])) {
-                            if (is_object($sub->pivot)) {
-                                $celda[$sub->getKey()]['data'] = [];
-                                $htmlShow .= '<dd class="col-sm-9 border-bottom border-secondary mb-0 pb-2">' .
-                                    '<ul class="mb-0">';
-                                foreach ($datos['columnas'] as $infoPivote) {
-                                    if ($infoPivote['type'] != "hidden" && $infoPivote['type'] != "label") {
-                                        $celda[$sub->getKey()]['data'][$infoPivote['campo']] = ['label' => $infoPivote['label']];
-                                        if ($infoPivote['type'] == "number" && isset($infoPivote['format'])) {
-                                            $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = number_format($sub->pivot->{$infoPivote['campo']}, $infoPivote['format'][0], $infoPivote['format'][1], $infoPivote['format'][2]);
-                                        } elseif ($infoPivote['type'] == "select" && isset($infoPivote['opciones'])) {
-                                            $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = $infoPivote['opciones'][$sub->pivot->{$infoPivote['campo']}];
-                                        } else {
-                                            $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = $sub->pivot->{$infoPivote['campo']} . ', ';
-                                        }
-                                        $auxcelda4 .= $prefijo2 . $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] . "</li>";
-                                        $prefijo2 = "<li>";
-                                        $htmlShow .= '<li>' .
-                                            $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] .
-                                            '</li>';
-                                    } elseif ($infoPivote['type'] == "label") {
-                                        if (isset($infoPivote['campo'])) {
-                                            $auxcelda5 = CrudGenerator::getNombreDeLista($sub, $infoPivote['campo']);
-                                        } else {
-                                            $auxcelda5 = $infoPivote['label'];
+                $htmlShow = "-";
+                if ($value->{$columna}()->count() > 0) {
+                    $htmlShow = '<dl class="row border-top border-secondary">';
+                    foreach ($value->{$columna}()->get() as $sub) {
+                        $celda[$sub->getKey()] = [];
+                        $auxcelda = "";
+                        $htmlShow .= '<dt class="col-sm-3 border-bottom border-secondary pt-2">';
+                        if (array_key_exists('enlace', $datos)) {
+                            $auxcelda = '<a href = "' . CrudGenerator::getNombreDeLista($sub, $datos['enlace']) . '">';
+                            $htmlShow .= $auxcelda;
+                        }
+                        $auxcelda2 = CrudGenerator::getNombreDeLista($sub, $datos['campo']);
+                        $htmlShow .= $auxcelda2;
+                        $auxcelda .= $auxcelda2;
+                        if (array_key_exists('enlace', $datos)) {
+                            $auxcelda .= '</a>';
+                            $htmlShow .= '</a>';
+                        }
+                        $auxcelda3 .= $prefijo . $auxcelda;
+                        $auxcelda4 = "";
+                        $auxcelda5 = "";
+                        $prefijo2 = "<ul><li>";
+                        $htmlShow .= '</dt>';
+                        if (array_key_exists('columnas', $datos)) {
+                            if (is_array($datos['columnas'])) {
+                                if (is_object($sub->pivot)) {
+                                    $celda[$sub->getKey()]['data'] = [];
+                                    $htmlShow .= '<dd class="col-sm-9 border-bottom border-secondary mb-0 pb-2">' .
+                                        '<ul class="mb-0">';
+                                    foreach ($datos['columnas'] as $infoPivote) {
+                                        if ($infoPivote['type'] != "hidden" && $infoPivote['type'] != "label") {
+                                            $celda[$sub->getKey()]['data'][$infoPivote['campo']] = ['label' => $infoPivote['label']];
+                                            if ($infoPivote['type'] == "number" && isset($infoPivote['format'])) {
+                                                $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = number_format($sub->pivot->{$infoPivote['campo']}, $infoPivote['format'][0], $infoPivote['format'][1], $infoPivote['format'][2]);
+                                            } elseif ($infoPivote['type'] == "select" && isset($infoPivote['opciones'])) {
+                                                $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = $infoPivote['opciones'][$sub->pivot->{$infoPivote['campo']}];
+                                            } else {
+                                                $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = $sub->pivot->{$infoPivote['campo']} . ', ';
+                                            }
+                                            $auxcelda4 .= $prefijo2 . $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] . "</li>";
+                                            $prefijo2 = "<li>";
+                                            $htmlShow .= '<li>' .
+                                                $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] .
+                                                '</li>';
+                                        } elseif ($infoPivote['type'] == "label") {
+                                            if (isset($infoPivote['campo'])) {
+                                                $auxcelda5 = CrudGenerator::getNombreDeLista($sub, $infoPivote['campo']);
+                                            } else {
+                                                $auxcelda5 = $infoPivote['label'];
+                                            }
                                         }
                                     }
+                                    $htmlShow .= '</ul>' .
+                                        '</dd>';
                                 }
-                                $htmlShow .= '</ul>' .
-                                    '</dd>';
                             }
                         }
+                        if ($auxcelda4 != "") {
+                            $auxcelda4 .= "</ul>";
+                        }
+                        $auxcelda3 .= $auxcelda4 . "</li>";
+                        $prefijo = "<li>";
+                        $celda[$sub->getKey()]['name'] = $auxcelda2;
+                        $celda[$sub->getKey()]['value'] = $auxcelda;
+                        $celda[$sub->getKey()]['label'] = $auxcelda5;
                     }
-                    if ($auxcelda4 != "") {
-                        $auxcelda4 .= "</ul>";
+                    if ($auxcelda3 != "") {
+                        $auxcelda3 .= "</ul>";
                     }
-                    $auxcelda3 .= $auxcelda4 . "</li>";
-                    $prefijo = "<li>";
-                    $celda[$sub->getKey()]['name'] = $auxcelda2;
-                    $celda[$sub->getKey()]['value'] = $auxcelda;
-                    $celda[$sub->getKey()]['label'] = $auxcelda5;
+                    $htmlShow .= '</dl>';
                 }
-                if ($auxcelda3 != "") {
-                    $auxcelda3 .= "</ul>";
-                }
-                $htmlShow .= '</dl>';
                 $celda = [
                     "data" => $celda,
                     "label" => $datos['label'],
@@ -507,7 +510,7 @@ trait CrudModels
                     }
                     if ($auxhtml != "") {
                         $celda['html'] = "<ul>{$auxhtml}</ul>";
-                        $celda['html_cell'] = '<div style="max-height:200px;min-width:300px;white-space:normal;overflow-y:scroll;">' . $celda['html'] . '</div>';
+                        $celda['html_cell'] = '<div style="max-height:10em;min-width:22em;white-space:normal;overflow-y:scroll;">' . $celda['html'] . '</div>';
                     }
                     $celda['data_labels'] = $auxdataLabels;
                 } else {
@@ -625,7 +628,7 @@ trait CrudModels
             $celda = [
                 'value' => $strArticle,
                 'label' => $datos['label'],
-                'html_cell' => '<div style="max-height:200px;overflow-y:scroll;">' . $strArticle . '</div>',
+                'html_cell' => '<div style="max-height:10em;max-width:40em;overflow-y:scroll;">' . $strArticle . '</div>',
             ];
             $celda['data'] = [];
             foreach (config("sirgrimorum.crudgenerator.list_locales") as $localeCode) {
@@ -654,7 +657,7 @@ trait CrudModels
                 '</div>' .
                 '</div>';
             $celda['html_show'] = $fileHtml;
-            $celda['html_cell'] = '<div style="max-height:200px;overflow-y:scroll;">' . $celda['html'] . '</div>';
+            $celda['html_cell'] = '<div style="max-height:10em;max-width:30em;overflow-y:scroll;">' . $celda['html'] . '</div>';
         } elseif ($datos['tipo'] == "file") {
             if ($value->{$columna} == "") {
                 $celda = '';
@@ -854,13 +857,13 @@ trait CrudModels
             } else {
                 $auxcelda .= $value->{$columna};
                 if ($datos['tipo'] == "html") {
-                    $htmlCell = '<div style="max-height:200px;overflow-y:scroll;">' . $value->{$columna} . '</div>';
+                    $htmlCell = '<div style="max-height:10em;max-width:40em;overflow-y:scroll;">' . $value->{$columna} . '</div>';
                 } else {
                     $htmlCell .= CrudGenerator::truncateText($value->{$columna});
                 }
             }
             $celda['data'] = $value->{$columna};
-            $celda['label'] = $datos['label'];
+            $celda['label'] = Arr::get($datos, 'label', $columna);
 
             if (array_key_exists('enlace', $datos)) {
                 $auxcelda .= '</a>';
