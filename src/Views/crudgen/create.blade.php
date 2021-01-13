@@ -46,7 +46,7 @@ echo Form::hidden("_action", "create", array('id' => $tabla . '__action'));
 if (isset($config['parametros'])){
     echo Form::hidden("__parametros", $config['parametros'], array('id' => $tabla . '__parametros'));
 }
-
+$nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader") . "Creator";
 foreach ($campos as $columna => $datos) {
     if (!isset($datos['nodb']) && CrudGenerator::inside_array($datos, "hide", "create") === false) {
         if (isset($datos['readonly'])){
@@ -69,6 +69,28 @@ foreach ($campos as $columna => $datos) {
             ?>
             @include("sirgrimorum::crudgen.templates.text", ['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$modelo])
             <?php
+        }
+        if (($inputFilter = \Illuminate\Support\Arr::get($datos,'inputfilter', "")) != ""){
+            if (isset($config["extraId"])) {
+                $extraId = $config['extraId'];
+            } else {
+                $extraId = $columna;
+            }
+            if ($js_section != "") {
+                ?>
+                @push($js_section)
+                <?php
+            }
+            ?>
+            <script>
+                {{ $nameScriptLoader }}('setinputfilter_js',"setInputFilter(document.getElementById('{{ $tabla . '_' . $extraId }}'),{!! str_replace('"','\"', $inputFilter) !!}");
+            </script>
+            <?php
+            if ($js_section != "") {
+                ?>
+                @endpush
+                <?php
+            }
         }
         if (isset($datos['post_html'])){
             echo $datos['post_html'];

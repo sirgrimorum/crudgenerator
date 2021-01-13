@@ -1067,6 +1067,23 @@ trait CrudConfig
     }
 
     /**
+     * Know if a config array has any field whith certain option
+     *
+     * @param array $config Config array
+     * @param string $columna Column
+     * @return boolean
+     */
+    public static function hasClave($config, $columna)
+    {
+        foreach ($config['campos'] as $campo => $configCampo) {
+            if (isset($configCampo[$columna]) && $configCampo[$columna] != "") {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Do something only for fields with certain value in certain column
      *
      * @param array $config Config array

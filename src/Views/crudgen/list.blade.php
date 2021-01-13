@@ -102,6 +102,7 @@ $tieneDate = false;
             'tieneCheckeador' => CrudGenerator::hasTipo($config, ['select', 'checkbox', 'radio']),
             'tieneFile' => CrudGenerator::hasTipo($configPrefiltro, ['file', 'files']),
             'tieneJson' => CrudGenerator::hasTipo($configPrefiltro, ['json']),
+            'tieneInputFilter' => CrudGenerator::hasClave($configPrefiltro, 'inputfilter'),
             'js_section' => $js_section,
             'css_section' => $css_section,
             'modelo' => $modelo

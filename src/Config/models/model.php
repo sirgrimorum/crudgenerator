@@ -143,6 +143,10 @@
                     "min" => 0, // required for slider type, min value for slider and number types
                     "max" => 100, // required for slider type, max value for slider and number types
                     "step" => 5, // required for slider type, step value for slider and number types
+                    "inputfilter" => "function(value) {" . // For the create and edit views, Optional input filter function written in JavaScript that accepts a value and return if the value fullfills the filter
+                            "return /^([+]|[0-9])?[0-9]*$/.test(value);". // ej. Allow phonenumbers of only numbers and optional leading +
+                        "})".
+                    "",
                     "card_class" => [name of the class] // for the relationshipssel type, set additional classes for the cards
                     "columnas" => [[ // required for the relationshipssel type, list of columns to show in the table
                         "label" => "[Header for the column]", // required, use the 'trans_prefix' value if you want localization

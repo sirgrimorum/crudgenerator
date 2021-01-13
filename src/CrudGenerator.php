@@ -107,6 +107,7 @@ class CrudGenerator
                 'tieneCheckeador' => CrudGenerator::hasTipo($config, ['select', 'checkbox', 'radio']),
                 'tieneFile' => CrudGenerator::hasTipo($config, ['file', 'files']),
                 'tieneJson' => CrudGenerator::hasTipo($config, ['json']),
+                'tieneInputFilter' => CrudGenerator::hasClave($config, 'inputfilter'),
                 'js_section' => $js_section,
                 'css_section' => $css_section,
                 'modelo' => $modelo
@@ -236,6 +237,7 @@ class CrudGenerator
             'tieneCheckeador' => CrudGenerator::hasTipo($config, ['select', 'checkbox', 'radio']),
             'tieneFile' => CrudGenerator::hasTipo($config, ['file', 'files']),
             'tieneJson' => CrudGenerator::hasTipo($config, ['json']),
+            'tieneInputFilter' => CrudGenerator::hasClave($config, 'inputfilter'),
             'js_section' => $js_section,
             'css_section' => $css_section,
             'modelo' => $modelo
