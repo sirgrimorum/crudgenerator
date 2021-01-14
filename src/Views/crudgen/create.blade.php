@@ -58,7 +58,7 @@ foreach ($campos as $columna => $datos) {
         "config" => $config,
         "columna" => $columna,
         "datos" => $datos,
-        "registro" => $registro, 
+        "registro" => null, 
         "errores" => $errores,
         "nameScriptLoader" => $nameScriptLoader,
     ])
