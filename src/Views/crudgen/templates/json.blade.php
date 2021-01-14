@@ -72,7 +72,7 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
             {{ $help }}
         </small>
         @endif
-        <button class="btn btn-secondary mt-2" role="button" type="button" onclick="{{ $tabla . "_" . $extraId }}Loader();prettyPrint('{{$tabla . '_' . $extraId}}')">{{trans("crudgenerator::admin.layout.labels.pretty_print")}}</button>
+        <button class="btn btn-secondary mt-2" id="{{ $tabla . '_' . $extraId }}_darformato_b" role="button" type="button" onclick="{{ $tabla . "_" . $extraId }}Loader();prettyPrint('{{$tabla . '_' . $extraId}}')">{{trans("crudgenerator::admin.layout.labels.pretty_print")}}</button>
     </div>
 </div>
 <?php
@@ -89,6 +89,9 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
     function {{ $tabla . "_" . $extraId }}Loader(){
         if (!{{ $tabla . "_" . $extraId }}Ejecutado){
             var jsonInicial = "{}";
+            if ($('#{{ $tabla . "_" . $extraId }}').is('[readonly]') || $('#{{ $tabla . "_" . $extraId }}').data('locked') == 'si'){
+                $('#{{ $tabla . '_' . $extraId }}_darformato_b').hide();
+            }
             try {
                 var ugly = document.getElementById('{{ $tabla . "_" . $extraId }}').value;
                 var obj = JSON.parse(ugly);
