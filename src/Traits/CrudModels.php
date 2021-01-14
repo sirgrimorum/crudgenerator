@@ -2194,7 +2194,7 @@ trait CrudModels
 
     /**
      * Build the array for conditional fields using a configuration array
-     * @param array $config The ocnfiguration array
+     * @param array $config The configuration array
      * @param string $action Optional the action (create, edit, etc) where the conditionals are needed
      */
     public static function buildConditionalArray(array $config, string $action = "-")
