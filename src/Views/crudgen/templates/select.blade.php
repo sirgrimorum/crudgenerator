@@ -20,7 +20,7 @@ if ($dato == "") {
 $error_campo = false;
 $claseError = '';
 if ($errores == true) {
-    if ($errors->has($columna)) {
+    if ($errors->has($extraId)) {
         $error_campo = true;
         $claseError = 'is-invalid';
     } else {
@@ -72,7 +72,7 @@ if (stripos(\Illuminate\Support\Arr::get($config,"rules.{$columna}", ""), "requi
         {{ Form::select($nomColumna, $opciones, $dato, $arrayAttr) }}
         @if ($error_campo)
         <div class="invalid-feedback">
-            {{ $errors->get($columna)[0] }}
+            {{ $errors->get($extraId)[0] }}
         </div>
         @endif
         @if($help != "")

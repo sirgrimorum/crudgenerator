@@ -24,7 +24,7 @@ if ($dato == "") {
 $error_campo = false;
 $claseError = '';
 if ($errores == true) {
-    if ($errors->has($columna)) {
+    if ($errors->has($extraId)) {
         $error_campo = true;
         $claseError = 'is-invalid';
     } else {
@@ -66,7 +66,7 @@ $opciones = array_merge([""=>$placeholder],$datos['todos']);
         {{ Form::select($extraId, $opciones, $dato, $atributos) }}
         @if ($error_campo)
         <div class="invalid-feedback">
-            {{ $errors->get($columna)[0] }}
+            {{ $errors->get($extraId)[0] }}
         </div>
         @endif
         @if($help != "")

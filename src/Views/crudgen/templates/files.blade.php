@@ -31,7 +31,7 @@ if ($dato == "") {
 $error_campo = false;
 $claseError = '';
 if ($errores == true) {
-    if ($errors->has($columna . ".0") || $errors->has($columna)) {
+    if ($errors->has($extraId . ".0") || $errors->has($extraId)) {
         $error_campo = true;
         $claseError = 'is-invalid';
     } else {
@@ -151,10 +151,10 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
             </div>
             @if ($error_campo)
             <div class="invalid-feedback">
-                @if($errors->has($columna . ".0"))
-                {{ $errors->get($columna . ".0")[0] }}
-                @elseif($errors->has($columna))
-                {{ $errors->get($columna)[0] }}
+                @if($errors->has($extraId . ".0"))
+                {{ $errors->get($extraId . ".0")[0] }}
+                @elseif($errors->has($extraId))
+                {{ $errors->get($extraId)[0] }}
                 @endif
             </div>
             @endif
@@ -170,7 +170,7 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
         $error_campo = false;
         $claseError = '';
         if ($errores == true) {
-            if ($errors->has($columna . "." . ($index + 1))) {
+            if ($errors->has($extraId . "." . ($index + 1))) {
                 $error_campo = true;
                 $claseError = 'is-invalid';
             } else {
@@ -198,7 +198,7 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
             </div>
             @if ($error_campo)
             <div class="invalid-feedback">
-                {{ $errors->get($columna . "." . ($index+1))[0] }}
+                {{ $errors->get($extraId . "." . ($index+1))[0] }}
             </div>
             @endif
         </div>

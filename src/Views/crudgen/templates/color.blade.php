@@ -30,7 +30,7 @@ if (isset($datos["format"])){
 $error_campo = false;
 $claseError = '';
 if ($errores == true) {
-    if ($errors->has($columna)) {
+    if ($errors->has($extraId)) {
         $error_campo = true;
         $claseError = 'is-invalid';
     } else {
@@ -67,7 +67,7 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
             ['class' => "form-control {$config['class_input']} $claseError $extraClassInput", 'id' => $tabla . '_' . $extraId, 'placeholder'=> $placeholder, $readonly])) }}
         @if ($error_campo)
         <div class="invalid-feedback">
-            {{ $errors->get($columna)[0] }}
+            {{ $errors->get($extraId)[0] }}
         </div>
         @endif
         @if($help != "")
