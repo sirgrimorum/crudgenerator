@@ -28,8 +28,8 @@ if ((($action == "create" && !isset($datos['nodb'])) || $action != "create") && 
         <?php
     }
     if (($inputFilter = \Illuminate\Support\Arr::get($datos,'inputfilter', "")) != ""){
-        if (isset($config["extraId"])) {
-            $extraId = $config['extraId'];
+        if (isset($datos['extraId'])) {
+            $extraId = $datos['extraId'];
         } else {
             $extraId = $columna;
         }

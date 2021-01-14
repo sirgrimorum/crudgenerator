@@ -2,8 +2,8 @@
 $auxprevios = [];
 $dato = "";
 $datoImg = "";
-if (isset($config["extraId"])) {
-    $extraId = $config['extraId'];
+if (isset($datos['extraId'])) {
+    $extraId = $datos['extraId'];
 } else {
     $extraId = $columna;
 }

@@ -5,8 +5,8 @@
 if (!isset($datos['es_html'])){
     $datos['es_html']=true;
 }
-if (isset($config["extraId"])) {
-    $extraId = $config['extraId'];
+if (isset($datos['extraId'])) {
+    $extraId = $datos['extraId'];
 } else {
     $extraId = $columna;
 }
@@ -62,7 +62,7 @@ if (isset($datos["readonly"])) {
 } else {
     $readonly = "";
 }
-$extraClassDiv = ($datos, 'extraClassDiv', "");
+$extraClassDiv = \Illuminate\Support\Arr::get($datos, 'extraClassDiv', "");
 $extraClassInput = \Illuminate\Support\Arr::get($datos, 'extraClassInput', "");
 $extraDataInput = \Illuminate\Support\Arr::get($datos, 'extraDataInput', []);
 $help = \Illuminate\Support\Arr::get($datos, 'help', "");
