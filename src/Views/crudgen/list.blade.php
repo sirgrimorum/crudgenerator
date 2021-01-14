@@ -98,8 +98,8 @@ $tieneDate = false;
             'tieneSlider' => CrudGenerator::hasTipo($configPrefiltro, 'slider'),
             'tieneSelect' => CrudGenerator::hasTipo($configPrefiltro, ['select', 'relationship', 'relationships']),
             'tieneSearch' => CrudGenerator::hasTipo($configPrefiltro, ['relationshipssel']),
-            'tieneColor' => CrudGenerator::hasTipo($config, ['color']),
-            'tieneCheckeador' => CrudGenerator::hasTipo($config, ['select', 'checkbox', 'radio']),
+            'tieneColor' => CrudGenerator::hasTipo($configPrefiltro, ['color']),
+            'tieneCheckeador' => CrudGenerator::hasTipo($configPrefiltro, ['select', 'checkbox', 'radio']),
             'tieneFile' => CrudGenerator::hasTipo($configPrefiltro, ['file', 'files']),
             'tieneJson' => CrudGenerator::hasTipo($configPrefiltro, ['json']),
             'tieneInputFilter' => CrudGenerator::hasClave($configPrefiltro, 'inputfilter'),
@@ -109,7 +109,7 @@ $tieneDate = false;
         ])
         <?php
         foreach ($configPrefiltro['campos'] as $columna => $configCampo) {
-            $config['extraId'] = "{$tablaid}_prefiltro_$columna";
+            $configCampo['extraId'] = "{$tablaid}_prefiltro_$columna";
             $config = CrudGenerator::loadDefaultClasses($config);
             $errores = false;
             $configCampo = CrudGenerator::loadTodosForField($configCampo, $columna, $configPrefiltro);
@@ -117,6 +117,8 @@ $tieneDate = false;
                 $configCampo['tipo'] = 'relationships';
             }elseif($configCampo['tipo'] == 'select'){
                 $configCampo['multiple'] = 'multiple';
+                $configCampo['placeholder'] = '';
+                $configCampo['valor'] = '-1000000';
             }
             if ($preFiltros !== false && Illuminate\Support\Arr::get($preFiltros,$columna, false) !== false){
                 $configCampo['valor'] = $preFiltros[$columna];
