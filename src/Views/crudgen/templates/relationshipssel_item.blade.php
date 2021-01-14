@@ -51,6 +51,10 @@ foreach($datos['columnas'] as $indexCampos => $columnaT){
         $campoName = $datos['campo'] . "_$indexCampos";
     }
     $auxCampos[$campoName] = $columnaT;
+    if (!isset($columnaT['tipo']) && isset($columnaT['type'])){
+        $columnaT['tipo'] = $columnaT['type'];
+        $auxCampos[$campoName]['tipo'] = $columnaT['type'];
+    }
     if ( $columnaT['tipo'] != 'label') {
         $auxCampos[$campoName]['extraId'] = $extraId . "_" . $campoName . "_" . $tablaOtroId;
     } else {
