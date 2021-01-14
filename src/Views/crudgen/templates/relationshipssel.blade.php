@@ -5,7 +5,12 @@ $confirmContent = trans('crudgenerator::admin.messages.confirm_removepivot');
 $confirmYes = trans('crudgenerator::admin.layout.labels.yes');
 $confirmNo = trans('crudgenerator::admin.layout.labels.no');
 $confirmTitle = trans('crudgenerator::admin.layout.labels.confirm_title');
-$dato = old($columna);
+if (isset($datos['extraId'])) {
+    $extraId = $datos['extraId'];
+} else {
+    $extraId = $columna;
+}
+$dato = old($extraId);
 if ($dato == "") {
     try {
         $dato = [];
@@ -19,7 +24,7 @@ if ($dato == "") {
         $dato = "";
     }
 } else {
-    foreach (old($columna) as $idAuxDato => $idAuxCampo) {
+    foreach (old($extraId) as $idAuxDato => $idAuxCampo) {
         $dato[$idAuxDato] = $datos["modelo"]::find($idAuxDato);
     }
 }
@@ -43,7 +48,7 @@ if ($dato == "") {
 $error_campo = false;
 $claseError = '';
 if ($errores == true) {
-    if ($errors->has($columna)) {
+    if ($errors->has($extraId)) {
         $error_campo = true;
         $claseError = 'is-invalid';
     } else {
@@ -79,25 +84,29 @@ if (is_array($datos['campo'])) {
 } else {
     $camposQuery = $datos['campo'];
 }
+$placeholder = \Illuminate\Support\Arr::get($datos, 'placeholder', "");
 $extraClassDiv = \Illuminate\Support\Arr::get($datos, 'extraClassDiv', "");
 $extraClassInput = \Illuminate\Support\Arr::get($datos, 'extraClassInput', "");
-$extraDataInput = \Illuminate\Support\Arr::get($datos, 'extraDataInput', []);
+$extraDataInput = "";
+foreach(\Illuminate\Support\Arr::get($datos, 'extraDataInput', []) as $extraAttribute => $extraAttributeData){
+    $extraDataInput .= " {$extraAttribute}='$extraAttributeData'";
+}
 $help = \Illuminate\Support\Arr::get($datos, 'help', "");
 ?>
-<div class="form-group row {{ $claseError }} {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $columna}}'>
+<div class="form-group row {{ $claseError }} {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>
-        {{ Form::label($columna, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
+        {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))
-        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $columna }}_help">
+        <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $extraId }}_help">
             {{ $datos['description'] }}
         </small>
         @endif
     </div>
-    <div class="{{ $config['class_divinput'] }} {{ $claseError }}" id="{{ $tabla . '_' . $columna }}_container">
+    <div class="{{ $config['class_divinput'] }} {{ $claseError }}" id="{{ $tabla . '_' . $extraId }}_container">
         <div class="typeahead__container">
             <div class="typeahead__field">
                 <span class="typeahead__query">
-                    <input id="{{ $tabla . '_' . $columna }}_search" name="{{ $tabla . '_' . $columna }}_search[query]" type="search" placeholder="Search" autocomplete="off">
+                    <input id="{{ $tabla . '_' . $extraId }}_search" name="{{ $tabla . '_' . $extraId }}_search[query]" class="{{ $extraClassInput }}" type="search" placeholder="{{ $placeholder }}" autocomplete="off" {{ $extraDataInput }}>
                 </span>
                 <span class="typeahead__button">
                     <button type="button" role="button">
@@ -122,7 +131,7 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
                 $readonly = "";
             }
             $tablaOtroId = $tablaInterCampo->getKey();
-        } elseif (!old($columna)) {
+        } elseif (!old($extraId)) {
             if (is_object($tablaInterCampo)) {
                 $tablaOtroId = $tablaInterCampo->getKey();
                 $readonly = "";
@@ -151,7 +160,7 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
 
     @if ($error_campo)
     <div class="invalid-feedback">
-        {{ $errors->get($columna) }}
+        {{ $errors->get($extraId) }}
     </div>
     @endif
 </div>

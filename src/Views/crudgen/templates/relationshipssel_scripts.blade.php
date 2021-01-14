@@ -7,16 +7,17 @@ if ($js_section != "") {
 $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader") . "Creator";
 ?>
 <script>
-    var {{ $tabla . "_" . $columna }}Ejecutado = false;
-    function {{ $tabla . "_" . $columna }}Loader(){
-        if (!{{ $tabla . "_" . $columna }}Ejecutado){
+    var {{ $tabla . "_" . $extraId }}Ejecutado = false;
+    function {{ $tabla . "_" . $extraId }}Loader(){
+        if (!{{ $tabla . "_" . $extraId }}Ejecutado){
             $.typeahead({
-                input: '#{{ $tabla . '_' . $columna }}_search',
+                input: '#{{ $tabla . '_' . $extraId }}_search',
                 minLength: {{ \Illuminate\Support\Arr::get($datos, 'minLength', 1) }},
                 maxItem: {{ \Illuminate\Support\Arr::get($datos, 'maxItem', 15) }},
                 order: "asc",
                 accent: true,
                 searchOnFocus: true,
+                cancelButton: false,
                 //cache: true,
                 <?php
                 $backdrop = \Illuminate\Support\Arr::get($datos, 'backdrop', null);
@@ -89,8 +90,8 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
                             data:'',
                             success:function(data){
                                 if (data.status == 200){
-                                    if ($("#{{$columna . "_"}}" + item.id +"_principal").length == 0){
-                                        $("#{{ $tabla . '_' . $columna }}_container").find('div[data-pivote="principal"]').last().after(data.result);
+                                    if ($("#{{$extraId . "_"}}" + item.id +"_principal").length == 0){
+                                        $("#{{ $tabla . '_' . $extraId }}_container").find('div[data-pivote="principal"]').last().after(data.result);
                                     }else{
                                         $.alert({
                                             theme: '{!!config("sirgrimorum.crudgenerator.error_theme")!!}',
@@ -135,7 +136,7 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
                 debug: true
             });
         }
-        {{ $tabla . "_" . $columna }}Ejecutado = true;
+        {{ $tabla . "_" . $extraId }}Ejecutado = true;
     }
     
     function quitarPivote(idSelected,nameSelected){
@@ -160,9 +161,9 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
             });
     }
     window.addEventListener('load', function() {
-        {{ $tabla . "_" . $columna }}Loader();
+        {{ $tabla . "_" . $extraId }}Loader();
     });
-    {{ $nameScriptLoader }}('jquery_typeahead_min_js',"{{ $tabla . "_" . $columna }}Loader();");
+    {{ $nameScriptLoader }}('jquery_typeahead_min_js',"{{ $tabla . "_" . $extraId }}Loader();");
 </script>
 <?php
 if ($js_section != "") {
