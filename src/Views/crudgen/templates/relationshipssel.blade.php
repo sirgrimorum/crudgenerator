@@ -102,8 +102,8 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
         </small>
         @endif
     </div>
-    <div class="{{ $config['class_divinput'] }} {{ $claseError }}" id="{{ $tabla . '_' . $extraId }}_container">
-        <div class="typeahead__container">
+    <div class="{{ $config['class_divinput'] }} " id="{{ $tabla . '_' . $extraId }}_container">
+        <div class="typeahead__container {{ $claseError }}">
             <div class="typeahead__field">
                 <span class="typeahead__query">
                     <input id="{{ $tabla . '_' . $extraId }}_search" name="{{ $tabla . '_' . $extraId }}_search[query]" class="{{ $extraClassInput }}" type="search" placeholder="{{ $placeholder }}" autocomplete="off" {{ $extraDataInput }}>
@@ -151,17 +151,16 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
         ?>
         @include('sirgrimorum::crudgen.templates.relationshipssel_item')
         @endforeach
+        @if ($error_campo)
+        <div class="invalid-feedback">
+            {{ $errors->get($extraId)[0] }}
+        </div>
+        @endif
         @if($help != "")
         <small class="form-text text-muted mt-0">
             {{ $help }}
         </small>
         @endif
     </div>
-
-    @if ($error_campo)
-    <div class="invalid-feedback">
-        {{ $errors->get($extraId) }}
-    </div>
-    @endif
 </div>
 @include('sirgrimorum::crudgen.templates.relationshipssel_scripts')
