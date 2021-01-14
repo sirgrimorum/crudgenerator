@@ -782,13 +782,13 @@ trait CrudConfig
                                 }
                                 $pivotColumns = [[
                                     'label' => $campoLabel,
-                                    'type' => "label",
+                                    'tipo' => "label",
                                 ]];
 
                                 foreach ($datos['relation']['datosQuery']['pivotColumns'] as $pivotColumn) {
                                     $pivotColumnAux = [
                                         'label' => $pivotColumn['name'],
-                                        'type' => "text",
+                                        'tipo' => "text",
                                         'campo' => $pivotColumn['name'],
                                         'placeholder' => "",
                                         'valor' => "",
@@ -804,21 +804,21 @@ trait CrudConfig
                                             $pivotColumnAux['description'] = $transPrefix . $transFile . ".descriptions." . $pivotColumn['name'];
                                         }
                                         if (Lang::has($transFile . ".selects." . $pivotColumn['name']) && is_array(trans($transFile . ".selects." . $pivotColumn['name']))) {
-                                            $pivotColumnAux['type'] = 'select';
+                                            $pivotColumnAux['tipo'] = 'select';
                                             $pivotColumnAux['opciones'] = $transPrefix . $transFile . ".selects." . $pivotColumn['name'];
                                         }
                                     }
                                     switch ($pivotColumn['type']) {
                                         case 'text':
                                         case 'blob':
-                                            $pivotColumnAux['type'] = 'textarea';
+                                            $pivotColumnAux['tipo'] = 'textarea';
                                             if (CrudGenerator::getTypeByName($pivotColumn['name'], 'html')) {
-                                                $pivotColumnAux['type'] = "html";
+                                                $pivotColumnAux['tipo'] = "html";
                                             } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'json')) {
-                                                $pivotColumnAux['type'] = "json";
+                                                $pivotColumnAux['tipo'] = "json";
                                                 $pivotColumnAux['valor'] = "{}";
                                             } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
-                                                $pivotColumnAux['type'] = "files";
+                                                $pivotColumnAux['tipo'] = "files";
                                                 $pivotColumnAux['path'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
                                                 $pivotColumnAux['saveCompletePath'] = true;
                                             }
@@ -828,7 +828,7 @@ trait CrudConfig
                                         case 'smallint':
                                         case 'decimal':
                                         case 'float':
-                                            $pivotColumnAux['type'] = 'number';
+                                            $pivotColumnAux['tipo'] = 'number';
                                             $pivotColumnAux['format'] = [0, ".", "."];
                                             if ($pivotColumn['type'] == 'decimal' || $pivotColumn['type'] == 'float') {
                                                 $pivotColumnAux['format'] = [2, ".", "."];
@@ -843,12 +843,12 @@ trait CrudConfig
                                             //case 'datetimetz':
                                         case 'date':
                                         case 'timestamp':
-                                            //$pivotColumnAux['type'] = 'text';
+                                            //$pivotColumnAux['tipo'] = 'text';
                                             $typeAux = $pivotColumn['type'];
                                             if ($typeAux == 'timestamp') {
                                                 $typeAux = 'datetime';
                                             }
-                                            $pivotColumnAux['type'] = $typeAux;
+                                            $pivotColumnAux['tipo'] = $typeAux;
                                             $pivotColumnAux['format'] = [
                                                 "carbon" => $transPrefix . "crudgenerator::admin.formats.carbon." . $typeAux,
                                                 "moment" => $transPrefix . "crudgenerator::admin.formats.moment." . $typeAux
@@ -856,21 +856,21 @@ trait CrudConfig
                                             break;
                                         case 'boolean':
                                             $pivotColumnAux['value'] = true;
-                                            $pivotColumnAux['type'] = 'checkbox';
+                                            $pivotColumnAux['tipo'] = 'checkbox';
                                             break;
                                         case 'text':
                                         default:
-                                            $pivotColumnAux['type'] = "text";
+                                            $pivotColumnAux['tipo'] = "text";
                                             if (CrudGenerator::getTypeByName($pivotColumn['name'], 'email')) {
-                                                $pivotColumnAux['type'] = "email";
+                                                $pivotColumnAux['tipo'] = "email";
                                             } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'url')) {
-                                                $pivotColumnAux['type'] = "url";
+                                                $pivotColumnAux['tipo'] = "url";
                                             } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'color')) {
-                                                $pivotColumnAux['type'] = "color";
+                                                $pivotColumnAux['tipo'] = "color";
                                             } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'password')) {
-                                                $pivotColumnAux['type'] = "password";
+                                                $pivotColumnAux['tipo'] = "password";
                                             } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
-                                                $pivotColumnAux['type'] = "file";
+                                                $pivotColumnAux['tipo'] = "file";
                                                 $pivotColumnAux['path'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
                                                 $pivotColumnAux['saveCompletePath'] = true;
                                             }

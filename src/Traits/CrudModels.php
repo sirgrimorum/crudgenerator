@@ -422,11 +422,11 @@ trait CrudModels
                                     $htmlShow .= '<dd class="col-sm-9 border-bottom border-secondary mb-0 pb-2">' .
                                         '<ul class="mb-0">';
                                     foreach ($datos['columnas'] as $infoPivote) {
-                                        if ($infoPivote['type'] != "hidden" && $infoPivote['type'] != "label") {
+                                        if ($infoPivote['tipo'] != "hidden" && $infoPivote['tipo'] != "label") {
                                             $celda[$sub->getKey()]['data'][$infoPivote['campo']] = ['label' => $infoPivote['label']];
-                                            if ($infoPivote['type'] == "number" && isset($infoPivote['format'])) {
+                                            if ($infoPivote['tipo'] == "number" && isset($infoPivote['format'])) {
                                                 $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = number_format($sub->pivot->{$infoPivote['campo']}, $infoPivote['format'][0], $infoPivote['format'][1], $infoPivote['format'][2]);
-                                            } elseif ($infoPivote['type'] == "select" && isset($infoPivote['opciones'])) {
+                                            } elseif ($infoPivote['tipo'] == "select" && isset($infoPivote['opciones'])) {
                                                 $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = $infoPivote['opciones'][$sub->pivot->{$infoPivote['campo']}];
                                             } else {
                                                 $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = $sub->pivot->{$infoPivote['campo']} . ', ';
@@ -436,7 +436,7 @@ trait CrudModels
                                             $htmlShow .= '<li>' .
                                                 $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] .
                                                 '</li>';
-                                        } elseif ($infoPivote['type'] == "label") {
+                                        } elseif ($infoPivote['tipo'] == "label") {
                                             if (isset($infoPivote['campo'])) {
                                                 $auxcelda5 = CrudGenerator::getNombreDeLista($sub, $infoPivote['campo']);
                                             } else {
@@ -1921,7 +1921,7 @@ trait CrudModels
                                     foreach ($input->input($campo) as $id => $pivot) {
                                         $datos[$id] = [];
                                         foreach ($detalles['columnas'] as $subdetalles) {
-                                            if ($subdetalles['type'] != "label" && $subdetalles['type'] != "labelpivot") {
+                                            if ($subdetalles['tipo'] != "label" && $subdetalles['tipo'] != "labelpivot") {
                                                 if ($input->has($campo . "_" . $subdetalles['campo'] . "_" . $id)) {
                                                     $datos[$id][$subdetalles['campo']] = $input->input($campo . "_" . $subdetalles['campo'] . "_" . $id);
                                                 } else {
