@@ -895,13 +895,31 @@ trait CrudConfig
                 }
                 if ($transFile !== false) {
                     if (Lang::has($transFile . ".labels." . $campo)) {
-                        $configCampos[$campo]['label'] = $transPrefix . $transFile . ".labels." . $campo;
+                        if (count($configCampos[$campo]) > 2) {
+                            $configCampos[$campo] = array_slice($configCampos[$campo], 0, count($configCampos[$campo]) - 2, true) +
+                                ['label' => $transPrefix . $transFile . ".labels." . $campo] +
+                                array_slice($configCampos[$campo], count($configCampos[$campo]) - 2, count($configCampos[$campo]) - 1, true);
+                        } else {
+                            $configCampos[$campo]['label'] = $transPrefix . $transFile . ".labels." . $campo;
+                        }
                     }
                     if (Lang::has($transFile . ".placeholders." . $campo)) {
-                        $configCampos[$campo]['placeholder'] = $transPrefix . $transFile . ".placeholders." . $campo;
+                        if (count($configCampos[$campo]) > 2) {
+                            $configCampos[$campo] = array_slice($configCampos[$campo], 0, count($configCampos[$campo]) - 2, true) +
+                                ['placeholder' => $transPrefix . $transFile . ".placeholders." . $campo] +
+                                array_slice($configCampos[$campo], count($configCampos[$campo]) - 2, count($configCampos[$campo]) - 1, true);
+                        } else {
+                            $configCampos[$campo]['placeholder'] = $transPrefix . $transFile . ".placeholders." . $campo;
+                        }
                     }
                     if (Lang::has($transFile . ".descriptions." . $campo)) {
-                        $configCampos[$campo]['description'] = $transPrefix . $transFile . ".descriptions." . $campo;
+                        if (count($configCampos[$campo]) > 2) {
+                            $configCampos[$campo] = array_slice($configCampos[$campo], 0, count($configCampos[$campo]) - 2, true) +
+                                ['description' => $transPrefix . $transFile . ".descriptions." . $campo] +
+                                array_slice($configCampos[$campo], count($configCampos[$campo]) - 2, count($configCampos[$campo]) - 1, true);
+                        } else {
+                            $configCampos[$campo]['description'] = $transPrefix . $transFile . ".descriptions." . $campo;
+                        }
                     }
                 }
                 if ($rulesStr != "") {
