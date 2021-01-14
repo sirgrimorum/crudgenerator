@@ -147,7 +147,8 @@
                             "return /^([+]|[0-9])?[0-9]*$/.test(value);". // ej. Allow phonenumbers of only numbers and optional leading +
                         "})".
                     "",
-                    "card_class" => [name of the class] // for the relationshipssel type, set additional classes for the cards
+                    "config" => "", // the configuration for the model details to be shown, if empty, will load the default, if is a string, will load the file of the string with config(), if an array will use the array as config
+                    "card_class" => [name of the class], // for the relationshipssel type, set additional classes for the cards
                     "minLength" => 1, // for the relationshipssel type, set the minimum number of characters needed to start searching. 0 will start search on focus
                     "maxItem" => 15, // for the relationshipssel type, set the maximum number of items to display on the search, 0 to show all
                     "maxItemPerGroup" => 4, // for the relationshipssel type, set the maximum number of itemps to show per gour on the results
