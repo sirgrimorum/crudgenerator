@@ -154,7 +154,13 @@ class CrudGeneratorServiceProvider extends ServiceProvider
                     "}" .
                     "callbacksFunctionsLoaded[callbackName] = [];" .
                 "}" .
-                "function $name(path, diferir, inner=''){" .
+                "function $name(path, diferir, inner='', waitForJquery = true){" .
+                    "if (waitForJquery){" .
+                        "if (!window.$ ){" .
+                            "setTimeout(function(){ {$name}(path, diferir, inner, true); }, 100);" .
+                            "return;" .
+                        "}" .
+                    "}" .
                     "let scripts = Array .from(document.querySelectorAll('script')).map(scr => scr.src);" .
                     "var callbackName = inner;" .
                     "if (inner=='' && path != ''){" .
@@ -202,20 +208,28 @@ class CrudGeneratorServiceProvider extends ServiceProvider
         });
         Blade::directive('loadScript', function ($expression) {
             $auxExpression = explode(',', str_replace(['(', ')', ' ', '"', "'"], '', $expression));
-            if (count($auxExpression) > 2) {
+            if (count($auxExpression) > 3) {
                 $src = $auxExpression[0];
                 $defer = $auxExpression[1] == "true";
                 $inner = "<?php echo \"" .  $auxExpression[2] . "\"; ?>";
+                $waitForJquery = $auxExpression[3] == "true";
+            } elseif (count($auxExpression) > 2) {
+                $src = $auxExpression[0];
+                $defer = $auxExpression[1] == "true";
+                $inner = "<?php echo \"" .  $auxExpression[2] . "\"; ?>";
+                $waitForJquery = true;
             } elseif (count($auxExpression) > 1) {
                 $src = $auxExpression[0];
                 $defer = $auxExpression[1] == "true";
                 $inner = "";
+                $waitForJquery = true;
             } else {
                 $src = $auxExpression[0];
                 $defer = false;
                 $inner = "";
+                $waitForJquery = true;
             }
-            return CrudGenerator::addScriptLoaderHtml($src, $defer, $inner, true);
+            return CrudGenerator::addScriptLoaderHtml($src, $defer, $inner, true, waitForJquery);
         });
         //Add the linkTagssLoader funtion to load scripts only once
         Blade::directive('addLinkTagsLoader', function () {

@@ -1421,19 +1421,21 @@ trait CrudStrings
      * @param bool $defer Optional if the script should be defered, default false
      * @param string $inner Optional the innerHtml script, could be the id of a text/html script block or a large text
      * @param bool $innerIsBlock Optional if the $inner parameter is an id of a block or not. Default false
+     * @param bool $waitForJquery Optional if should wait for Jquery to be loaded before load de script
      * @return string The script call for the scriptLoader function
      */
-    public static function addScriptLoaderHtml($src, $defer = false, $inner = "", $innerIsBlock = false)
+    public static function addScriptLoaderHtml($src, $defer = false, $inner = "", $innerIsBlock = false, $waitForJquery = true)
     {
         $name = config("sirgrimorum.crudgenerator.scriptLoader_name", "scriptLoader");
         $deferStr = ($defer) ? "true" : "false";
+        $waitForJqueryStr = ($waitForJquery) ? "true" : "false";
         $html = "";
         if ($inner != "" && !$innerIsBlock) {
             $id = Str::random(8) . "_typeahead_block";
             $html = "<script id=\"$id\" type=\"text/html\">$inner</script>";
             $inner = $id;
         }
-        $html .= "<script>$name('$src',$deferStr,\"$inner\");</script>";
+        $html .= "<script>$name('$src',$deferStr,\"$inner\",$waitForJqueryStr);</script>";
         return $html;
     }
 
