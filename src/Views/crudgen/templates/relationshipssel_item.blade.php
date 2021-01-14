@@ -38,21 +38,62 @@ if (!isset($config['class_offset'])) {
 if (!isset($config['class_button'])) {
     $config['class_button'] = 'btn btn-primary';
 }
+if (isset($datos['extraId'])) {
+    $extraId = $datos['extraId'];
+} else {
+    $extraId = $columna;
+}
+$auxCampos = [];
+foreach($datos['columnas'] as $indexCampos => $columnaT){
+    if (isset($columnaT['campo'])){
+        $campoName = $columnaT['campo'];
+    }else{
+        $campoName = $datos['campo'] . "_$indexCampos";
+    }
+    $auxCampos[$campoName] = $columnaT;
+    if ( $columnaT['tipo'] != 'label') {
+        $auxCampos[$campoName]['extraId'] = $extraId . "_" . $campoName . "_" . $tablaOtroId;
+    } else {
+        $auxCampos[$campoName]['extraId'] = $extraId . "_" . "_" . $tablaOtroId;
+    }
+}
+$auxConfigParaIncludes = [
+    "tabla" => $tabla,
+    "campos" => $auxCampos
+];
 ?>
-@foreach ($datos['columnas'] as $columnaT)
-@if (CrudGenerator::inside_array($columnaT, "hide", $action) === false)
+@include("sirgrimorum::crudgen.partials.includes", [
+    'config' => $auxConfigParaIncludes,
+    'tieneHtml' => CrudGenerator::hasTipo($auxConfigParaIncludes, ['html', 'article']),
+    'tieneDate' => CrudGenerator::hasTipo($auxConfigParaIncludes, ['date', 'datetime', 'time']),
+    'tieneSlider' => CrudGenerator::hasTipo($auxConfigParaIncludes, 'slider'),
+    'tieneSelect' => CrudGenerator::hasTipo($auxConfigParaIncludes, ['select', 'relationship', 'relationships']),
+    'tieneSearch' => CrudGenerator::hasTipo($auxConfigParaIncludes, ['relationshipssel']),
+    'tieneColor' => CrudGenerator::hasTipo($auxConfigParaIncludes, ['color']),
+    'tieneCheckeador' => CrudGenerator::hasTipo($auxConfigParaIncludes, ['select', 'checkbox', 'radio']),
+    'tieneFile' => CrudGenerator::hasTipo($auxConfigParaIncludes, ['file', 'files']),
+    'tieneJson' => CrudGenerator::hasTipo($auxConfigParaIncludes, ['json']),
+    'tieneInputFilter' => CrudGenerator::hasClave($auxConfigParaIncludes, 'inputfilter'),
+    'js_section' => "",
+    'css_section' => "",
+    'modelo' => $datos['modelo']
+])
+@foreach ($auxCampos as $columnaName => $columnaT)
+{{-- 1. no es oculto para esta acción --}}
+@if ((($action == "create" && !isset($columnaT['nodb'])) || $action != "create") && CrudGenerator::inside_array($columnaT, "hide", $action) === false)
 <?php
-if ($columnaT['type'] == 'label') {
+$extraIdInner = $columnaT['extraId'];
+if ($columnaT['tipo'] == 'label') {
     if (isset($columnaT['campo'])) {
         $valorM = CrudGenerator::getNombreDeLista($tablaInterCampo, $columnaT['campo']);
     } else {
         $valorM = CrudGenerator::getNombreDeLista($tablaInterCampo, $datos['campo']);
     }
 } elseif (is_object($pivote)) {
-    if ($columnaT['type'] == 'labelpivot') {
+    if ($columnaT['tipo'] == 'labelpivot') {
         $valorM = $pivote->{$columnaT['campo']};
     } else {
-        $valorM = old($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId);
+        $valorM = old($extraIdInner);
         if ($valorM == "") {
             try {
                 $valorM = $pivote->{$columnaT['campo']};
@@ -79,77 +120,98 @@ if (isset($datos["card_class"])) {
 } else {
     $card_class = "";
 }
+$extraClassInput = array_get($datos, 'extraClassInput', "");
 $atributos = [
     'class' => "form-control $claseError $extraClassInput",
     'placeholder' => $placeholder,
     'style' => "max-height:100px;",
     $readonly
 ];
-if (isset($columnaT['campo']) && $columnaT['type'] != 'label') {
-    $atributos['class'] .= ' ' . $columna . '_' . $columnaT['campo'];
-    $atributos['id'] = $columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId;
-    $config['extraId'] = $columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId;
-} else {
-    $config['extraId'] = $columna . "_" . "_" . $tablaOtroId;
+if (isset($columnaT['campo']) && $columnaT['tipo'] != 'label') {
+    $atributos['class'] .= ' ' . $extraId . '_' . $columnaT['campo'];
+    $atributos['id'] = $extraIdInner;
 }
+$nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader") . "Creator";
 ?>
+{{-- 2. Si es la primera vuelta --}}
 @if ($loop->first)
-<div class="card mb-1 mt-1 {{$card_class}}" id="{{$columna . "_" . $tablaOtroId}}_principal" data-pivote="principal">
-    {{ Form::hidden($columna. "[" . $tablaOtroId ."]", $tablaOtroId, array('class' => 'form-control', 'id' => $columna . '_' . $tablaOtroId)) }}
+<div class="card mb-1 mt-1 {{$card_class}}" id="{{$extraId . "_" . $tablaOtroId}}_principal" data-pivote="principal">
+    {{ Form::hidden($extraId. "[" . $tablaOtroId ."]", $tablaOtroId, array('class' => 'form-control', 'id' => $extraId . '_' . $tablaOtroId)) }}
     <div class="card-header text-center">
         <div class="d-flex justify-content-between align-items-center">
             <div class="btn-group" role="group" aria-label="Third group">
-                <button type="button" class="btn btn-dark" data-toggle="collapse" href="#{{ $tabla . '_' . $columna . "_" . $tablaOtroId}}_info" title='{{ trans("crudgenerator::admin.layout.labels.info")}}'>{!! CrudGenerator::getIcon('info',true) !!}</button>
+                <button type="button" class="btn btn-dark" data-toggle="collapse" href="#{{ $tabla . '_' . $extraId . "_" . $tablaOtroId}}_info" title='{{ trans("crudgenerator::admin.layout.labels.info")}}'>{!! CrudGenerator::getIcon('info',true) !!}</button>
             </div>
             <span class="card-title mb-2 mt-2 mr-1 ml-1"><!--small>{{ $columnaT['label'] }}</small><br-->{{ $valorM }}</span>
             <div class="btn-group" role="group" aria-label="Third group">
-                <button type="button" class="btn btn-danger" onclick="quitarPivote('{{$columna . "_" . $tablaOtroId}}_principal','{{ $valorM }}')" title="{{trans("crudgenerator::admin.layout.labels.remove")}}">{!! CrudGenerator::getIcon('minus',true,'fa-lg') !!}</button>
+                <button type="button" class="btn btn-danger" onclick="quitarPivote('{{$extraId . "_" . $tablaOtroId}}_principal','{{ $valorM }}')" title="{{trans("crudgenerator::admin.layout.labels.remove")}}">{!! CrudGenerator::getIcon('minus',true,'fa-lg') !!}</button>
             </div>
         </div>
     </div>
+    {{-- 3. Si no es la última --}}
     @if(!$loop->last)
     <div class="card-body">
-
         <div class="">
+            {{-- 3. el de si es la última --}}
             @endif
+            {{-- 2. no es la primera --}}
             @else
+            {{-- 4. Si es label o label pivote --}}
+            @if ($columnaT['tipo']=='label' || $columnaT['tipo']=='labelpivot')
             @if(isset($columnaT['pre_html']))
             {!! $columnaT['pre_html'] !!}
             @endif
-            @if ($columnaT['type']=='label' || $columnaT['type']=='labelpivot')
             <div class="form-group row">
                 <div class='{{$config['class_labelcont']}}'>
-                    {{ Form::label($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, ucfirst($columnaT['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
+                    {{ Form::label($extraIdInner, ucfirst($columnaT['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
                     @if (isset($columnaT['description']))
-                    <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId }}_help">
+                    <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $extraIdInner }}_help">
                         {{ $columnaT['description'] }}
                     </small>
                     @endif
                 </div>
                 <div class="{{ $config['class_divinput'] }}">
-                    {{ Form::text($columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, $valorM, array('class' => "form-control-plaintext {$config['class_input']} $claseError $extraClassInput", 'id' => $columna . "_" . $columnaT['campo'] . "_" . $tablaOtroId, "readonly"=>"readonly")) }}
+                    {{ Form::text($extraIdInner, $valorM, array('class' => "form-control-plaintext {$config['class_input']} $claseError $extraClassInput", 'id' => $extraIdInner, "readonly"=>"readonly")) }}
                 </div>
             </div>
-            @elseif (View::exists("sirgrimorum::crudgen.templates." . $columnaT['type']))
-            @include("sirgrimorum::crudgen.templates." . $columnaT['type'], ['datos'=>$columnaT,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$datos['modelo'], 'registro'=>$pivote,'errores'=>false, 'config'=>$config, 'columna'=>$columnaT['campo']])
-            @else
-            @include("sirgrimorum::crudgen.templates.text", ['datos'=>$columnaT,'js_section'=>$js_section,'css_section'=>$css_section, 'modelo'=>$datos['modelo'], 'registro'=>$pivote,'errores'=>false, 'config'=>$config, 'columna'=>$columnaT['campo']])
-            @endif
             @if(isset($columnaT['post_html']))
             {!! $columnaT['post_html'] !!}
             @endif
+            {{-- 4. No es label ni label pivote --}}
+            @else
+            @include("sirgrimorum::crudgen.partials.create_inner",[
+                "js_section" => "",
+                'css_section'=> "", 
+                'modelo'=> $datos['modelo'], 
+                'action'=> $action,
+                "tabla" => $tabla,
+                "config" => $config,
+                "columna" => $columnaT['campo'],
+                "datos" => $columnaT,
+                "registro" => $pivote, 
+                "errores" => false,
+                "nameScriptLoader" => $nameScriptLoader,
+            ])
+            {{-- 4. el de si es label o label pivote --}}
             @endif
+            {{-- 2. El de si es la primera --}}
+            @endif
+            {{-- 5. Si es la última --}}
             @if($loop->last)
+            {{-- 6. Si no es la primera vuelta --}}
             @if(!$loop->first)
         </div>
     </div>
+    {{-- 6. la de si no es la primera --}}
     @endif
-    <div class="collapse" id='{{ $tabla . '_' . $columna . "_" . $tablaOtroId}}_info'>
+    <div class="collapse" id='{{ $tabla . '_' . $extraId . "_" . $tablaOtroId}}_info'>
         <div class='card-footer text-muted'>
-            @include("sirgrimorum::admin.show.simple", ["modelo" => class_basename($datos["modelo"]),"config" => "","registro"=>$tablaOtroId])
+            @include("sirgrimorum::admin.show.simple", ["modelo" => class_basename($datos["modelo"]),"config" => \Illuminate\Support\Arr::get($datos, 'config', ""),"registro"=>$tablaOtroId])
         </div>
     </div>
 </div>
+{{-- 5. La de si es la última --}}
 @endif
+{{-- 1. El de si está oculto para esta acción --}}
 @endif
 @endforeach
