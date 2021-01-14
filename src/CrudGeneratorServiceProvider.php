@@ -151,8 +151,8 @@ class CrudGeneratorServiceProvider extends ServiceProvider
                         "for (var i = 0; i < callbacksFunctions[callbackName].length; i++){" .
                             "callbacksFunctions[callbackName][i]();" .
                         "}" .
-                        "callbacksFunctionsLoaded[callbackName] = [];" .
                     "}" .
+                    "callbacksFunctionsLoaded[callbackName] = [];" .
                 "}" .
                 "function $name(path, diferir, inner=''){" .
                     "let scripts = Array .from(document.querySelectorAll('script')).map(scr => scr.src);" .
