@@ -229,7 +229,7 @@ class CrudGeneratorServiceProvider extends ServiceProvider
                 $inner = "";
                 $waitForJquery = true;
             }
-            return CrudGenerator::addScriptLoaderHtml($src, $defer, $inner, true, waitForJquery);
+            return CrudGenerator::addScriptLoaderHtml($src, $defer, $inner, true, $waitForJquery);
         });
         //Add the linkTagssLoader funtion to load scripts only once
         Blade::directive('addLinkTagsLoader', function () {
