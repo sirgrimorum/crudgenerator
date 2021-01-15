@@ -110,7 +110,6 @@ $tieneDate = false;
         <?php
         foreach ($configPrefiltro['campos'] as $columna => $configCampo) {
             $configCampo['extraId'] = "{$tablaid}_prefiltro_$columna";
-            $config = CrudGenerator::loadDefaultClasses($config);
             $errores = false;
             $configCampo = CrudGenerator::loadTodosForField($configCampo, $columna, $configPrefiltro);
             if ($configCampo['tipo'] == 'relationship'){

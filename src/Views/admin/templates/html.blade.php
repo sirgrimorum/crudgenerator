@@ -335,7 +335,7 @@
                             @endforeach
                         </ul>
                     </div>
-                    <div class="col-md-9 col-xl-8 py-md-3 pl-md-2 bd-content">
+                    <div class="col-md-10 col-xl-9 py-md-3 pl-md-2 bd-content">
                         @if (session(config("sirgrimorum.crudgenerator.status_messages_key")))
                         <!--div class="container">
                             <div class="alert alert-success alert-dismissible fade show" role="alert">

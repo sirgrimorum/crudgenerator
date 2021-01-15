@@ -55,11 +55,11 @@
             "files" => false // true if it whould contain file fields,
             "class_form" => "[name of the class]", // optional class for the form, default ''
             "class_label" => "[name of the class]", // optional class for all the labels, default 'col-form-label font-weight-bold mb-0 pt-0'
-            "class_labelcont" => "[name of the class]", // optional class for all the labels containers, default 'col-xs-12 col-sm-4 col-md-2'
+            "class_labelcont" => "[name of the class]", // optional class for all the labels containers, default 'col-xs-12 col-sm-12 col-md-3'
             "class_input" => "[name of the class]", // optional class for all the inputs, default '' 
-            "class_divinput" => "[name of the class]", // optional class for all the divs containing the inputs, default 'col-xs-12 col-sm-8 col-md-10'
+            "class_divinput" => "[name of the class]", // optional class for all the divs containing the inputs, default 'col-xs-12 col-sm-12 col-md-9'
             "class_formgroup" => "[name of the class]", // optional class for all the divs containing the div inputs, default for show view 'border border-light', for others default is ''
-            "class_offset" => "[name of the class]", // optional class for all the divs conatining buttons, checkboxes and radio buttons, default 'col-xs-offset-0 col-sm-offset-4 col-md-offset-2'
+            "class_offset" => "[name of the class]", // optional class for all the divs conatining buttons, checkboxes and radio buttons, default 'offset-xs-0 offset-sm-0 offset-md-3'
             "class_button" => "[name of the class]", // optional class for all the buttons default 'btn btn-primary'
             "pre_html" => "[Html code]", // optional code to be inserted after the form tag opening
             "post_html" => "[Html code]", // optional code to be inserted before the form tag closing

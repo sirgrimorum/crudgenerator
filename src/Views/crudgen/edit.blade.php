@@ -31,7 +31,6 @@ if (isset($config['relaciones'])) {
 }
 $identificador = $config['id'];
 $url = CrudGenerator::translateDato($config['url'], $registro, $config);
-$config = CrudGenerator::loadDefaultClasses($config);
 $action = 'edit';
 ?>
 @include("sirgrimorum::crudgen.partials.includes")

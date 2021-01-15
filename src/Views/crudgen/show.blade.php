@@ -15,7 +15,6 @@
 </div>
 @endif
 <?php
-$config = CrudGenerator::loadDefaultClasses($config);
 $tabla = $config['tabla'];
 $campos = $config['campos'];
 $nombre = $config['nombre'];

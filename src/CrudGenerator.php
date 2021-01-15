@@ -80,7 +80,7 @@ class CrudGenerator
             $tabla = (new $config['campos'][$itemsRelSelCampo]['modelo'])->getTable();
             $config['formId'] = Arr::get($config, 'formId', $tabla . "_" . Str::random(5));
             $view = View::make('sirgrimorum::crudgen.templates.relationshipssel_simple', [
-                'config' => $config,
+                'config' => CrudGenerator::loadDefaultClasses($config, true),
                 'datoId' => $itemsRelSelId,
                 'columna' => $itemsRelSelCampo,
                 'tabla' => $tabla,
@@ -97,7 +97,7 @@ class CrudGenerator
                 $vista = 'sirgrimorum::crudgen.create';
             }
             $view = View::make($vista, [
-                'config' => $config,
+                'config' => CrudGenerator::loadDefaultClasses($config, $simple),
                 'tieneHtml' => CrudGenerator::hasTipo($config, ['html', 'article']),
                 'tieneDate' => CrudGenerator::hasTipo($config, ['date', 'datetime', 'time']),
                 'tieneSlider' => CrudGenerator::hasTipo($config, 'slider'),
@@ -160,7 +160,7 @@ class CrudGenerator
             $vista = 'sirgrimorum::crudgen.show';
         }
         $view = View::make($vista, array(
-            'config' => $config,
+            'config' => CrudGenerator::loadDefaultClasses($config, $simple),
             'registro' => $registro,
             'js_section' => $js_section,
             'css_section' => $css_section,
@@ -226,7 +226,7 @@ class CrudGenerator
             $vista = 'sirgrimorum::crudgen.edit';
         }
         $view = View::make($vista, [
-            'config' => $config,
+            'config' => CrudGenerator::loadDefaultClasses($config, $simple),
             'registro' => $registro,
             'tieneHtml' => CrudGenerator::hasTipo($config, ['html', 'article']),
             'tieneDate' => CrudGenerator::hasTipo($config, ['date', 'datetime', 'time']),
@@ -297,7 +297,7 @@ class CrudGenerator
             }
         }
         $view = View::make('sirgrimorum::crudgen.list', [
-            'config' => $config,
+            'config' => CrudGenerator::loadDefaultClasses($config, $simple),
             'registros' => $registros,
             'usarAjax' => $usarAjax,
             'serverSide' => $serverSide,

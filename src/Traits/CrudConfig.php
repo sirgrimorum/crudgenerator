@@ -1395,27 +1395,28 @@ trait CrudConfig
      * Load default classes missing to a config array
      * 
      * @param array $config The current config array
+     * @param bool $sub If is going to be loaded in a sub (narrower) view
      * @return array The current config array with the missing default classes loaded
      */
-    public static function loadDefaultClasses($config)
+    public static function loadDefaultClasses($config, $sub = false)
     {
         if (!isset($config['class_form'])) {
             $config['class_form'] = '';
         }
         if (!isset($config['class_labelcont'])) {
-            $config['class_labelcont'] = 'col-xs-12 col-sm-3 col-md-2';
+            $config['class_labelcont'] = !$sub ? 'col-xs-12 col-sm-12 col-md-3': 'col-xs-12 col-sm-12 col-md-12 col-lg-3';
         }
         if (!isset($config['class_label'])) {
             $config['class_label'] = 'col-form-label font-weight-bold mb-0 pb-0';
         }
         if (!isset($config['class_divinput'])) {
-            $config['class_divinput'] = 'col-xs-12 col-sm-8 col-md-10';
+            $config['class_divinput'] = !$sub ? 'col-xs-12 col-sm-12 col-md-9' : 'col-xs-12 col-sm-12 col-md-12 col-lg-9';
         }
         if (!isset($config['class_input'])) {
             $config['class_input'] = '';
         }
         if (!isset($config['class_offset'])) {
-            $config['class_offset'] = 'offset-xs-0 offset-sm-4 offset-md-2';
+            $config['class_offset'] = !$sub ? 'offset-xs-0 offset-sm-0 offset-md-3' : 'offset-xs-0 offset-sm-0 offset-md-0 offset-lg-3';
         }
         if (!isset($config['class_button'])) {
             $config['class_button'] = 'btn btn-primary';
