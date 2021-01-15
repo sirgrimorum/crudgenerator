@@ -5,6 +5,7 @@ namespace Sirgrimorum\CrudGenerator\Traits;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -297,6 +298,11 @@ trait CrudConfig
                                     "autoincrement" => $column->getAutoincrement(),
                                     "type" => $column->getType()->getName(),
                                     "notNull" => $column->getNotnull(),
+                                    "isIndex" => false,
+                                    "isPrimary" => false,
+                                    "isUnique" => false,
+                                    "isUniqueComposite" => false,
+                                    "doctrineObject" => $column,
                                 ];
                             }
                         }
@@ -307,6 +313,7 @@ trait CrudConfig
                                         unset($pivotColumns[$column]);
                                     } else {
                                         $pivotColumns[$column]['isUnique'] = $index->isUnique();
+                                        $pivotColumns[$column]['doctrineIndex'] = $index;
                                     }
                                 }
                             }
@@ -710,19 +717,13 @@ trait CrudConfig
                     $rulesStr .= $prefixRules . 'unique_except:' . $tabla . ',' . $campo;
                     $prefixRules = "|";
                 }
-                if ($datos['default']) {
+                if (isset($datos['default'])) {
                     $configCampos[$campo]['valor'] = $datos['default'];
                 }
                 if ($transFile !== false) {
-                    if (Lang::has($transFile . ".labels." . $campo)) {
-                        $configCampos[$campo]['label'] = $transPrefix . $transFile . ".labels." . $campo;
-                    }
-                    if (Lang::has($transFile . ".placeholders." . $campo)) {
-                        $configCampos[$campo]['placeholder'] = $transPrefix . $transFile . ".placeholders." . $campo;
-                    }
-                    if (Lang::has($transFile . ".descriptions." . $campo)) {
-                        $configCampos[$campo]['description'] = $transPrefix . $transFile . ".descriptions." . $campo;
-                    }
+                    CrudGenerator::getTransNameForField($configCampos[$campo], "label", $transFile, $campo, $transPrefix);
+                    CrudGenerator::getTransNameForField($configCampos[$campo], "placeholder", $transFile, $campo, $transPrefix);
+                    CrudGenerator::getTransNameForField($configCampos[$campo], "description", $transFile, $campo, $transPrefix);
                 }
                 if ($rulesStr != "") {
                     $rules[$campo] = $rulesStr;
@@ -755,7 +756,7 @@ trait CrudConfig
                             $rulesStr .= $prefixRules . 'unique:' . $tabla . ',' . $campo;
                             $prefixRules = "|";
                         }
-                        if ($datos['columna']['default']) {
+                        if (isset($datos['columna']['default'])) {
                             $configCampos[$campo]['valor'] = $datos['default'];
                         }
                         break;
@@ -787,96 +788,151 @@ trait CrudConfig
 
                                 foreach ($datos['relation']['datosQuery']['pivotColumns'] as $pivotColumn) {
                                     $pivotColumnAux = [
+                                        'campo' => $pivotColumn['name'],
                                         'label' => $pivotColumn['name'],
                                         'tipo' => "text",
-                                        'campo' => $pivotColumn['name'],
                                         'placeholder' => "",
-                                        'valor' => "",
+                                        //'valor' => "",
                                     ];
+                                    $rulesPivotStr = "";
+                                    $rulesPivotExtraArrayStr = "";
+                                    $prefixRulesPivot = "bail|";
+                                    $prefixRulesPivotExtraArray = "bail|";
                                     if ($transFile !== false) {
-                                        if (Lang::has($transFile . ".labels." . $pivotColumn['name'])) {
-                                            $pivotColumnAux['label'] = $transPrefix . $transFile . ".labels." . $pivotColumn['name'];
-                                        }
-                                        if (Lang::has($transFile . ".placeholders." . $pivotColumn['name'])) {
-                                            $pivotColumnAux['placeholder'] = $transPrefix . $transFile . ".placeholders." . $pivotColumn['name'];
-                                        }
-                                        if (Lang::has($transFile . ".descriptions." . $pivotColumn['name'])) {
-                                            $pivotColumnAux['description'] = $transPrefix . $transFile . ".descriptions." . $pivotColumn['name'];
-                                        }
-                                        if (Lang::has($transFile . ".selects." . $pivotColumn['name']) && is_array(trans($transFile . ".selects." . $pivotColumn['name']))) {
-                                            $pivotColumnAux['tipo'] = 'select';
-                                            $pivotColumnAux['opciones'] = $transPrefix . $transFile . ".selects." . $pivotColumn['name'];
+                                        CrudGenerator::getTransNameForField($pivotColumnAux, "label", $transFile, "{$campo}_{$pivotColumn['name']}", $transPrefix);
+                                        CrudGenerator::getTransNameForField($pivotColumnAux, "placeholder", $transFile, "{$campo}_{$pivotColumn['name']}", $transPrefix);
+                                        CrudGenerator::getTransNameForField($pivotColumnAux, "description", $transFile, "{$campo}_{$pivotColumn['name']}", $transPrefix);
+                                    }
+                                    if (Lang::has((string)  "$transFile.selects.{$campo}_{$pivotColumn['name']}") && is_array(trans((string) "$transFile.selects.{$campo}_{$pivotColumn['name']}"))) {
+                                        $pivotColumnAux['tipo'] = 'select';
+                                        $pivotColumnAux['opciones'] =  $transPrefix . (string) "$transFile.selects.{$campo}_{$pivotColumn['name']}";
+                                    } else {
+                                        switch ($pivotColumn['type']) {
+                                            case 'text':
+                                            case 'blob':
+                                                $pivotColumnAux['tipo'] = 'textarea';
+                                                if (CrudGenerator::getTypeByName($pivotColumn['name'], 'html')) {
+                                                    $pivotColumnAux['tipo'] = "html";
+                                                } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'json')) {
+                                                    $pivotColumnAux['tipo'] = "json";
+                                                    $pivotColumnAux['valor'] = "{}";
+                                                } elseif (CrudGenerator::getTypeByName($campo, 'article')) {
+                                                    $pivotColumnAux['tipo'] = "article";
+                                                    $pivotColumnAux['scope'] = "$tabla.$campo.{$pivotColumn['name']}";
+                                                    $pivotColumnAux['es_html'] = true;
+                                                    $rulesPivotStr .= $prefixRulesPivot . 'with_articles';
+                                                    $prefixRulesPivot = "|";
+                                                } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
+                                                    $pivotColumnAux['tipo'] = "files";
+                                                    $pivotColumnAux['path'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
+                                                    $pivotColumnAux['saveCompletePath'] = true;
+                                                    $rulesPivotExtraArrayStr .= $prefixRulesPivotExtraArray . 'file';
+                                                    $prefixRulesPivotExtraArray = "|";
+                                                    $configCampos[$campo]['files'] = true;
+                                                    if (CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
+                                                        $rulesPivotExtraArrayStr .= $prefixRulesPivotExtraArray . 'image';
+                                                        $prefixRulesPivotExtraArray = "|";
+                                                    }
+                                                }
+                                                break;
+                                            case 'integer':
+                                            case 'bigint':
+                                            case 'smallint':
+                                            case 'decimal':
+                                            case 'float':
+                                                $pivotColumnAux['tipo'] = 'number';
+                                                $pivotColumnAux['format'] = [0, ".", "."];
+                                                if ($pivotColumn['type'] == 'decimal' || $pivotColumn['type'] == 'float') {
+                                                    $pivotColumnAux['format'] = [2, ".", "."];
+                                                }
+                                                if ($pivotColumn['autoincrement']) {
+                                                    //$pivotColumnAux['valor'] = $modeloClass::all()->count() + 1;
+                                                    //$pivotColumnAux['nodb'] = "nodb";
+                                                }
+                                                break;
+                                            case 'time':
+                                            case 'datetime':
+                                                //case 'datetimetz':
+                                            case 'date':
+                                            case 'timestamp':
+                                                //$pivotColumnAux['tipo'] = 'text';
+                                                $typeAux = $pivotColumn['type'];
+                                                if ($typeAux == 'timestamp') {
+                                                    $typeAux = 'datetime';
+                                                }
+                                                $pivotColumnAux['tipo'] = $typeAux;
+                                                $pivotColumnAux['format'] = [
+                                                    "carbon" => $transPrefix . "crudgenerator::admin.formats.carbon." . $typeAux,
+                                                    "moment" => $transPrefix . "crudgenerator::admin.formats.moment." . $typeAux
+                                                ];
+                                                break;
+                                            case 'boolean':
+                                                $pivotColumnAux['value'] = true;
+                                                $pivotColumnAux['tipo'] = 'checkbox';
+                                                break;
+                                            case 'text':
+                                            default:
+                                                $pivotColumnAux['tipo'] = "text";
+                                                if (CrudGenerator::getTypeByName($pivotColumn['name'], 'email')) {
+                                                    $pivotColumnAux['tipo'] = "email";
+                                                } elseif (CrudGenerator::getTypeByName($campo, 'article')) {
+                                                    $pivotColumnAux['tipo'] = "article";
+                                                    $pivotColumnAux['scope'] = "$tabla.$campo.{$pivotColumn['name']}";
+                                                    $pivotColumnAux['es_html'] = true;
+                                                    $rulesPivotStr .= $prefixRulesPivot . 'with_articles';
+                                                    $prefixRulesPivot = "|";
+                                                } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'url')) {
+                                                    $pivotColumnAux['tipo'] = "url";
+                                                    $rulesPivotStr .= $prefixRulesPivot . 'url';
+                                                    $prefixRulesPivot = "|";
+                                                } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'color')) {
+                                                    $pivotColumnAux['tipo'] = "color";
+                                                } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'password')) {
+                                                    $pivotColumnAux['tipo'] = "password";
+                                                    $rulesPivotStr .= $prefixRulesPivot . 'alpha_num';
+                                                    $prefixRulesPivot = "|";
+                                                } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
+                                                    $pivotColumnAux['tipo'] = "file";
+                                                    $pivotColumnAux['path'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
+                                                    $pivotColumnAux['saveCompletePath'] = true;
+                                                    $rulesPivotStr .= $prefixRulesPivot . 'file';
+                                                    $prefixRulesPivot = "|";
+                                                    $configCampos[$campo]['files'] = true;
+                                                    if (CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
+                                                        $rulesPivotStr .= $prefixRulesPivot . 'image';
+                                                        $prefixRulesPivot = "|";
+                                                    }
+                                                }
+                                                if ($pivotColumn['lenght'] > 0  && $pivotColumnAux['tipo'] != "article" &&  !(CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || CrudGenerator::getTypeByName($pivotColumn['name'], 'image'))) {
+                                                    $rulesPivotStr .= $prefixRulesPivot . 'max:' . $pivotColumn['lenght'];
+                                                    $prefixRulesPivot = "|";
+                                                }
+                                                break;
                                         }
                                     }
-                                    switch ($pivotColumn['type']) {
-                                        case 'text':
-                                        case 'blob':
-                                            $pivotColumnAux['tipo'] = 'textarea';
-                                            if (CrudGenerator::getTypeByName($pivotColumn['name'], 'html')) {
-                                                $pivotColumnAux['tipo'] = "html";
-                                            } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'json')) {
-                                                $pivotColumnAux['tipo'] = "json";
-                                                $pivotColumnAux['valor'] = "{}";
-                                            } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
-                                                $pivotColumnAux['tipo'] = "files";
-                                                $pivotColumnAux['path'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
-                                                $pivotColumnAux['saveCompletePath'] = true;
-                                            }
-                                            break;
-                                        case 'integer':
-                                        case 'bigint':
-                                        case 'smallint':
-                                        case 'decimal':
-                                        case 'float':
-                                            $pivotColumnAux['tipo'] = 'number';
-                                            $pivotColumnAux['format'] = [0, ".", "."];
-                                            if ($pivotColumn['type'] == 'decimal' || $pivotColumn['type'] == 'float') {
-                                                $pivotColumnAux['format'] = [2, ".", "."];
-                                            }
-                                            if ($pivotColumn['autoincrement']) {
-                                                //$pivotColumnAux['valor'] = $modeloClass::all()->count() + 1;
-                                                //$pivotColumnAux['nodb'] = "nodb";
-                                            }
-                                            break;
-                                        case 'time':
-                                        case 'datetime':
-                                            //case 'datetimetz':
-                                        case 'date':
-                                        case 'timestamp':
-                                            //$pivotColumnAux['tipo'] = 'text';
-                                            $typeAux = $pivotColumn['type'];
-                                            if ($typeAux == 'timestamp') {
-                                                $typeAux = 'datetime';
-                                            }
-                                            $pivotColumnAux['tipo'] = $typeAux;
-                                            $pivotColumnAux['format'] = [
-                                                "carbon" => $transPrefix . "crudgenerator::admin.formats.carbon." . $typeAux,
-                                                "moment" => $transPrefix . "crudgenerator::admin.formats.moment." . $typeAux
-                                            ];
-                                            break;
-                                        case 'boolean':
-                                            $pivotColumnAux['value'] = true;
-                                            $pivotColumnAux['tipo'] = 'checkbox';
-                                            break;
-                                        case 'text':
-                                        default:
-                                            $pivotColumnAux['tipo'] = "text";
-                                            if (CrudGenerator::getTypeByName($pivotColumn['name'], 'email')) {
-                                                $pivotColumnAux['tipo'] = "email";
-                                            } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'url')) {
-                                                $pivotColumnAux['tipo'] = "url";
-                                            } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'color')) {
-                                                $pivotColumnAux['tipo'] = "color";
-                                            } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'password')) {
-                                                $pivotColumnAux['tipo'] = "password";
-                                            } elseif (CrudGenerator::getTypeByName($pivotColumn['name'], 'file') || CrudGenerator::getTypeByName($pivotColumn['name'], 'image')) {
-                                                $pivotColumnAux['tipo'] = "file";
-                                                $pivotColumnAux['path'] = $tabla . "_" . $campo . "_" . $pivotColumn['name'];
-                                                $pivotColumnAux['saveCompletePath'] = true;
-                                            }
-                                            break;
+                                    if ($pivotColumn['notNull'] && $pivotColumn['type'] != 'boolean' && $pivotColumnAux['tipo'] != "article") {
+                                        if ($pivotColumnAux['tipo'] == "files" || $pivotColumnAux['tipo'] == "file") {
+                                            $rulesPivotStr .= $prefixRulesPivot . 'required_without:' . $campo . "_filereg";
+                                        } else {
+                                            $rulesPivotStr .= $prefixRulesPivot . 'required';
+                                        }
+                                        $prefixRulesPivot = "|";
+                                    }
+                                    if ($pivotColumn['isUnique'] && $pivotColumnAux['tipo'] != "article") {
+                                        $tablaRelacionada = (new $configCampos[$campo]['modelo'])->getTable();
+                                        $rulesPivotStr .= $prefixRulesPivot . 'unique_except:' . $tablaRelacionada . ',' . $pivotColumn['name'];
+                                        $prefixRulesPivot = "|";
+                                    }
+                                    if (isset($pivotColumn['default'])) {
+                                        $pivotColumnAux['valor'] = $pivotColumn['default'];
                                     }
                                     $pivotColumns[] = $pivotColumnAux;
+                                    if ($rulesPivotStr != "") {
+                                        $rules["{$campo}__{$pivotColumn['name']}"] = $rulesPivotStr;
+                                    }
+                                    if ($rulesPivotExtraArrayStr != "") {
+                                        $rules["{$campo}__{$pivotColumn['name']}.*"] = $rulesPivotExtraArrayStr;
+                                    }
                                 }
                                 if (count($pivotColumns) > 0) {
                                     $configCampos[$campo]['tipo'] = 'relationshipssel';
@@ -894,33 +950,9 @@ trait CrudConfig
                         break;
                 }
                 if ($transFile !== false) {
-                    if (Lang::has($transFile . ".labels." . $campo)) {
-                        if (count($configCampos[$campo]) > 2) {
-                            $configCampos[$campo] = array_slice($configCampos[$campo], 0, count($configCampos[$campo]) - 2, true) +
-                                ['label' => $transPrefix . $transFile . ".labels." . $campo] +
-                                array_slice($configCampos[$campo], count($configCampos[$campo]) - 2, count($configCampos[$campo]) - 1, true);
-                        } else {
-                            $configCampos[$campo]['label'] = $transPrefix . $transFile . ".labels." . $campo;
-                        }
-                    }
-                    if (Lang::has($transFile . ".placeholders." . $campo)) {
-                        if (count($configCampos[$campo]) > 2) {
-                            $configCampos[$campo] = array_slice($configCampos[$campo], 0, count($configCampos[$campo]) - 2, true) +
-                                ['placeholder' => $transPrefix . $transFile . ".placeholders." . $campo] +
-                                array_slice($configCampos[$campo], count($configCampos[$campo]) - 2, count($configCampos[$campo]) - 1, true);
-                        } else {
-                            $configCampos[$campo]['placeholder'] = $transPrefix . $transFile . ".placeholders." . $campo;
-                        }
-                    }
-                    if (Lang::has($transFile . ".descriptions." . $campo)) {
-                        if (count($configCampos[$campo]) > 2) {
-                            $configCampos[$campo] = array_slice($configCampos[$campo], 0, count($configCampos[$campo]) - 2, true) +
-                                ['description' => $transPrefix . $transFile . ".descriptions." . $campo] +
-                                array_slice($configCampos[$campo], count($configCampos[$campo]) - 2, count($configCampos[$campo]) - 1, true);
-                        } else {
-                            $configCampos[$campo]['description'] = $transPrefix . $transFile . ".descriptions." . $campo;
-                        }
-                    }
+                    CrudGenerator::getTransNameForField($configCampos[$campo], "label", $transFile, $campo, $transPrefix);
+                    CrudGenerator::getTransNameForField($configCampos[$campo], "placeholder", $transFile, $campo, $transPrefix);
+                    CrudGenerator::getTransNameForField($configCampos[$campo], "description", $transFile, $campo, $transPrefix);
                 }
                 if ($rulesStr != "") {
                     $rules[$campo] = $rulesStr;
@@ -932,6 +964,31 @@ trait CrudConfig
         $config["campos"] = $configCampos;
         $config['rules'] = $rules;
         return $config;
+    }
+
+    /**
+     * Sets the corret trans command for a column of a specific type
+     * 
+     * @param array $config The configuration to change
+     * @param string $tipo The type, ej: label, placeholder, description
+     * @param array $transFile The parent trans file
+     * @param string $campo The field name
+     * @param string $transPRefix The trans prefix defined in config
+     */
+    public static function getTransNameForField(&$config, $tipo, $transFile, $campo, $transPrefix)
+    {
+        if (Lang::has($transFile . ".{$tipo}s." . $campo)) {
+            $nuevo = $transPrefix . $transFile . ".{$tipo}s." . $campo;
+            if (Arr::has($config, "{$tipo}")) {
+                Arr::set($config, "{$tipo}", $nuevo);
+            } elseif (count($config) > 2) {
+                $config = array_slice($config, 0, count($config) - 2, true) +
+                    [$tipo => $nuevo] +
+                    array_slice($config, count($config) - 2, count($config) - 1, true);
+            } else {
+                Arr::set($config, "{$tipo}", $nuevo);
+            }
+        }
     }
 
     /**
@@ -1452,5 +1509,87 @@ trait CrudConfig
             'remove' => "<a class='btn btn-danger' href='{$urls['remove']}' data-confirm='$textConfirm' data-yes='" . trans('crudgenerator::admin.layout.labels.yes') . "' data-no='" . trans('crudgenerator::admin.layout.labels.no') . "' data-confirmtheme='" . config('sirgrimorum.crudgenerator.confirm_theme') . "' data-confirmicon='" . config('sirgrimorum.crudgenerator.confirm_icon') . "' data-confirmtitle='' data-method='delete' rel='nofollow' title='" . trans('crudgenerator::datatables.buttons.t_remove') . " $plurales'>" . trans("crudgenerator::datatables.buttons.remove") . "</a>",
             'create' => "<a class='btn btn-info' href='{$urls['create']}' title='" . trans('crudgenerator::datatables.buttons.t_create') . " $singulares'>" . trans("crudgenerator::datatables.buttons.create") . "</a>",
         ];
+    }
+
+    /**
+     * Generate get the arrays for rules, messages and Custom Attributes for validation 
+     * including the dynamic ones for relationshipssel fields
+     * 
+     * @param array $config The config array
+     * @return array [$rules, $messages, $customAttributes]
+     */
+    public static function getRulesWithRelationShips($config, Request $request = null)
+    {
+        if (is_null($request)) {
+            $request = request();
+        }
+        $rules = [];
+        $error_messages = [];
+        $customAttributes = [];
+        foreach ($config["campos"] as $field => $datos) {
+            $customAttributes[$field] = Arr::get($datos, "label", $field);
+        }
+        if (isset($config['rules'])) {
+            if (is_array($config['rules'])) {
+                $rules = $config['rules'];
+            }
+        }
+        if (count($rules) == 0) {
+            $objModelo = new $config['modelo'];
+            if (isset($objModelo->rules)) {
+                if (is_array($objModelo->rules)) {
+                    $rules = $objModelo->rules;
+                }
+            }
+        }
+        $auxIdCambio = $request->get($config["id"]);
+
+        $rules = CrudGenerator::translateArray($rules, ":model", function ($string) use ($auxIdCambio) {
+            return $auxIdCambio;
+        }, "Id");
+        if (count($rules) > 0) {
+            $error_messages = [];
+            if (isset($config['error_messages'])) {
+                if (is_array($config['error_messages'])) {
+                    $error_messages = $config['error_messages'];
+                }
+            }
+            if (count($error_messages) == 0) {
+                $objModelo = new $config['modelo'];
+                if (isset($objModelo->error_messages)) {
+                    if (is_array($objModelo->error_messages)) {
+                        $error_messages = $objModelo->error_messages;
+                    }
+                }
+            }
+            foreach (CrudGenerator::justWithValor($config, "tipo", "relationshipssel")['campos'] as $relacion => $datos) {
+                foreach ($datos['columnas'] as $detalles) {
+                    if (($campo = Arr::get($detalles, "campo", "")) != "") {
+                        $tambienMensajes = [];
+                        if (Arr::has($rules, "{$relacion}__{$campo}")) {
+                            if ($request->has($relacion)) {
+                                foreach ($request->input($relacion) as $pivot => $id) {
+                                    $rules["{$relacion}_{$campo}_$id"] = $rules["{$relacion}__{$campo}"];
+                                    foreach ($error_messages as $err => $mes) {
+                                        if (strpos($err, "{$relacion}__{$campo}") !== false) {
+                                            $tambienMensajes[$err] = $err;
+                                            $error_messages[str_replace("{$relacion}__{$campo}", "{$relacion}_{$campo}_$id", $err)] = str_replace(":submodel", $pivot, $mes);
+                                        }
+                                    }
+                                    $customAttributes["{$relacion}_{$campo}_$id"] = Arr::get($detalles, "label", $campo) . " " . trans("crudgenerator::admin.layout.labels.de") . " " . $pivot;
+                                }
+                            }
+                            unset($rules["{$relacion}__{$campo}"]);
+                        }
+                        if (count($tambienMensajes) > 0) {
+                            foreach ($tambienMensajes as $error)
+                                unset($error_messages[$error]);
+                        }
+                    }
+                }
+            }
+            $error_messages = array_merge(trans("crudgenerator::admin.error_messages"), $error_messages);
+        }
+        return [$rules, $error_messages, $customAttributes];
     }
 }

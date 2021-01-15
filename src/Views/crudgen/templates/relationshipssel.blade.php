@@ -24,7 +24,8 @@ if ($dato == "") {
         $dato = "";
     }
 } else {
-    foreach (old($extraId) as $idAuxDato => $idAuxCampo) {
+    $dato = [];
+    foreach (old($extraId) as $idAuxCampo => $idAuxDato) {
         $dato[$idAuxDato] = $datos["modelo"]::find($idAuxDato);
     }
 }

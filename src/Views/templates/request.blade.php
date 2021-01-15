@@ -9,12 +9,57 @@ use {{$config['modelo']}};
 class {Model}Request extends FormRequest {
 
     /**
+     * The configuration array for the model.
+     *
+     * @var array
+     */
+    private $config;
+
+    /**
+     * The array of rules.
+     *
+     * @var array
+     */
+    private $rules;
+
+    /**
+     * The array of custom error messages.
+     *
+     * @var array
+     */
+    private $error_messages;
+
+    /**
+     * The array of custom attributes names.
+     *
+     * @var array
+     */
+    private $customAttributes;
+
+    /**
+     * @param array                $query      The GET parameters
+     * @param array                $request    The POST parameters
+     * @param array                $attributes The request attributes (parameters parsed from the PATH_INFO, ...)
+     * @param array                $cookies    The COOKIE parameters
+     * @param array                $files      The FILES parameters
+     * @param array                $server     The SERVER parameters
+     * @param string|resource|null $content    The raw body data
+     */
+    public function __construct(array $query = [], array $request = [], array $attributes = [], array $cookies = [], array $files = [], array $server = [], $content = null)
+    {
+        $this->config = CrudGenerator::getConfigWithParametros('{model}');
+        [$this->rules, $this->error_messages, $this->customAttributes] = CrudGenerator::getRulesWithRelationShips($this->config);
+        parent::__construct($query, $request, $attributes, $cookies, $files, $server, $content);
+    }
+
+
+    /**
      * Determine if the user is authorized to make this request.
      *
      * @return bool
      */
     public function authorize() {
-        return true;
+        return true; // The authorization is managed in the Policy created by CrudGenerator
     }
 
     /**
@@ -26,12 +71,7 @@ class {Model}Request extends FormRequest {
         switch($this->route()->getName()){
             case "{model}.store":
             case "{model}.update":
-                $config = CrudGenerator::getConfigWithParametros('{model}');
-                if (isset($config['rules'])){
-                    return $config['rules'];
-                }else{
-                    return [];
-                }
+                return $this->rules;
                 break;
             default:
                 return [];
@@ -45,23 +85,7 @@ class {Model}Request extends FormRequest {
      * @return array
      */
     public function messages() {
-        $config = CrudGenerator::getConfigWithParametros('{model}');
-        $error_messages = [];
-            if (isset($config['error_messages'])) {
-                if (is_array($config['error_messages'])) {
-                    $error_messages = $config['error_messages'];
-                }
-            }
-            if (count($error_messages) == 0) {
-                $objModelo = new $config['modelo'];
-                if (isset($objModelo->error_messages)) {
-                    if (is_array($objModelo->error_messages)) {
-                        $error_messages = $objModelo->error_messages;
-                    }
-                }
-            }
-            $error_messages = array_merge(trans("crudgenerator::admin.error_messages"), $error_messages);
-        return $error_messages;
+        return $this->error_messages;
     }
     
     /**
@@ -70,14 +94,7 @@ class {Model}Request extends FormRequest {
      * @return array
      */
     public function attributes() {
-        $config = CrudGenerator::getConfigWithParametros('{model}');
-        $customAttributes = [];
-            foreach ($config['rules'] as $field => $datos) {
-                if (\Illuminate\Support\Arr::has($config, "campos." . $field . ".label")) {
-                    $customAttributes[$field] = \Illuminate\Support\Arr::get($config, "campos." . $field . ".label");
-                }
-            }
-        return $customAttributes;
+        return $this->customAttributes;
     }
 
 }

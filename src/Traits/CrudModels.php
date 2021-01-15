@@ -1672,52 +1672,8 @@ trait CrudModels
      */
     public static function validateModel(array $config, \Illuminate\Http\Request $request = null)
     {
-        if (is_null($request)) {
-            $request = request();
-        }
-        $rules = [];
-        $modeloM = class_basename($config["modelo"]);
-        $modelo = strtolower($modeloM);
-        if (isset($config['rules'])) {
-            if (is_array($config['rules'])) {
-                $rules = $config['rules'];
-            }
-        }
-        if (count($rules) == 0) {
-            $objModelo = new $config['modelo'];
-            if (isset($objModelo->rules)) {
-                if (is_array($objModelo->rules)) {
-                    $rules = $objModelo->rules;
-                }
-            }
-        }
-        $auxIdCambio = $request->get($config["id"]);
-
-        $rules = CrudGenerator::translateArray($rules, ":model", function ($string) use ($auxIdCambio) {
-            return $auxIdCambio;
-        }, "Id");
+        [$rules, $error_messages, $customAttributes] = CrudGenerator::getRulesWithRelationShips($config, $request);
         if (count($rules) > 0) {
-            $customAttributes = [];
-            foreach ($rules as $field => $datos) {
-                if (Arr::has($config, "campos." . $field . ".label")) {
-                    $customAttributes[$field] = Arr::get($config, "campos." . $field . ".label");
-                }
-            }
-            $error_messages = [];
-            if (isset($config['error_messages'])) {
-                if (is_array($config['error_messages'])) {
-                    $error_messages = $config['error_messages'];
-                }
-            }
-            if (count($error_messages) == 0) {
-                $objModelo = new $config['modelo'];
-                if (isset($objModelo->error_messages)) {
-                    if (is_array($objModelo->error_messages)) {
-                        $error_messages = $objModelo->error_messages;
-                    }
-                }
-            }
-            $error_messages = array_merge(trans("crudgenerator::admin.error_messages"), $error_messages);
             $validator = Validator::make($request->all(), $rules, $error_messages, $customAttributes);
             return $validator;
         }
@@ -1925,13 +1881,13 @@ trait CrudModels
                             case 'relationshipssel':
                                 if ($input->has($campo)) {
                                     $datos = [];
-                                    foreach ($input->input($campo) as $id => $pivot) {
+                                    foreach ($input->input($campo) as $pivot => $id) {
                                         $datos[$id] = [];
                                         foreach ($detalles['columnas'] as $subdetalles) {
                                             if ($subdetalles['tipo'] != "label" && $subdetalles['tipo'] != "labelpivot") {
                                                 if ($input->has($campo . "_" . $subdetalles['campo'] . "_" . $id)) {
                                                     $datos[$id][$subdetalles['campo']] = $input->input($campo . "_" . $subdetalles['campo'] . "_" . $id);
-                                                } else {
+                                                } elseif(isset($subdetalles['valor'])) {
                                                     $datos[$id][$subdetalles['campo']] = $subdetalles['valor'];
                                                 }
                                             }

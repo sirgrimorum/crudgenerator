@@ -172,9 +172,9 @@
                    "datatables" => "[tipo de columna]", // for all types, options for this column in datatables, options are "noFiltro" (is not used as filter or condition), "preFiltro" (is used to prefilter the table)
                 ],
             ],
-            "rules" => [ //the array contining the validation rules. If not here, it whill search for them in the model, public property with the same name
+            "rules" => [ //the array contining the validation rules. If not here, it whill search for them in the model public property with the same name, , use :model to be change for the model name, use "[relation]__[field_in_pivot_table]" for por rules for the pivot table columns
             ],
-            "error_messages" => [ //the validation error messages. If not here, it whill search for them in the model, public property with the same name
+            "error_messages" => [ //the validation error messages. If not here, it whill search for them in the model, public property with the same name, use "[relation]__[field_in_pivot_table].[rule]" for por custom error messages for the rules of pivot table columns, and :submodel to change for the name of the related registry
             ],
             "permissions" => [ //the permissions to validate before doing an action, for CrudController if not present, uses the "sirgrimorum_cms::permission" closure, false send back to the 'sirgrimorum_cms::login_path' 
                 "default" => [closure that returns true or false], // the default permission to validate if others not present, remember to use request() helper if needed, for CrudCrontroller false send back to the 'sirgrimorum_cms::login_path' 

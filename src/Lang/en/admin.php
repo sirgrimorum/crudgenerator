@@ -55,6 +55,7 @@ return [
             'pretty_print' => 'Pretty Print',
             'seleccione' => "Select...",
             'todos' => "All",
+            "de" => "from",
         ],
     ],
     'privado' => [

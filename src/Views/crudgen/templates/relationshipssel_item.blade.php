@@ -140,7 +140,7 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
 {{-- 2. Si es la primera vuelta --}}
 @if ($loop->first)
 <div class="card mb-1 mt-1 {{$card_class}}" id="{{$extraId . "_" . $tablaOtroId}}_principal" data-pivote="principal">
-    {{ Form::hidden($extraId. "[" . $tablaOtroId ."]", $tablaOtroId, array('class' => 'form-control', 'id' => $extraId . '_' . $tablaOtroId)) }}
+    {{ Form::hidden($extraId. "[" . $valorM ."]", $tablaOtroId, array('class' => 'form-control', 'id' => $extraId . '_' . $tablaOtroId)) }}
     <div class="card-header text-center">
         <div class="d-flex justify-content-between align-items-center">
             <div class="btn-group" role="group" aria-label="Third group">
@@ -193,7 +193,7 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
                 "columna" => $columnaT['campo'],
                 "datos" => $columnaT,
                 "registro" => $pivote, 
-                "errores" => false,
+                "errores" => count($errors->all())>0,
                 "nameScriptLoader" => $nameScriptLoader,
             ])
             {{-- 4. el de si es label o label pivote --}}

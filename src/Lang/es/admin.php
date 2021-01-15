@@ -56,6 +56,7 @@ return [
             'pretty_print' => 'Dar formato',
             'seleccione' => "Seleccione...",
             'todos' => "Todos",
+            "de" => "de",
         ],
     ],
     'privado' => [
