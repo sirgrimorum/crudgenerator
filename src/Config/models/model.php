@@ -64,7 +64,7 @@
             "pre_html" => "[Html code]", // optional code to be inserted after the form tag opening
             "post_html" => "[Html code]", // optional code to be inserted before the form tag closing
             "pre_form_html" => "[Html code]", // optional code to be inserted before the form tag opening, use :formId to include the form id attribute
-            "post_for_html" => "[Html code]", // optional code to be inserted after the form tag closing, use :formId to include the form id attribute
+            "post_form_html" => "[Html code]", // optional code to be inserted after the form tag closing, use :formId to include the form id attribute
             "formId" => "[id for the create and edit forms]", // optional, if not present it would be use a random one
             "icono" => "<i class="fa fa-home mr-1"></i>", // optional code to be inserted before the name in the admin menu
             "query" => [Callable that returns Builder or collection or array of objects], // optional a function that returns the query builder to be used as base to retreive the model fields, if empty, will use Model::whereRaw("1=1")
@@ -155,14 +155,14 @@
                     "backdrop" => [ // for the relationshipssel type, shows a backdrop behind the search on focus, if false, no backdrop, true (default), a backdrop, us an array of styles to override the styles
                         "background-color" => "#fff",
                     ],
-                    "template" => "",// String with a function (query, item) or an html with {{variable}} to be changed for the registry fields values (documentation on http://www.runningcoder.org/jquerytypeahead/)
+                    "template" => "",// String with a function (query, item) or an html with {{variable}} to be changed for the registry fields values (documentation on http://www.runningcoder.org/jquerytypeahead/#template)
                     "columnas" => [[ // required for the relationshipssel type, list of columns to show in the table
                         "label" => "[Header for the column]", // required, use the 'trans_prefix' value if you want localization
                         "placeholder" => "[Placeholder for the column]", // required for 'text' and 'number' types, use the 'trans_prefix' value if you want localization
                         "type" => "[type of the filed]", // required, options are basically the same of field minus relationships plus: "label" (value of a field in table), "labelpivot" (value of a field in the pivot table)
                         "campo" => "[name of the field]", // required
                         "opciones" => [] // required for select type, array of options, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.selects.options__"
- *                      "format" => [(number of decimals), "[decimal separator]", "[mil separator]"], // for number types, aplies format to the number []
+                        "format" => [(number of decimals), "[decimal separator]", "[mil separator]"], // for number types, aplies format to the number []
                         "valor" => "[default value of the field]", // use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
                    ],],
                    "readonly" => ["create","list"], // for all types, if set adds the value to the attribute "readonly" in the input 
