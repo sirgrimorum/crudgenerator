@@ -114,6 +114,12 @@ return [
         '__view__' => function ($string) {
             return view($string)->render();
         },
+        '__post_trans__' => function ($string) {
+            return "__trans__{$string}__";
+        },
+        '__post_config__' => function ($string) {
+            return "__config__{$string}__";
+        },
         '__function__' => function ($string) {
             return $string;
         },

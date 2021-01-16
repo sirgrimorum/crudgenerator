@@ -96,6 +96,8 @@
                             ]
                         ]
                     ],
+                    "show_data" => "[]", // function(array $dato (the one obtain after using $model->get("campo", false)) or string with field_names between <-field_name-> or <-fied_name.value-> to use to process data of the column in the show view
+                    "list_data" => "[]", // function(array $dato (the one obtain after using $model->get("campo", false)) or string with field_names between <-field_name-> or <-fied_name.value-> to use to process data of the column in the list view
                     "glue" => "_", // string to be use as glue when value is an array and must be a string, ej: in checkbox with multiple selection, default is "_"
                     "unchecked" => "[value to be taken by de field when unchecked]", // for checkbox and radio types, default is 0, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
                     "enlace" => "[url for link in show or lists views]", // use :modelId or :modelName to change it for de id or name of the object, use the 'trans_prefix' value if you want localization ej: __route__users.show, {'user': ':modelId'}__ or url("__trans__crudgenerator::article.menu.links.usuario__", array(":modelId"),
@@ -113,7 +115,7 @@
                     "multiple" => "multiple", // for the select and relationshipssel types, if you want the select to be multiple select available, other values means only one. For the select default is only one. For relationshipssel false means only one could be selected, other values means multiple, default is multiple
                     "modelo" => "[Model object]", // required for the relationship, relationships and the relationshipssel types
                     "id" => "[id field name]", // required for the relationship, relationships and the relationshipssel types
-                    "campo" => "[attribute taken as name for the model]", // required for the relationship, relationships and the relationshipssel types, may use an array of field names  or a string with the names of the fields to be replaced between <-field_name->
+                    "campo" => "[attribute taken as name for the model]", // required for the relationship, relationships and the relationshipssel types, may use an array of field names  or a string with the names of the fields to be replaced between <-field_name-> or <-field_name.sub_field.*.sub_field2-> for json
                     "groupby" => "[attribute taken as group for options in select]", // optional for the relationship, relationships and the relationshipssel types, may use an array of field names
                     "todos" => "", // required for the relationship, relationships and the relationshipssel types, array or collection of option models, a query Builder, callable that returns an array, a collection or a Query Builder, leave blank if you want all of them
                     "path" => "[name of the path in assets]/", // required for the file and files type, used to save the file, when url is "Sirgrimorum_CrudAdministrator", could be a route o function using the 'trans_prefix'

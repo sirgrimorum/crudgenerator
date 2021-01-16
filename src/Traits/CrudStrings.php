@@ -272,6 +272,47 @@ trait CrudStrings
     }
 
     /**
+     * Get the data to show for a specific action using the "[action]_show" option of the 
+     * column configuration array
+     * 
+     * @param array $datos The data values array from the $model->get("campo", false) function
+     * @param string $action The name of the action (mainly show and list)
+     * @param array $detalles The column configuration array
+     * @param bool $justString If only return strings (the arrays print_r between <pre></pre>)
+     * @return string|array The data to show after processing or the $data array
+     */
+    public static function getDatoToShow(array $datos, $action, array $detalles, $justString = true)
+    {
+        if (isset($detalles["{$action}_data"])) {
+            if (is_callable($detalles["{$action}_data"])) {
+                $return = $detalles["{$action}_data"]($datos);
+                if (is_array($return) && $justString) {
+                    return "<pre>" . print_r($return, true) . "</pre>";
+                }
+                return $return;
+            } elseif (($return = CrudGenerator::getNombreDeLista($datos, $detalles["{$action}_data"])) !== null) {
+                if (is_array($return) && $justString) {
+                    return "<pre>" . print_r($return, true) . "</pre>";
+                }
+                return $return;
+            }
+        }
+        if ($action == "list" && isset($datos['html_cell'])) {
+            return $datos['html_cell'];
+        } elseif (isset($datos['html_show'])) {
+            return $datos['html_show'];
+        } elseif (isset($datos['html'])) {
+            return $datos['html'];
+        } elseif (isset($datos['value'])) {
+            return (string) $datos['value'];
+        } elseif ($justString) {
+            return "<pre>" . print_r($datos, true) . "</pre>";
+        }
+
+        return $datos;
+    }
+
+    /**
      * Get de prefixes and funcitons array to use when translating configs
      *
      * @return array
@@ -706,30 +747,22 @@ trait CrudStrings
     public static function getNombreDeLista($elemento, $campo, $separador = "-", $default = null)
     {
         if (isset($campo)) {
-            if (is_object($elemento)) {
+            if (is_object($elemento) || is_array($elemento)) {
                 if (is_array($campo)) {
                     $strNombre = "";
                     $preNombre = "";
                     foreach ($campo as $indiceCampo => $nombreCampo) {
-                        if (is_string($elemento->{$nombreCampo})) {
-                            $stringDato = $elemento->{$nombreCampo};
-                        } else {
-                            $stringDato = json_encode($elemento->{$nombreCampo});
+                        if (($dato = data_get($elemento, $nombreCampo, null)) !== null) {
+                            if (is_string($dato)) {
+                                $stringDato = $dato;
+                            } elseif (is_array($dato) || is_object($dato)) {
+                                $stringDato = json_encode($dato);
+                            } else {
+                                $stringDato = (string) $dato;
+                            }
+                            $strNombre .= $preNombre . $stringDato;
+                            $preNombre = $separador;
                         }
-                        $strNombre .= $preNombre . $stringDato;
-                        $preNombre = $separador;
-                    }
-                    return $strNombre;
-                } else {
-                    return CrudGenerator::replaceCamposEnString($elemento, $campo, $default);
-                }
-            } elseif (is_array($elemento)) {
-                if (is_array($campo)) {
-                    $strNombre = "";
-                    $preNombre = "";
-                    foreach ($campo as $indiceCampo => $nombreCampo) {
-                        $strNombre .= $preNombre . $elemento[$nombreCampo];
-                        $preNombre = $separador;
                     }
                     return $strNombre;
                 } else {
@@ -765,51 +798,74 @@ trait CrudStrings
     {
         $pedazos = "";
         if (($left = strpos($plantilla, $separadorInicial)) !== false) {
-            $right = 0;
-            while ($left !== false) {
-                $pedazos .= substr($plantilla, $right, $left - $right);
-                if (($right = stripos($plantilla, $separadorFinal, $right)) === false) {
-                    $right = strlen($plantilla);
-                }
-                $textPiece = substr($plantilla, $left + strlen($separadorInicial), $right - ($left + strlen($separadorInicial)));
-                $piece = $textPiece;
-                $campo = Str::slug($piece);
-                $pedazos .= data_get($elemento, $campo,  $piece);
-                $right += strlen($separadorFinal);
-                if ($right < strlen($plantilla)) {
-                    $left = (stripos($plantilla, $separadorInicial, $right));
-                } else {
-                    $left = false;
-                }
-            }
-            if ($right < strlen($plantilla)) {
-                $pedazos .= substr($plantilla, $right);
-            }
+            $conUrl = false;
         } elseif (($left = strpos($plantilla, urlencode($separadorInicial))) !== false) {
             $separadorInicial = urlencode($separadorInicial);
             $separadorFinal = urlencode($separadorFinal);
-            $right = 0;
-            while ($left !== false) {
-                $pedazos .= substr($plantilla, $right, $left - $right);
-                if (($right = stripos($plantilla, $separadorFinal, $right)) === false) {
-                    $right = strlen($plantilla);
-                }
-                $textPiece = substr($plantilla, $left + strlen($separadorInicial), $right - ($left + strlen($separadorInicial)));
-                $piece = $textPiece;
-                $campo = Str::slug($piece);
-                $pedazos .= urlencode(data_get($elemento, $campo,  $piece));
-                $right += strlen($separadorFinal);
-                if ($right < strlen($plantilla)) {
-                    $left = (stripos($plantilla, $separadorInicial, $right));
-                } else {
-                    $left = false;
-                }
-            }
-            if ($right < strlen($plantilla)) {
-                $pedazos .= substr($plantilla, $right);
-            }
+            $conUrl = true;
         } else {
-            $pedazos = data_get($elemento, $plantilla, $default ?? $plantilla);
+            return $pedazos = data_get($elemento, $plantilla, $default ?? $plantilla);
+        }
+        $right = 0;
+        while ($left !== false) {
+            $pedazos .= substr($plantilla, $right, $left - $right);
+            if (($right = stripos($plantilla, $separadorFinal, $right)) === false) {
+                $right = strlen($plantilla);
+            }
+            $textPiece = substr($plantilla, $left + strlen($separadorInicial), $right - ($left + strlen($separadorInicial)));
+            $piece = $textPiece;
+            if (($dato = data_get($elemento, $piece, $piece)) === $piece && strpos($piece, ".") !== false) {
+                $subCampo = $piece;
+                $listoSubCampo = false;
+                while (strpos($subCampo, ".") !== false && $listoSubCampo == false) {
+                    $finalSubCampo = Str::afterLast($subCampo, '.');
+                    $subCampo = Str::beforeLast($subCampo, '.');
+                    if (Str::endsWith($subCampo, '.*')) {
+                        $subCampo = Str::beforeLast($subCampo, '.');
+                        $finalSubCampo = "*.$finalSubCampo";
+                    }
+                    if (($subDato = data_get($elemento, $subCampo, null)) !== null) {
+                        if (is_array($subDato) || is_object($subDato)) {
+                            $dato = data_get($subDato, $finalSubCampo, $finalSubCampo);
+                        } elseif (is_string($subDato)) {
+                            if (CrudGenerator::isJsonString($subDato)) {
+                                $dato = data_get(json_decode($subDato, true), $finalSubCampo, $finalSubCampo);
+                            } else {
+                                $dato = $finalSubCampo;
+                            }
+                        } else {
+                            $dato = $finalSubCampo;
+                        }
+                        $listoSubCampo = true;
+                    }
+                }
+            } elseif ($dato === $piece) {
+                $campo = Str::slug($piece);
+                data_get($elemento, $campo, $piece);
+            }
+
+            if (is_string($dato)) {
+                $stringDato = $dato;
+            } elseif (is_array($dato) || is_object($dato)) {
+                $stringDato = json_encode($dato);
+            } else {
+                $stringDato = (string) $dato;
+            }
+            if ($conUrl) {
+                $pedazos .= urlencode($stringDato);
+            } else {
+                $pedazos .= $stringDato;
+            }
+
+            $right += strlen($separadorFinal);
+            if ($right < strlen($plantilla)) {
+                $left = (stripos($plantilla, $separadorInicial, $right));
+            } else {
+                $left = false;
+            }
+        }
+        if ($right < strlen($plantilla)) {
+            $pedazos .= substr($plantilla, $right);
         }
         return $pedazos;
     }
@@ -822,7 +878,8 @@ trait CrudStrings
      * @param string $separadorFinal Optional The string used to identify de end of the field's name in $plantilla, default "->"
      * @return array The list of fields in $plantilla
      */
-    public static function getCamposDeReplacementString($plantilla, $separadorInicial = "<-", $separadorFinal = "->"){
+    public static function getCamposDeReplacementString($plantilla, $separadorInicial = "<-", $separadorFinal = "->")
+    {
         $listOfFields = [];
         if (($left = strpos($plantilla, $separadorInicial)) !== false) {
             $right = 0;

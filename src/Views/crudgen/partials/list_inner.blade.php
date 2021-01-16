@@ -8,16 +8,8 @@ $nombre = CrudGenerator::getJustValue('nombre',$value,$config, $key);
     @if (CrudGenerator::inside_array($datos,"hide","list")===false)
     <td class="position-relative">
         @if (isset($value[$columna]))
-        @if (is_array($value[$columna]) && isset($value[$columna]['html_cell']))
-        {!! $value[$columna]['html_cell'] !!}
-        @elseif (is_array($value[$columna]) && isset($value[$columna]['html_show']))
-        {!! $value[$columna]['html_show'] !!}
-        @elseif (is_array($value[$columna]) && isset($value[$columna]['html']))
-        {!! $value[$columna]['html'] !!}
-        @elseif (is_array($value[$columna]) && isset($value[$columna]['value']))
-        {!! $value[$columna]['value'] !!}
-        @elseif (is_array($value[$columna]) && !array_key_exists('value',$value[$columna]))
-        <pre>{!! print_r($value[$columna],true) !!}</pre>
+        @if (is_array($value[$columna]))
+        {!! CrudGenerator::getDatoToShow($value[$columna], "list", $datos) !!}
         @elseif(!is_array($value[$columna]))
         {!! $value[$columna] !!}
         @else

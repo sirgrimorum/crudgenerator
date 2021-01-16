@@ -31,14 +31,8 @@
             <div class="{{ $config['class_divinput'] }}" id="{{$tabla . "_" . $columna}}_container">
                 <div class="form-control-plaintext {{$config['class_input']}}">
                     @if (isset($registro[$columna]))
-                    @if (is_array($registro[$columna]) && isset($registro[$columna]['html_show']))
-                    {!! $registro[$columna]['html_show'] !!}
-                    @elseif (is_array($registro[$columna]) && isset($registro[$columna]['html']))
-                    {!! $registro[$columna]['html'] !!}
-                    @elseif (is_array($registro[$columna]) && isset($registro[$columna]['value']))
-                    {!! $registro[$columna]['value'] !!}
-                    @elseif (is_array($registro[$columna]) && !array_key_exists('value',$registro[$columna]))
-                    <pre>{!! print_r($registro[$columna],true) !!}</pre>
+                    @if (is_array($registro[$columna]))
+                    {!! CrudGenerator::getDatoToShow($registro[$columna], "show", $datos) !!}
                     @elseif(!is_array($registro[$columna]))
                     {!! $registro[$columna] !!}
                     @else
