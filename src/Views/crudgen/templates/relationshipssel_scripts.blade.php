@@ -1,4 +1,31 @@
 <?php
+if ($css_section != "") {
+    ?>
+    @push($css_section)
+    <?php
+}
+?>
+<style>
+    #{{ $tabla . '_' . $extraId }}_search::-webkit-search-cancel-button,
+    #{{ $tabla . '_' . $extraId }}_search::-webkit-search-decoration {
+        -webkit-appearance: none;
+        appearance: none;
+    }
+    #{{ $tabla . '_' . $extraId }}_container span.typeahead__cancel-button{
+        font-size: 0;
+    }
+    #{{ $tabla . '_' . $extraId }}_container span.typeahead__cancel-button:before{
+        font-family: FontAwesome; 
+        font-size: 1.2rem;
+        content: '\f00d';
+    }
+</style>
+<?php
+if ($css_section != "") {
+    ?>
+    @endpush
+    <?php
+}
 if ($js_section != "") {
     ?>
     @push($js_section)
@@ -8,6 +35,7 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
 ?>
 <script>
     var {{ $tabla . "_" . $extraId }}Ejecutado = false;
+    var {{ $tabla . "_" . $extraId }}SoloUno = {{ \Illuminate\Support\Arr::get($datos, "multiple", true) === false ? "true" : "false" }};
     function {{ $tabla . "_" . $extraId }}Loader(){
         if (!{{ $tabla . "_" . $extraId }}Ejecutado){
             $.typeahead({
@@ -17,7 +45,14 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
                 order: "asc",
                 accent: true,
                 searchOnFocus: true,
-                cancelButton: false,
+                cancelButton: true,
+                @if (($template =\Illuminate\Support\Arr::get($datos, 'template', "")) != "")
+                @if (\Illuminate\Support\Str::startsWith($template, "function") && \Illuminate\Support\Str::endsWith($template, "}"))
+                template: {!! $template !!},
+                @else
+                template: '{!! $template !!}',
+                @endif
+                @endif
                 //cache: true,
                 <?php
                 $backdrop = \Illuminate\Support\Arr::get($datos, 'backdrop', null);
@@ -54,7 +89,7 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
                 @endif
                 maxItemPerGroup: {{ \Illuminate\Support\Arr::get($datos, 'maxItemPerGroup', 4) }},
                 backdrop: {!! $backdrop !!},
-                emptyTemplate: '{{ trans("crudgenerator::admin.messages.no_result_query") }}',
+                emptyTemplate: '{!! trans("crudgenerator::admin.messages.no_result_query") !!}',
                 source: {
                     @if (isset($datos['groupby']))
                     @if($listaOpciones)
@@ -83,53 +118,62 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
                 },
                 callback: {
                     onClickAfter: function (node, a, item) {
-                        $.ajax({
-                            type: 'get',
-                            dataType: 'json',
-                            url:'{!! route('sirgrimorum_modelos::create',['modelo'=>$modeloMio]) !!}?_return=simple&_itemRelSel={!!$columna!!}|' + item.id,
-                            data:'',
-                            success:function(data){
-                                if (data.status == 200){
-                                    if ($("#{{$extraId . "_"}}" + item.id +"_principal").length == 0){
-                                        $("#{{ $tabla . '_' . $extraId }}_container").find('div[data-pivote="principal"]').last().after(data.result);
-                                    }else{
+                        if ({{ $tabla . "_" . $extraId }}SoloUno && $("input[name^='{{$extraId . "["}}'][id^='{{$extraId . "_"}}']").length > 0){
+                            $.alert({
+                                theme: '{!!config("sirgrimorum.crudgenerator.error_theme")!!}',
+                                icon: '{!!config("sirgrimorum.crudgenerator.icons.error")!!}',
+                                title: '{!!trans('crudgenerator::admin.messages.pivot_justone_title')!!}',
+                                content: '{!!trans('crudgenerator::admin.messages.pivot_justone_message')!!}',
+                            });
+                        }else if ($("#{{$extraId . "_"}}" + item.id +"_principal").length > 0){
+                            $.alert({
+                                theme: '{!!config("sirgrimorum.crudgenerator.error_theme")!!}',
+                                icon: '{!!config("sirgrimorum.crudgenerator.icons.error")!!}',
+                                title: '{!!trans('crudgenerator::admin.messages.pivot_exists_title')!!}',
+                                content: '{!!trans('crudgenerator::admin.messages.pivot_exists_message')!!}',
+                            });
+                        }else{
+                            $.ajax({
+                                type: 'get',
+                                dataType: 'json',
+                                url:'{!! route('sirgrimorum_modelos::create',['modelo'=>$modeloMio]) !!}?_return=simple&_itemRelSel={!!$columna!!}|' + item.id,
+                                data:'',
+                                success:function(data){
+                                    if (data.status == 200){
+                                        if ($("#{{$extraId . "_"}}" + item.id +"_principal").length == 0){
+                                            $("#{{ $tabla . '_' . $extraId }}_container").find('div[data-pivote="principal"]').last().after(data.result);
+                                        }
+                                    } else{
                                         $.alert({
                                             theme: '{!!config("sirgrimorum.crudgenerator.error_theme")!!}',
                                             icon: '{!!config("sirgrimorum.crudgenerator.icons.error")!!}',
-                                            title: '{!!trans('crudgenerator::admin.messages.pivot_exists_title')!!}',
-                                            content: '{!!trans('crudgenerator::admin.messages.pivot_exists_message')!!}',
+                                            title: data.title,
+                                            content: data.statusText,
                                         });
+                                        console.log('error simple ajax', data);
                                     }
-                                } else{
+                                },
+                                error:function(jqXHR, textStatus, errorThrown){
+                                    var content = errorThrown;
+                                    var title = textStatus;
+                                    if (jqXHR.responseJSON){
+                                        if (jqXHR.responseJSON.statusText){
+                                            content = jqXHR.responseJSON.statusText;
+                                        }
+                                        if (jqXHR.responseJSON.title){
+                                            title = jqXHR.responseJSON.title;
+                                        }
+                                    }
                                     $.alert({
                                         theme: '{!!config("sirgrimorum.crudgenerator.error_theme")!!}',
                                         icon: '{!!config("sirgrimorum.crudgenerator.icons.error")!!}',
-                                        title: data.title,
-                                        content: data.statusText,
+                                        title: title,
+                                        content: content,
                                     });
-                                    console.log('error simple ajax', data);
+                                    console.log('error grave ajax',qXHR);
                                 }
-                            },
-                            error:function(jqXHR, textStatus, errorThrown){
-                                var content = errorThrown;
-                                var title = textStatus;
-                                if (jqXHR.responseJSON){
-                                    if (jqXHR.responseJSON.statusText){
-                                        content = jqXHR.responseJSON.statusText;
-                                    }
-                                    if (jqXHR.responseJSON.title){
-                                        title = jqXHR.responseJSON.title;
-                                    }
-                                }
-                                $.alert({
-                                    theme: '{!!config("sirgrimorum.crudgenerator.error_theme")!!}',
-                                    icon: '{!!config("sirgrimorum.crudgenerator.icons.error")!!}',
-                                    title: title,
-                                    content: content,
-                                });
-                                console.log('error grave ajax',qXHR);
-                            }
-                        });
+                            });
+                        }
                         console.log(item);
                     }
                 },

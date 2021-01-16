@@ -62,13 +62,12 @@ return [
         'titulo' => 'Manager',
         'ingresarfb' => 'Log in with Facebook'
     ],
-    'show' => [
-    ],
+    'show' => [],
     'metodosadicionales' => [
         'propietarios' => 'propietary',
         'nopropietarios' => 'no propietary',
     ],
-    'formats'=>[ //carbon and moment formats results must coincide
+    'formats' => [ //carbon and moment formats results must coincide
         'carbon' => [
             'date' => 'Y-m-d',
             'datetime' => 'Y-m-d H:i:s',
@@ -82,7 +81,7 @@ return [
             'timestamp' => 'YYYY-MM-DD HH:mm:ss',
         ]
     ],
-    'messages'=>[
+    'messages' => [
         'permission' => "You don't have permission to execute this action",
         'error_json' => '',
         'confirm_destroy' => 'Are you sure to delete ":modelName"?',
@@ -91,7 +90,9 @@ return [
         'confirm_removepivot' => 'Are you sure to remove the reference to ":modelName"?',
         'confirm_removefile' => 'Are you sure to remove and delete the ":modelName" file?',
         'pivot_exists_title' => 'Exists!',
-        'pivot_exists_message' => 'You alreade have a reference to this item',
+        'pivot_exists_message' => 'You already have a reference to this item',
+        'pivot_justone_title' => 'Just one!',
+        'pivot_justone_message' => 'You could only choose one.<br><br>If you want to change it, remove the other one (red button next to the title).',
         'update_success' => '<strong>Great!</strong> All changes in ":modelName" has been saved',
         'update_error' => '<strong>Sorry!</strong> The changes in ":modelName" were not saved',
         'store_success' => '<strong>Great!</strong> ":modelName" has been created',

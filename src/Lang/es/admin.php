@@ -13,7 +13,6 @@ return [
         'ver' => 'Ver',
         'editar' => 'Editar',
         'prefiltros' => 'Configuración de la tabla',
-        
     ],
     'layout' => [
         'title' => 'Administrador',
@@ -90,7 +89,9 @@ return [
         'confirm_removepivot' => '¿Está seguro que desea quitar la referencia al registro ":modelName"?',
         'confirm_removefile' => '¿Está seguro que desea quitar y eliminar el archivo ":modelName"?',
         'pivot_exists_title' => 'Ya existe!',
-        'pivot_exists_message' => 'Ya tiene una referencia a este item',
+        'pivot_exists_message' => 'Ya habia seleccionado este item',
+        'pivot_justone_title' => 'Solo uno!',
+        'pivot_justone_message' => 'Solo se puede seleccionar uno. <br><br>Si quiere cambiarlo, elimine el otro primero (botón rojo al lado del título)',
         'destroy_success' => '<strong>Listo!</strong> El registro ":modelName" ha sido eliminado',
         'destroy_error' => '<strong>Lo sentimos!</strong> El registro ":modelName" NO ha sido eliminado',
         'update_success' => '<strong>Listo!</strong> Se han guardado los cambios en el registro ":modelName"',

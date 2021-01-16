@@ -110,7 +110,7 @@
                     ], 
                     "hide" => ["create","list"], // for all types, views where this field would not be visible
                     "opciones" => [] // required for select type, array of options, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.selects.options__", use nested array for option groups
-                    "multiple" => "multiple", // for the select type, if you want the select to be multiple select available, other values means do nothing
+                    "multiple" => "multiple", // for the select and relationshipssel types, if you want the select to be multiple select available, other values means only one. For the select default is only one. For relationshipssel false means only one could be selected, other values means multiple, default is multiple
                     "modelo" => "[Model object]", // required for the relationship, relationships and the relationshipssel types
                     "id" => "[id field name]", // required for the relationship, relationships and the relationshipssel types
                     "campo" => "[attribute taken as name for the model]", // required for the relationship, relationships and the relationshipssel types, may use an array of field names  or a string with the names of the fields to be replaced between <-field_name->
@@ -155,6 +155,7 @@
                     "backdrop" => [ // for the relationshipssel type, shows a backdrop behind the search on focus, if false, no backdrop, true (default), a backdrop, us an array of styles to override the styles
                         "background-color" => "#fff",
                     ],
+                    "template" => "",// String with a function (query, item) or an html with {{variable}} to be changed for the registry fields values (documentation on http://www.runningcoder.org/jquerytypeahead/)
                     "columnas" => [[ // required for the relationshipssel type, list of columns to show in the table
                         "label" => "[Header for the column]", // required, use the 'trans_prefix' value if you want localization
                         "placeholder" => "[Placeholder for the column]", // required for 'text' and 'number' types, use the 'trans_prefix' value if you want localization
