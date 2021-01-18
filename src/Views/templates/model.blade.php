@@ -136,5 +136,4 @@ class {Model} extends Model {
     @endforeach
     @endif
     
-    @include('sirgrimorum::templates.getfunction')
 }
