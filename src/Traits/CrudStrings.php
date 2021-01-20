@@ -932,7 +932,7 @@ trait CrudStrings
      */
     public static function getOpcionesDeCampo($modelo, $campo, $trans = true)
     {
-        if ($modeloClass = CrudGenerator::getModel($modelo, $modelo)) {
+        if ($modeloClass = CrudGenerator::getModel($modelo)) {
             $modelo = strtolower(basename($modeloClass));
             if (is_array($campo)) {
                 $tiene = false;

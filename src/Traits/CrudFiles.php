@@ -559,7 +559,7 @@ trait CrudFiles
      */
     public static function getFileUrl(string $filename, $registro, string $modelo, string $columna, array $detalles = [], array $config = [])
     {
-        $modelClassName = CrudGenerator::getModel($modelo, ucfirst($modelo));
+        $modelClassName = CrudGenerator::getModel($modelo, "App\\" . ucfirst($modelo));
         if (isset($detalles['showPath']) && is_callable($detalles['showPath'])) {
             $urlFile = route('sirgrimorum_modelo::modelfile', ['registro' => $registro->{(new $modelClassName)->getKeyName()}, 'modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
         } elseif (isset($detalles['showPath']) && is_string($detalles['showPath']) && Str::startsWith(strtolower($detalles['showPath']), ["http:", "https:"])) {
