@@ -1,6 +1,9 @@
 $(document).on('ready', function() {
     comenzarCheckeador();
 });
+var nodesCheckeador = [];
+var nodesSelecteador = [];
+var observerCheckeador;
 
 function comenzarCheckeador() {
     //console.log("comenzando chekeador");
@@ -17,6 +20,9 @@ function comenzarCheckeador() {
         $(".ya_checkeado").removeClass("ya_checkeado");
     });
     $(".checkeador").each(function() {
+        if (nodesCheckeador.indexOf($(this).get()[0]) < 0) {
+            nodesCheckeador.push($(this).get()[0]);
+        }
         mostrarCheckeador($(this));
         if ($(this).attr("data-exclusivo") != "" && $(this).attr("data-exclusivo") != undefined) {
             if ($(this).is(':checked')) {
@@ -33,13 +39,37 @@ function comenzarCheckeador() {
         $(".ya_checkeado").removeClass("ya_checkeado");
     });
     $(".selecteador").each(function() {
+        if (nodesSelecteador.indexOf($(this).get()[0]) < 0) {
+            nodesSelecteador.push($(this).get()[0]);
+        }
         mostrarSelecteador($(this));
     });
+    observerCheckeador = new MutationObserver(function(mutations) {
+        for (let i = 0; i < nodesCheckeador.length; i++) {
+            const element = nodesCheckeador[i];
+            if (!document.body.contains(element)) {
+                mostrarCheckeador($(element), false);
+                nodesCheckeador.splice(i, 1);
+                i--;
+            }
+        }
+        for (let i = 0; i < nodesSelecteador.length; i++) {
+            const element = nodesSelecteador[i];
+            if (!document.body.contains(element)) {
+                mostrarSelecteador($(element), "");
+                nodesSelecteador.splice(i, 1);
+                i--;
+            }
+        }
+    });
+    observerCheckeador.observe(document.body, { childList: true, subtree: true });
 }
 
-function mostrarSelecteador(elemento) {
+function mostrarSelecteador(elemento, sel = null) {
     var seleccionado = $(elemento).children("option").filter(':selected').val();
-    //console.log("mostrarSelecteador", elemento, seleccionado);
+    if (sel !== null) {
+        seleccionado = sel;
+    }
     if ($(elemento).attr("data-contenedor") != "") {
         var contenedor = $(elemento).attr("data-contenedor");
         var pre1 = "class";
@@ -60,10 +90,10 @@ function mostrarSelecteador(elemento) {
     }
 }
 
-function mostrarCheckeador(elemento) {
+function mostrarCheckeador(elemento, checked = null) {
     //console.log("mostrarChekeador", elemento);
     if ($(elemento).attr("data-contenedor") != "") {
-        if ($(elemento).is(':checked')) {
+        if ($(elemento).is(':checked') && checked !== false) {
             resetearInterno($($(elemento).attr("data-contenedor") + "_not"));
             $($(elemento).attr("data-contenedor")).not('.ya_checkeado').show().addClass('ya_checkeado');
         } else {
