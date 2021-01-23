@@ -87,6 +87,8 @@ $auxConfigParaIncludes = [
 @if ((($action == "create" && !isset($columnaT['nodb'])) || $action != "create") && CrudGenerator::inside_array($columnaT, "hide", $action) === false)
 <?php
 $extraIdInner = $columnaT['extraId'];
+$registroParaTranslate = $tablaInterCampo;
+$configParaTranslate = $datos;
 if ($columnaT['tipo'] == 'label') {
     if (isset($columnaT['campo'])) {
         $valorM = CrudGenerator::getNombreDeLista($tablaInterCampo, $columnaT['campo']);
@@ -95,12 +97,14 @@ if ($columnaT['tipo'] == 'label') {
     }
 } elseif (is_object($pivote)) {
     if ($columnaT['tipo'] == 'labelpivot') {
-        $valorM = $pivote->{$columnaT['campo']};
+        $registroParaTranslate = $pivote;
+        $configParaTranslate = null;
+        $valorM = CrudGenerator::getNombreDeLista($pivote, $columnaT['campo']);
     } else {
         $valorM = old($extraIdInner);
         if ($valorM == "") {
             try {
-                $valorM = $pivote->{$columnaT['campo']};
+                $valorM = CrudGenerator::getNombreDeLista($pivote, $columnaT['campo']);
             } catch (Exception $ex) {
                 $valorM = "";
             }
@@ -162,24 +166,43 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
             @else
             {{-- 4. Si es label o label pivote --}}
             @if ($columnaT['tipo']=='label' || $columnaT['tipo']=='labelpivot')
+            <?php
+            $extraClassDiv = \Illuminate\Support\Arr::get($columnaT, 'extraClassDiv', "");
+            $extraClassInput = \Illuminate\Support\Arr::get($columnaT, 'extraClassInput', "");
+            $extraDataInput = \Illuminate\Support\Arr::get($columnaT, 'extraDataInput', []);
+            $help = CrudGenerator::translateDato(\Illuminate\Support\Arr::get($columnaT, 'help', ""), $registroParaTranslate, $configParaTranslate);
+            if (isset($columnaT["pre"])){
+                $valorM = CrudGenerator::translateDato($columnaT['pre'], $registroParaTranslate, $configParaTranslate) . " $valorM";
+            }
+            if (isset($columnaT["post"])){
+                $valorM .= " " . CrudGenerator::translateDato($columnaT['post'], $registroParaTranslate, $configParaTranslate);
+            }
+            ?>
             @if(isset($columnaT['pre_html']))
-            {!! $columnaT['pre_html'] !!}
+            {!! CrudGenerator::translateDato($columnaT['pre_html'], $registroParaTranslate, $configParaTranslate) !!}
             @endif
-            <div class="form-group row">
+            <div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraIdInner}}'>
                 <div class='{{$config['class_labelcont']}}'>
                     {{ Form::label($extraIdInner, ucfirst($columnaT['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
                     @if (isset($columnaT['description']))
                     <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $extraIdInner }}_help">
-                        {{ $columnaT['description'] }}
+                        {!! CrudGenerator::translateDato($columnaT['description'], $registroParaTranslate, $datos) !!}
                     </small>
                     @endif
                 </div>
                 <div class="{{ $config['class_divinput'] }}">
-                    {{ Form::text($extraIdInner, $valorM, array('class' => "form-control-plaintext {$config['class_input']} $claseError $extraClassInput", 'id' => $extraIdInner, "readonly"=>"readonly")) }}
+                    {{ Form::text($extraIdInner, $valorM, array_merge(
+                        $extraDataInput,
+                        ['class' => "form-control-plaintext {$config['class_input']} $claseError $extraClassInput", 'id' => $extraIdInner,"readonly"=>"readonly"])) }}
+                    @if($help != "")
+                    <small class="form-text text-muted mt-0">
+                        {!! $help !!}
+                    </small>
+                    @endif
                 </div>
             </div>
             @if(isset($columnaT['post_html']))
-            {!! $columnaT['post_html'] !!}
+            {!! CrudGenerator::translateDato($columnaT['post_html'], $registroParaTranslate, $configParaTranslate) !!}
             @endif
             {{-- 4. No es label ni label pivote --}}
             @else
@@ -192,7 +215,8 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
                 "config" => $config,
                 "columna" => $columnaT['campo'],
                 "datos" => $columnaT,
-                "registro" => $pivote, 
+                "registro" => $pivote,
+                "registroPadre" => $tablaInterCampo, 
                 "errores" => count($errors->all())>0,
                 "nameScriptLoader" => $nameScriptLoader,
             ])
