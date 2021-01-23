@@ -54,7 +54,21 @@ if (isset($datos['multiple'])) {
     $arrayAttr = ['class' => "form-control {$config['class_input']} $claseError $extraClassInput", 'id' => $tabla . '_' . $extraId, $readonly];
 }
 $arrayAttr = array_merge($extraDataInput,$arrayAttr);
-$opciones = array_merge([""=>$placeholder],$datos['opciones']);
+if (is_callable($datos['opciones'])){
+    if (isset($registroPadre)){
+        $opciones = $datos['opciones']($registroPadre);
+    }else{
+        $opciones = $datos['opciones']();
+    }
+    if (!is_array($opciones)){
+        $opciones = [];
+    }
+}elseif(!is_array($datos['opciones'])){
+    $opciones = $datos['opciones'];
+}else{
+    $opciones = [];
+}
+$opciones = array_merge([""=>$placeholder], $opciones);
 if (stripos(\Illuminate\Support\Arr::get($config,"rules.{$columna}", ""), "required")!==false){
     data_set($arrayAttr,'required',"required");
 }
