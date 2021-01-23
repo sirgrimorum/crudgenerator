@@ -356,7 +356,7 @@ trait CrudStrings
     }
 
     /**
-     * Use crudgenerator config's data_prefixes to change data from models an evaluate functions in then
+     * Use crudgenerator config's data_prefixes to change data from models an evaluate functions in them
      * funtions such as asset(), trans(), url(), etc.
      *
      * For parameters, use ', ' to separate them inside the prefix and the close.
@@ -765,6 +765,8 @@ trait CrudStrings
                         }
                     }
                     return $strNombre;
+                } elseif (is_callable($campo)){
+                    return $campo($elemento);
                 } else {
                     return CrudGenerator::replaceCamposEnString($elemento, $campo, $default);
                 }
@@ -777,7 +779,9 @@ trait CrudStrings
                         $preNombre = $separador;
                     }
                     return $strNombre;
-                }
+                } elseif (is_callable($campo)){
+                    return $campo($elemento);
+                } 
             }
             return $default ?? $campo;
         }
