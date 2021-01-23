@@ -111,7 +111,7 @@
                         'campo'=>':>notempty'
                     ], 
                     "hide" => ["create","list"], // for all types, views where this field would not be visible
-                    "opciones" => [] // required for select type, array of options, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.selects.options__", use nested array for option groups
+                    "opciones" => [] // required for select type, array of options, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.selects.options__", use nested array for option groups, could be a callable of the type function($registro = null){} that returns an array. The $registro var could be the relationship father model for relationshipssel fields
                     "multiple" => "multiple", // for the select and relationshipssel types, if you want the select to be multiple select available, other values means only one. For the select default is only one. For relationshipssel false means only one could be selected, other values means multiple, default is multiple
                     "modelo" => "[Model object]", // required for the relationship, relationships and the relationshipssel types
                     "id" => "[id field name]", // required for the relationship, relationships and the relationshipssel types
