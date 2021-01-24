@@ -32,6 +32,30 @@ if ($js_section != "") {
     <?php
 }
 $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader") . "Creator";
+$extraParametersArr = [];
+if (($paramConfig = \Illuminate\Support\Arr::get($datos, 'config', ""))!= ""){
+    $extraParametersArr["modelo"] = $modeloOtro;
+    $extraParametersArr["config"] = $paramConfig;
+    $extraParametersArr["smartMerge"] = \Illuminate\Support\Arr::get($datos, 'smartMerge', false);
+}
+if (($paramTodos = \Illuminate\Support\Arr::get($datos, 'todosOriginal', ""))!= ""){
+    if (isset($extraParametersArr["config"])){
+        $extraParametersArr["baseConfig"] = $extraParametersArr["config"];
+    }
+    $extraParametersArr["config"] = [];
+    $extraParametersArr["modelo"] = $modeloOtro;
+    if (is_callable($paramTodos)){
+        $extraParametersArr["config"]["query"] =  \Illuminate\Support\Arr::get($datos, 'todos', "");
+    }else{
+        $extraParametersArr["config"]["query"] = $paramTodos;
+    }
+    $extraParametersArr["smartMerge"] = true;
+}
+if (count($extraParametersArr)>0){
+    $extraParameters = "&__parametros=" . urlencode(json_encode($extraParametersArr)) . "";
+}else{
+    $extraParameters = "";
+}
 ?>
 <script>
     var {{ $tabla . "_" . $extraId }}Ejecutado = false;
@@ -96,7 +120,7 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
                     @foreach($listaOpciones as $indice=>$opcionGroup)
                     "{{CrudGenerator::getNombreDeLista('',$listaTransOpciones[$indice])}}": {
                         ajax: {
-                            url: "{!! route('sirgrimorum_modelos::index',['modelo'=>$modeloOtro]) !!}?_return=pureJson&_q={{CrudGenerator::getNombreDeLista('',$opcionGroup,'|')}}&_a={{CrudGenerator::getNombreDeLista('',$datos['groupby'],'|')}}&_aByA=1&_or=false",
+                            url: "{!! route('sirgrimorum_modelos::index',['modelo'=>$modeloOtro]) !!}?_return=pureJson&_q={{CrudGenerator::getNombreDeLista('',$opcionGroup,'|')}}&_a={{CrudGenerator::getNombreDeLista('',$datos['groupby'],'|')}}&_aByA=1&_or=false{!! $extraParameters !!}",
                             path: "result"
                         }
                     },               
@@ -104,14 +128,14 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
                     @else
                         ajax: {
                             //url: "{!! route('sirgrimorum_modelos::index',['modelo'=>$modeloOtro]) !!}?_return=pureJson&_q=@{{query}}*%&_a={{$camposQuery}}",
-                            url: "{!! route('sirgrimorum_modelos::index',['modelo'=>$modeloOtro]) !!}?_return=pureJson",
+                            url: "{!! route('sirgrimorum_modelos::index',['modelo'=>$modeloOtro]) !!}?_return=pureJson{!! $extraParameters !!}",
                             path: "result"
                         }
                     @endif
                     @else
                         ajax: {
                             //url: "{!! route('sirgrimorum_modelos::index',['modelo'=>$modeloOtro]) !!}?_return=pureJson&_q=@{{query}}*%&_a={{$camposQuery}}",
-                            url: "{!! route('sirgrimorum_modelos::index',['modelo'=>$modeloOtro]) !!}?_return=pureJson",
+                            url: "{!! route('sirgrimorum_modelos::index',['modelo'=>$modeloOtro]) !!}?_return=pureJson{!! $extraParameters !!}",
                             path: "result"
                         }
                     @endif
