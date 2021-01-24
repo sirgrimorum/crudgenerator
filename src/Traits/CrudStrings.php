@@ -281,7 +281,7 @@ trait CrudStrings
      * @param bool $justString If only return strings (the arrays print_r between <pre></pre>)
      * @return string|array The data to show after processing or the $data array
      */
-    public static function getDatoToShow(array $datos, $action, array $detalles, $justString = true)
+    public static function getDatoToShow($datos, $action, array $detalles, $justString = true)
     {
         if (isset($detalles["{$action}_data"])) {
             if (is_callable($detalles["{$action}_data"])) {
@@ -290,25 +290,26 @@ trait CrudStrings
                     return "<pre>" . print_r($return, true) . "</pre>";
                 }
                 return $return;
-            } elseif (($return = CrudGenerator::getNombreDeLista($datos, $detalles["{$action}_data"])) !== null) {
+            } elseif ($datos !== null && ($return = CrudGenerator::getNombreDeLista($datos, $detalles["{$action}_data"])) !== null) {
                 if (is_array($return) && $justString) {
                     return "<pre>" . print_r($return, true) . "</pre>";
                 }
                 return $return;
             }
         }
-        if ($action == "list" && isset($datos['html_cell'])) {
-            return $datos['html_cell'];
-        } elseif (isset($datos['html_show'])) {
-            return $datos['html_show'];
-        } elseif (isset($datos['html'])) {
-            return $datos['html'];
-        } elseif (isset($datos['value'])) {
-            return (string) $datos['value'];
-        } elseif ($justString) {
-            return "<pre>" . print_r($datos, true) . "</pre>";
+        if ($datos !== null && is_array($datos)) {
+            if ($action == "list" && isset($datos['html_cell'])) {
+                return $datos['html_cell'];
+            } elseif (isset($datos['html_show'])) {
+                return $datos['html_show'];
+            } elseif (isset($datos['html'])) {
+                return $datos['html'];
+            } elseif (isset($datos['value'])) {
+                return (string) $datos['value'];
+            } elseif ($justString) {
+                return "<pre>" . print_r($datos, true) . "</pre>";
+            }
         }
-
         return $datos;
     }
 
@@ -765,7 +766,7 @@ trait CrudStrings
                         }
                     }
                     return $strNombre;
-                } elseif (is_callable($campo)){
+                } elseif (is_callable($campo)) {
                     return $campo($elemento);
                 } else {
                     return CrudGenerator::replaceCamposEnString($elemento, $campo, $default);
@@ -779,9 +780,9 @@ trait CrudStrings
                         $preNombre = $separador;
                     }
                     return $strNombre;
-                } elseif (is_callable($campo)){
+                } elseif (is_callable($campo)) {
                     return $campo($elemento);
-                } 
+                }
             }
             return $default ?? $campo;
         }

@@ -71,6 +71,9 @@
             "campos" => [ // list of fields structure. For smart merge, set the value to "notThisTime" to CrudLoader to remove this attribute or field
                 "[field/attribute name]" => [ //as apears in the model if used for db save with url "Sirgrimorum_CrudAdministrator"
                     "tipo" => "[type of the field]", // required for all types, options are: "function", "checkbox", "color", "date", "datetime", "time", "email", "url", "file", "files" (multiple files in a single field with Json notation, recomended, text type), "hidden", "html", "article" (Translation from Articles table, needs sirgrimorum/transarticles package), "number", "password", "radio", "relationship" (belongsTo one to many), "relationships" (many to many), "relationshipssel" (many to many with pivot table), "select", "slider", "text", "textarea", "json"
+                    "tipos_temporales" => [ // temporary type of fields to be taken just for a specific action ("list", "show", "create", "edit") 
+                        "create" => "[type of the field]",
+                    ],
                     "label" => "[text of the label]", // required for all types, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.labels.name__",
                     "placeholder" => "[placeholder text]", // required for text, textarea, email, password and number types, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.placeholders.name__",
                     "description" => "[description text]", // is shown under the label use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.descriptions.name__",
@@ -80,8 +83,8 @@
                     'extraDataInput' => [ // for the input, aditional attributes
                         'data-dato1' => 'valor_dato_1' // use 'data-contenedor' => '.contenedor_field' with 'chekeador' o 'selecteador' class
                     ]
-                    "valor" => "[default value of the field]", // use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
-                    "value" => "[value or lists of values to be taken by de field]" | [ // required for checkbox and radio types, on json types makes the json locked (only values can be changed) use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
+                    "valor" => "[default value of the field]", // could be a callable function($registro = null) that return something, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
+                    "value" => "[value or lists of values to be taken by de field]" | [] // required for checkbox and radio types, on json types makes the json locked (only values can be changed),  could be a callable function($registro = null) that return something, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
                         'valor1',
                         'valor2' => "Label valor 2",
                         'valor3' => [
@@ -93,11 +96,14 @@
                             'extraClassInput' => "extra_class_input_valor3", // for the input, use 'checkeador' for conditional fields
                             'extraDataInput' => [ // for the input, aditiona attributes
                                 'data-dato1' => 'valor_dato_1' // use 'data-contenedor' => '.contenedor_field_valor3' with 'chekeador' class
-                            ]
+                            ],
+                            'checked' => true, // for checked or radio if is checked by default
                         ]
                     ],
                     "show_data" => "[]", // function(array $dato (the one obtain after using $model->get("campo", false)) or string with field_names between <-field_name-> or <-fied_name.value-> to use to process data of the column in the show view
                     "list_data" => "[]", // function(array $dato (the one obtain after using $model->get("campo", false)) or string with field_names between <-field_name-> or <-fied_name.value-> to use to process data of the column in the list view
+                    "create_data" => "[]", // function() or string with field_names between <-field_name-> or <-fied_name.value-> to use to process data of the column in the list view, will be used to replace "valor" and "value" fields if not present
+                    "edit_data" => "[]", // function($dato (the one obtain after using $model->get("campo", false)) or string with field_names between <-field_name-> or <-fied_name.value-> to use to process data of the column in the list view, will be used to replace "valor" and "value" fields if not present
                     "glue" => "_", // string to be use as glue when value is an array and must be a string, ej: in checkbox with multiple selection, default is "_"
                     "unchecked" => "[value to be taken by de field when unchecked]", // for checkbox and radio types, default is 0, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
                     "enlace" => "[url for link in show or lists views]", // use :modelId or :modelName to change it for de id or name of the object, use the 'trans_prefix' value if you want localization ej: __route__users.show, {'user': ':modelId'}__ or url("__trans__crudgenerator::article.menu.links.usuario__", array(":modelId"),

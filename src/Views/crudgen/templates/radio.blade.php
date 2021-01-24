@@ -89,9 +89,11 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
                     $extraClassDiv = \Illuminate\Support\Arr::get($datos2, 'extraClassDiv', $extraClassDiv);
                     $extraClassInput = \Illuminate\Support\Arr::get($datos2, 'extraClassInput', $extraClassInput);
                     $extraDataInput = \Illuminate\Support\Arr::get($datos2, 'extraDataInput', []);
-                    
+                    $checked = \Illuminate\Support\Arr::get($datos2, 'checked', $checked);
                 }elseif(isset($datos2) && is_string($datos2)){
                     $labelOpcion = $datos2;
+                }elseif(isset($datos2) && ($datos2 === true || $datos2 === false)){
+                    $checked = $datos2;
                 }
                 $arrayDato = array_merge(
                     $extraDataInput,

@@ -18,6 +18,29 @@ if ((($action == "create" && !isset($datos['nodb'])) || $action != "create") && 
     if (isset($datos['pre_html'])){
         echo $datos['pre_html'];
     }
+    if (isset($datos['value'])){
+        if (is_callable($datos['value'])){
+            $datos['value'] = $datos['value']($registro);
+        }
+    }
+    if (isset($datos['valor'])){
+        if (is_callable($datos['valor'])){
+            $datos['valor'] = $datos['valor']($registro);
+        }
+    }
+    $datos['tipo'] = data_get($datos,"tipos_temporales.$action", $datos['tipo']);
+    if ((!isset($datos['value']) || (isset($datos['value']) && ($datos['value'] == "" || $datos['value'] == null))) && (!isset($datos['valor']) || (isset($datos['valor']) && ($datos['valor'] == "" || $datos['valor'] == null)))){
+        $auxDato = null;
+        if ($registro !== null){
+            if (is_object($registro) && CrudGenerator::isFunction($registro, "get")){
+                $auxDato = $registro->get($columna, false);
+            }else{
+                $auxDato = data_get($registro, $columna, null);
+            }
+        }
+        $datos['valor'] = CrudGenerator::getDatoToShow($auxDato, $action, $datos, false);
+        $datos['value'] = $datos['valor'];
+    }
     if (View::exists("sirgrimorum::crudgen.templates." . $datos['tipo'])) {
         ?>
         @include("sirgrimorum::crudgen.templates." . $datos['tipo'], ['datos'=>$datos,'js_section'=>$js_section,'css_section'=>$css_section, 'registro' => $registro, 'errores' => $errores, 'modelo'=>$modelo, 'action'=>$action])
