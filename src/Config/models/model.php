@@ -117,7 +117,7 @@
                     "id" => "[id field name]", // required for the relationship, relationships and the relationshipssel types
                     "campo" => "[attribute taken as name for the model]", // required for the relationship, relationships and the relationshipssel types, may use an array of field names  or a string with the names of the fields to be replaced between <-field_name-> or <-field_name.sub_field.*.sub_field2-> for json, could be a callable of the type function($elemento = null) where $elemento could be an object, array (from $model->get()) or string
                     "groupby" => "[attribute taken as group for options in select]", // optional for the relationship, relationships and the relationshipssel types, may use an array of field names
-                    "todos" => "", // required for the relationship, relationships and the relationshipssel types, array or collection of option models, a query Builder, callable that returns an array, a collection or a Query Builder, leave blank if you want all of them
+                    "todos" => "", // required for the relationship, relationships and the relationshipssel types, array or collection of option models, a query Builder, callable that returns an array, a collection or a Query Builder, or a well formed whereRaw command, leave blank if you want all of them
                     "path" => "[name of the path in assets]/", // required for the file and files type, used to save the file, when url is "Sirgrimorum_CrudAdministrator", could be a route o function using the 'trans_prefix'
                     "saveFunction" => [Callable that returns the new path of the file after saving or false, is called with ($file, $filename, $detalles (this camp configuration translated))], Optional for the file and files type used instead of the normal save functionality, overrides the resize
                     "removeFunction" => [Callable that remove a file, is called with ($filename, $detalles (this camp configuration translated))], Optional for the file and files type used instead of the normal remove file functionality
@@ -149,7 +149,8 @@
                             "return /^([+]|[0-9])?[0-9]*$/.test(value);". // ej. Allow phonenumbers of only numbers and optional leading +
                         "})".
                     "",
-                    "config" => "", // the configuration for the model details to be shown, if empty, will load the default, if is a string, will load the file of the string with config(), if an array will use the array as config
+                    "config" => "", // for the relationshipssel type, the configuration for the model details to be shown, if empty, will load the default, if is a string, will load the file of the string with config(), if an array will use the array as config
+                    "smartMerge" => true, // for the relationshipssel type, if true and "config" is set to something, it will be smartmerged with the default config, default is false
                     "card_class" => [name of the class], // for the relationshipssel type, set additional classes for the cards
                     "minLength" => 1, // for the relationshipssel type, set the minimum number of characters needed to start searching. 0 will start search on focus
                     "maxItem" => 15, // for the relationshipssel type, set the maximum number of items to display on the search, 0 to show all

@@ -83,6 +83,25 @@ trait CrudModels
             if (isset($config['query'])) {
                 if (is_callable($config['query'])) {
                     $auxQuery = $config['query']();
+                } elseif (is_array($config['query'])) {
+                    if (count(data_get($config['query'], '*.*'))==0){
+                        if (Arr::isAssoc($config['query'])){
+                            $keys = array_keys($config['query']);
+                        }else{
+                            $keys = $config['query'];
+                        }
+                        $modeloM = ucfirst($config['modelo']);
+                        $auxQuery = $modeloM::whereIn(Arr::get($config, "id", "id"), $keys);
+                    }else{
+                        $auxQuery = $config['query'];
+                    }
+                } elseif(is_string($config['query'])) {
+                    try{
+                        $modeloM = ucfirst($config['modelo']);
+                        $auxQuery = $modeloM::whereRaw("({$config['query']})");
+                    }catch(Exception $e){
+                        $auxQuery = $config['query'];
+                    }
                 } else {
                     $auxQuery = $config['query'];
                 }

@@ -213,7 +213,7 @@ trait CrudConfig
             $parametros = json_decode($request->__parametros, true);
             if (is_array($parametros)) {
                 if ($parametros["modelo"] == $modelo) {
-                    $newConfig = CrudGenerator::getConfig($parametros["modelo"], $parametros["smartMerge"], $parametros["config"], $parametros["baseConfig"], $parametros["trans"], $parametros["fail"], $parametros["override"]);
+                    $newConfig = CrudGenerator::getConfig($parametros["modelo"], Arr::get($parametros,"smartMerge", $smartMerge), Arr::get($parametros,"config", $config), Arr::get($parametros,"baseConfig", $baseConfig), Arr::get($parametros,"trans", $trans), Arr::get($parametros,"fail", $fail), Arr::get($parametros,"override", $override));
                 }
             }
         }
@@ -1013,7 +1013,7 @@ trait CrudConfig
                 foreach ($preConfig as $key => $value) {
                     if (!Arr::has($config, $key)) {
                         if (is_array($value)) {
-                            if ($auxValue = CrudGenerator::smartMergeConfig("", $value)) {
+                            if (($auxValue = CrudGenerator::smartMergeConfig("", $value))!== false) {
                                 $config[$key] = $auxValue;
                             }
                         } elseif (is_object($value)) {
@@ -1060,7 +1060,9 @@ trait CrudConfig
                         $config["parametros"] = $parametros;
                     }
                     return $config;
-                } else {
+                } elseif(count($preConfig) == 0) {
+                    return $preConfig;
+                }else{
                     return false;
                 }
             }
@@ -1290,6 +1292,11 @@ trait CrudConfig
      */
     public static function loadTodosForField($relacion, $clave = null, $config = null, $conAdicional = false, $adicionalText = null, $adicionalValor = "-")
     {
+        if (isset($relacion['todos'])){
+            $relacion['todosOriginal'] = $relacion['todos'];
+        }else{
+            $relacion['todosOriginal'] = $relacion['todos'] = "";
+        }
         if ($relacion['tipo'] == "relationship" || $relacion['tipo'] == "relationships" || $relacion['tipo'] == "relationshipssel") {
             if (is_array($relacion['todos'])) {
                 if (CrudGenerator::countdim($relacion['todos']) > 1) {
@@ -1341,6 +1348,13 @@ trait CrudConfig
                     }
                 } elseif (is_callable($relacion['todos'])) {
                     $modelosM = $relacion['todos']();
+                } elseif (is_string($relacion['todos'])) {
+                    try{
+                        $modeloM = ucfirst($relacion["modelo"]);
+                        $modelosM = $modeloM::whereRaw("({$relacion['todos']})");
+                    }catch(Exception $e){
+                        $modelosM = $modeloM::whereRaw("(1=1)");
+                    }
                 } else {
                     $modelosM = $relacion['todos'];
                 }
