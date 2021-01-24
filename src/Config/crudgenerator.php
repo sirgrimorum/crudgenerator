@@ -110,7 +110,8 @@ return [
         '__url__' => 'url',
         '__trans__' => '__',
         '__transarticle__' => 'trans_article',
-        '__config__' => [true,'config'],
+        '__config__' => [true,'config'], // requiere registro
+        '__simple_config__' => 'config', // no requiere registro
         '__view__' => function ($string) {
             return view($string)->render();
         },
