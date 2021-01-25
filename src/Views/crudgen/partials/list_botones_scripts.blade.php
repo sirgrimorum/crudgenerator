@@ -87,15 +87,17 @@ function {{ $tablaid }}{{ $butName }}Pressed (
             ['{{$confirmYes}}']: function () {
             @endif
                 @if ($modales || ($butName == "remove" && \Illuminate\Support\Arr::get($config,"multiRemove", true)))
+                showLoading();
                 $.ajax({
                     type: '{{$typeAjax}}',
                     dataType: 'json',
                     url:url + '?_return={{$returnStr}}',
                     data:{!! $data !!},
                     success:function(data){
+                        hideLoading();
                         if (data.status == 200){
                         @if ($butName == 'remove')
-                        lista_{{ $tabla }}.rows('#'+rowSelected).remove().draw(); 
+                        lista_{{ $tablaid }}.rows('#'+rowSelected).remove().draw(); 
                         @endif
                             if ($.type(data.result) == "object"){
                                 $.alert({
@@ -121,6 +123,7 @@ function {{ $tablaid }}{{ $butName }}Pressed (
                         }
                     },
                     error:function(jqXHR, textStatus, errorThrown){
+                        hideLoading();
                         var content = errorThrown;
                         var title = textStatus;
                         if (jqXHR.responseJSON){
