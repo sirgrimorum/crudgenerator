@@ -43,10 +43,12 @@ return [
         "show" => "Ver artículo",
     ],
     "messages" => [
-        'confirm_destroy' => '¿Está seguro que desea eliminar el artículo ":modelName"?',
-        'destroy_success' => "<strong>Listo!</strong> El artículo :modelName ha sido eliminado",
-        'update_success' => "<strong>Listo!</strong> El artículo :modelName ha sido actualizado",
-        'store_success' => "<strong>Listo!</strong> El artículo :modelName ha sido creado",
+        'confirm_destroy' => '¿Está seguro que quiere eliminar el artículo ":modelName"?',
+        'destroy_success' => '<strong>Listo!</strong> El artículo ":modelName" ha sido eliminado',
+        'destroy_error' => '<strong>Lo sentimos!</strong> El artículo ":modelName" NO ha sido eliminado',
+        'update_success' => '<strong>Listo!</strong> Todos los cambios en el artículo ":modelName" han sido guardados',
+        'update_error' => '<strong>Lo sentimos!</strong> Los cambios en el artículo ":modelName" NO han sido guardados',
+        'store_success' => '<strong>Listo!</strong> El artículo ":modelName" ha sido creado',
+        'store_error' => '<strong>Lo sentimos!</strong> El artículo ":modelName" NO ha sido creado',
     ],
-        ]
-?>
+];
