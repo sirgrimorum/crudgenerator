@@ -1426,6 +1426,9 @@ trait CrudConfig
         if (!isset($config['class_divinput'])) {
             $config['class_divinput'] = !$sub ? 'col-xs-12 col-sm-12 col-md-9' : 'col-xs-12 col-sm-12 col-md-12 col-lg-9';
         }
+        if (!isset($config['class_divbutton'])) {
+            $config['class_divbutton'] = 'form-group row';
+        }
         if (!isset($config['class_input'])) {
             $config['class_input'] = '';
         }

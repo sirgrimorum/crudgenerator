@@ -93,7 +93,7 @@ if ($botones != "") {
         echo '</div>';
     }
 } else {
-    echo '<div class="form-group row">';
+    echo '<div class="' . $config['class_divbutton']. '">';
     echo '<div class="' . $config['class_offset'] . ' ' . $config['class_divinput'] . '">';
     echo Form::submit(trans('crudgenerator::crud.create.titulo'), array('class' => $config['class_button']));
     echo '</div>';

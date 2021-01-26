@@ -103,7 +103,7 @@ $botones = str_replace([":modelId", ":modelName"], [$registro->{$config['id']}, 
 </div>
 @endif
 @else
-<div class="form-group row">
+<div class="{{ $config['class_divbutton'] }}">
     <div class="{{ $config['class_offset'] }} {{ $config['class_divinput'] }}">
         {{ Form::submit(trans('crudgenerator::crud.create.titulo'), array('class' => $config['class_button'])) }}
     </div>
