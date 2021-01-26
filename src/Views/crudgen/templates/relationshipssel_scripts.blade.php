@@ -198,7 +198,7 @@ if (count($extraParametersArr)>0){
                                 }
                             });
                         }
-                        console.log(item);
+                        //console.log(item);
                     }
                 },
                 debug: true
