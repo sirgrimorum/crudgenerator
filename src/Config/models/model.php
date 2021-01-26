@@ -61,6 +61,7 @@
             "class_formgroup" => "[name of the class]", // optional class for all the divs containing the div inputs, default for show view 'border border-light', for others default is ''
             "class_offset" => "[name of the class]", // optional class for all the divs conatining buttons, checkboxes and radio buttons, default 'offset-xs-0 offset-sm-0 offset-md-3'
             "class_button" => "[name of the class]", // optional class for all the buttons default 'btn btn-primary'
+            "class_divbutton" => "[name of the class]", // optional class for the div containing the button default 'form-group row'
             "pre_html" => "[Html code]", // optional code to be inserted after the form tag opening
             "post_html" => "[Html code]", // optional code to be inserted before the form tag closing
             "pre_form_html" => "[Html code]", // optional code to be inserted before the form tag opening, use :formId to include the form id attribute
@@ -81,7 +82,7 @@
                     'extraClassDiv' => "extra_class_div_field", // for the form group div, use 'contenedor_field_value' or 'contenedor_field_value_not' for 'chekeador' or 'selecteador' conditioning
                     'extraClassInput' => "extra_class_field", // for the input, use 'checkeador' for conditional fields in 'checkbox' or 'radio' types and 'selecteador' for 'select' type
                     'extraDataInput' => [ // for the input, aditional attributes
-                        'data-dato1' => 'valor_dato_1' // use 'data-contenedor' => '.contenedor_field' with 'chekeador' o 'selecteador' class
+                        'data-dato1' => 'valor_dato_1' // use 'data-contenedor' => '.contenedor_field' or 'data-onRemove' => '[code]' with 'chekeador' o 'selecteador' class
                     ]
                     "valor" => "[default value of the field]", // could be a callable function($registro = null) that return something, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
                     "value" => "[value or lists of values to be taken by de field]" | [] // required for checkbox and radio types, on json types makes the json locked (only values can be changed),  could be a callable function($registro = null) that return something, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
