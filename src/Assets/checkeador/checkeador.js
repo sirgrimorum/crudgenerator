@@ -44,11 +44,18 @@ function comenzarCheckeador() {
         }
         mostrarSelecteador($(this));
     });
+    MutationObserver = window.MutationObserver ||
+        window.WebKitMutationObserver ||
+        window.MozMutationObserver;
+
     observerCheckeador = new MutationObserver(function(mutations) {
         for (let i = 0; i < nodesCheckeador.length; i++) {
             const element = nodesCheckeador[i];
             if (!document.body.contains(element)) {
                 mostrarCheckeador($(element), false);
+                if ($(element).attr("data-onRemove") != "") {
+                    eval($(element).attr("data-onRemove"));
+                }
                 nodesCheckeador.splice(i, 1);
                 i--;
             }
@@ -57,6 +64,9 @@ function comenzarCheckeador() {
             const element = nodesSelecteador[i];
             if (!document.body.contains(element)) {
                 mostrarSelecteador($(element), "");
+                if ($(element).attr("data-onRemove") != "") {
+                    eval($(element).attr("data-onRemove"));
+                }
                 nodesSelecteador.splice(i, 1);
                 i--;
             }
