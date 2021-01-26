@@ -1,0 +1,62 @@
+<?php
+
+return [
+    "labels" => [
+        "catchedError" => "Error",
+        "catchedErrors" => "Errores",
+        "plural" => "Errores",
+        "singular" => "Error",
+        "type" => "Tipo",
+        "exception" => "Tipo de Excepción",
+        "file" => "Archivo",
+        "line" => "Línea",
+        "message" => "Error",
+        "occurrences" => "Variantes",
+        "trace" => "Trace",
+        "request" => "Request",
+        "create" => "Crear reporte de error",
+        "ver" => "Ver",
+        "editar" => "Editar",
+        "eliminar" => "Eliminar",
+    ],
+    "placeholders" => [
+        "exception" => "Exception",
+        "file" => "Path del archivo",
+        "line" => "222",
+        "message" => "Algo muy malo",
+    ],
+    "descriptions" => [
+        "type" => "Tipo de error",
+        "exception" => "Clase del objeto Exception",
+        "file" => "Path del lugar donde ocurrió el error",
+        "line" => "Línea donde ocurrió el error",
+        "message" => "Mensaje del error reportado por el sistema",
+        "occurrences" => "Diferencias encontradas con otras veces que este mismo error ocurrió",
+        "trace" => "Trace",
+        "request" => "Datos capturados al momento del error",
+    ],
+    "selects" => [
+        "type" => [
+            "val" => "Validación",
+            "aut" => "Autenticación",
+            "rou" => "Llamado Http",
+            "api" => "API",
+            "web" => "Http en web",
+        ],
+    ],
+    "titulos" => [
+        "index" => "Errores atrapados",
+        "create" => "Crear un reporte de error",
+        "edit" => "Editar un error",
+        "show" => "Ver el error",
+    ],
+    "messages" => [
+        'confirm_destroy' => '¿Está seguro que quiere eliminar el Error ":modelName"?',
+        'destroy_success' => '<strong>Listo!</strong> El Error ":modelName" ha sido eliminado',
+        'destroy_error' => '<strong>Lo sentimos!</strong> El Error ":modelName" NO ha sido eliminado',
+        'update_success' => '<strong>Listo!</strong> Todos los cambios en el Error ":modelName" han sido guardados',
+        'update_error' => '<strong>Lo sentimos!</strong> Los cambios en el Error ":modelName" NO han sido guardados',
+        'store_success' => '<strong>Listo!</strong> El Error ":modelName" ha sido creado',
+        'store_error' => '<strong>Lo sentimos!</strong> El Error ":modelName" NO ha sido creado',
+    ],
+];

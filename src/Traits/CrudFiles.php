@@ -263,6 +263,69 @@ trait CrudFiles
     }
 
     /**
+     * Register the ErrorCatcher in app/Exceptions/Handler.php
+     *
+     *
+     * @return boolean If the middleware was registered or not
+     */
+    public static function registerErrorCatcher()
+    {
+        $path = Str::finish(str_replace(["/"], ["\\"], app_path('Exceptions/Handler.php')), '.php');
+        if (file_exists($path)) {
+            $contents = file($path);
+            $inicio = -1;
+            $fin = -1;
+            $encontradoComienzo = -1;
+            $encontradoParent = -1;
+            $throwableVar = "exc";
+            foreach ($contents as $index => $line) {
+                if (strpos($line, 'public function report') !== false) {
+                    $inicio = $index;
+                    $throwableVar =  Str::afterLast(Str::afterLast($line, 'Throwable'), '$');
+                    if (strpos($throwableVar, ",")){
+                        $throwableVar = Str::beforeLast($throwableVar, ',');
+                    }else{
+                        $throwableVar = Str::beforeLast($throwableVar, ')');
+                    }
+                    $throwableVar = str_replace(" ", "", $throwableVar);
+                }
+                if (strpos($line, '{') !== false && $inicio >= 0 && $fin == -1 && $encontradoComienzo == -1) {
+                    $encontradoComienzo = $index;
+                }
+                if (strpos($line, "parent::report") !== false && $inicio >= 0 && $encontradoComienzo >= 0 && $fin == -1 && $encontradoParent == -1) {
+                    $encontradoParent = $index;
+                }
+                if (strpos($line, "}") !== false && $inicio >= 0 && $encontradoComienzo >= 0 && $fin == -1) {
+                    $fin = $index;
+                }
+            }
+            $newTexto = chr(9) . chr(9) . "\\Sirgrimorum\\CrudGenerator\\ErrorCatcher::catch(\${$throwableVar});" . chr(13) . chr(10);
+            if ($inicio >= 0 && $fin >= 0 && $encontradoComienzo >= 0) {
+                $newContent = array_slice($contents, 0, $encontradoComienzo + 1);
+                $newContent[] = $newTexto;
+                if ($encontradoParent == -1){
+                    foreach (array_slice($contents, $encontradoComienzo + 1, $fin - $encontradoComienzo - 1) as $linea) {
+                        $newContent[] = $linea;
+                    }
+                    $newContent[] = chr(9) . chr(9) . "parent::report(\${$throwableVar});" . chr(13) . chr(10);
+                }else{
+                    foreach (array_slice($contents, $encontradoComienzo + 1, $fin - $encontradoComienzo - 1) as $linea) {
+                        $newContent[] = $linea;
+                    } 
+                }
+                foreach (array_slice($contents, $fin) as $linea) {
+                    $newContent[] = $linea;
+                }
+                $contents = $newContent;
+            }
+            $contents = file_put_contents($path, $contents);
+        } else {
+            $contents = false;
+        }
+        return $contents;
+    }
+
+    /**
      * Create a new Model related file using a view as a template and a config array as directives
      *
      * If needed, create the path directory recursively
@@ -402,9 +465,15 @@ trait CrudFiles
             $config_path = base_path($config_path . Str::start($path, "/"));
         }
         $path = $config_path;
+        $modeloM = basename($config['modelo']);
+        return CrudGenerator::registerConfigSimple($modeloM, $inPath, $config_path);
+    }
+
+    public static function registerConfigSimple($modeloM, $inPath, $config_path)
+    {
+        $path = $config_path;
         $crudgenConfig = config_path("sirgrimorum\\crudgenerator.php");
         if (file_exists($crudgenConfig) && file_exists($path)) {
-            $modeloM = basename($config['modelo']);
             $contents = file($crudgenConfig);
             $inicio = -1;
             $fin = -1;

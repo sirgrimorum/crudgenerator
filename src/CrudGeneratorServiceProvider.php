@@ -52,6 +52,9 @@ class CrudGeneratorServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/Langapp' => resource_path('lang'),
         ], 'langapp');
+        $this->publishes([
+            __DIR__ . '/Migrations/2021_01_26_064000_create_catched_errors_table.php' => database_path('migrations/2021_01_26_064000_create_catched_errors_table.php')
+        ], 'errors_migration');
 
         /**
          * Assets
@@ -278,6 +281,7 @@ class CrudGeneratorServiceProvider extends ServiceProvider
                 Commands\CreateLang::class,
                 Commands\CreateConfig::class,
                 Commands\RegisterMiddleware::class,
+                Commands\RegisterErrorCatcher::class,
                 Commands\Resources::class,
                 Commands\SyncLocal::class,
                 Commands\SyncLocalSsh::class,
