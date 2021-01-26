@@ -1,7 +1,7 @@
 <?php
 
 return [
-	"modelo" => "Sirgrimorum\CrudGenerator\Models\CatchedErrors", 
+	"modelo" => "Sirgrimorum\CrudGenerator\Models\CatchedError", 
 	"tabla" => "catched_errors", 
 	"nombre" => "id", 
 	"id" => "id", 
@@ -14,9 +14,15 @@ return [
 	"conditions" => true,
 	"filters" => false,
 	"query" => function(){
-		return Sirgrimorum\CrudGenerator\Models\CatchedErrors::whereRaw("1=1")->orderBy("updated_at", "desc");
+		return Sirgrimorum\CrudGenerator\Models\CatchedError::whereRaw("1=1")->orderBy("updated_at", "desc");
 	},
 	"campos" => [
+		"url" => [
+			"tipo" => "url", 
+			"label" => "__trans__crudgenerator::catchedError.labels.url", 
+			"placeholder" => "__trans__crudgenerator::catchedError.placeholders.url", 
+			"help" => "__trans__crudgenerator::catchedError.descriptions.url",
+		],
         "type" => [
 			"tipo" => "select",
 			"label" => "__trans__crudgenerator::catchedError.labels.type",
@@ -59,7 +65,7 @@ return [
 				$mensaje = Sirgrimorum\CrudGenerator\CrudGenerator::truncateText($data['value'],50);
 				return "$mensaje <p><small>(<-file->: <-line->)</small></p>";
 			}
-		], 
+		],
 		"occurrences" => [
 			"tipo" => "json", 
 			"label" => "__trans__crudgenerator::catchedError.labels.occurrences", 
@@ -82,26 +88,34 @@ return [
 		],
 	], 
 	"rules" => [
-		"name" => "bail|max:150|required", 
-		"link" => "bail|with_articles", 
-		"menu" => "bail|with_articles", 
-		"template" => "bail|with_articles", 
-		"order" => "bail|required", 
-		"sections" => "bail|exists:sections,id", 
+		"url" => "bail|required", 
+		"type" => "bail|required", 
+		"exception" => "bail|required", 
+		"file" => "bail|required", 
+		"message" => "bail|required", 
+		"occurrences" => "bail|required", 
+		"trace" => "bail|required", 
+		"request" => "bail|required", 
 	], 
 	"permissions" => [ //the permissions to validate before doing an action, if not present, uses the "sirgrimorum_cms::permission" closure, false send back to the 'sirgrimorum_cms::login_path' 
         "default" => function() {
             if (auth()->check()){
                 $user = App\User::find(auth()->user()->id);
-                return $user->isSupeAdmin();
+                return $user->isSuperAdmin();
             }
             return false;
         }, // the default permission to validate if others not present, false send back to the 'sirgrimorum_cms::login_path' 
-    /* "index" => [closure that return true or false], // permission for the index action of Crud, false send back to the 'sirgrimorum_cms::login_path' 
-      "create" => [closure that return true or false], // permission for the create action of Crud, false send back to the 'sirgrimorum_cms::login_path'
+		"create" => function(){
+			return false;
+		},
+		"edit" => function(){
+			return false;
+		},
+		"update" => function(){
+			return false;
+		},
+		/* "index" => [closure that return true or false], // permission for the index action of Crud, false send back to the 'sirgrimorum_cms::login_path' 
       "show" => [closure($object) that return true or false], // permission for the show action of Crud, false send back to the 'sirgrimorum_cms::login_path'
-      "edit" => [closure($object) that return true or false], // permission for the edit action of Crud, false send back to the 'sirgrimorum_cms::login_path'
-      "update" => [closure($object) that return true or false], // permission for the update action of Crud, false send back to the 'sirgrimorum_cms::login_path'
       "destroy" => [closure($object) that return true or false], // permission for the delete action of Crud, false send back to the 'sirgrimorum_cms::login_path' */
     ],
 ];

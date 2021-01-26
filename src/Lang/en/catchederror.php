@@ -7,6 +7,7 @@ return [
         "plural" => "Errors",
         "singular" => "Error",
         "type" => "Type",
+        "url" => "Url",
         "exception" => "Type of Exception",
         "file" => "File",
         "line" => "Line",
@@ -14,6 +15,7 @@ return [
         "occurrences" => "Variants",
         "trace" => "Trace",
         "request" => "Request",
+        "call_info" => "Call Info",
         "create" => "Create error report",
         "ver" => "Show",
         "editar" => "Edit",
@@ -24,9 +26,11 @@ return [
         "file" => "Path of the file",
         "line" => "222",
         "message" => "Something very bad",
+        "url" => "Where",
     ],
     "descriptions" => [
         "type" => "Type of error",
+        "url" => "Original url called when the error occur",
         "exception" => "Class of the Exception object",
         "file" => "Path to the place where the error occur",
         "line" => "Line where the error occur",
@@ -34,6 +38,7 @@ return [
         "occurrences" => "Differences in other circumpstances that this error occur",
         "trace" => "Trace",
         "request" => "Data captured at the moment of the error",
+        "call_info" => "Parameters used for the call that caused the error",
     ],
     "selects" => [
         "type" => [
@@ -41,6 +46,7 @@ return [
             "aut" => "Authentication",
             "rou" => "Http call",
             "api" => "API",
+            "job" => "Job",
             "web" => "Web",
         ],
     ],

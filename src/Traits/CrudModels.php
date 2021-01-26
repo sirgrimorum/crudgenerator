@@ -1740,7 +1740,11 @@ trait CrudModels
                         case 'json':
                             if ($input->has($campo)) {
                                 if (is_array($input->input($campo))) {
-                                    $objModelo->{$campo} = implode(Arr::get($detalles, 'glue', '_'), $input->input($campo));
+                                    if ($detalles['tipo'] == 'json'){
+                                        $objModelo->{$campo} = json_encode($input->input($campo));
+                                    }else{
+                                        $objModelo->{$campo} = implode(Arr::get($detalles, 'glue', '_'), $input->input($campo));
+                                    }
                                 } else {
                                     $objModelo->{$campo} = $input->input($campo);
                                 }

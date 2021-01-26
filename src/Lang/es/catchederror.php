@@ -7,6 +7,7 @@ return [
         "plural" => "Errores",
         "singular" => "Error",
         "type" => "Tipo",
+        "url" => "Url",
         "exception" => "Tipo de Excepción",
         "file" => "Archivo",
         "line" => "Línea",
@@ -14,6 +15,7 @@ return [
         "occurrences" => "Variantes",
         "trace" => "Trace",
         "request" => "Request",
+        "call_info" => "Información del llamado",
         "create" => "Crear reporte de error",
         "ver" => "Ver",
         "editar" => "Editar",
@@ -24,9 +26,11 @@ return [
         "file" => "Path del archivo",
         "line" => "222",
         "message" => "Algo muy malo",
+        "url" => "Dónde",
     ],
     "descriptions" => [
         "type" => "Tipo de error",
+        "url" => "Dirección original donde ocurrió el error",
         "exception" => "Clase del objeto Exception",
         "file" => "Path del lugar donde ocurrió el error",
         "line" => "Línea donde ocurrió el error",
@@ -34,6 +38,7 @@ return [
         "occurrences" => "Diferencias encontradas con otras veces que este mismo error ocurrió",
         "trace" => "Trace",
         "request" => "Datos capturados al momento del error",
+        "call_info" => "Parametros usados para la llamada que ocasionó el error",
     ],
     "selects" => [
         "type" => [
@@ -41,7 +46,9 @@ return [
             "aut" => "Autenticación",
             "rou" => "Llamado Http",
             "api" => "API",
+            "job" => "Job",
             "web" => "Http en web",
+            "ata" => "Posible ataque",
         ],
     ],
     "titulos" => [

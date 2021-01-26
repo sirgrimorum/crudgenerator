@@ -5,7 +5,7 @@ namespace Sirgrimorum\CrudGenerator\Models;
 use Illuminate\Database\Eloquent\Model;
 use Sirgrimorum\CrudGenerator\Traits\CrudGenForModels;
 
-class CatchedErrors extends Model {
+class CatchedError extends Model {
 
     use CrudGenForModels;
 
