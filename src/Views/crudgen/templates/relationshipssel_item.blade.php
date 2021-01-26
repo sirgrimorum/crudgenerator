@@ -181,19 +181,19 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
             @if(isset($columnaT['pre_html']))
             {!! CrudGenerator::translateDato($columnaT['pre_html'], $registroParaTranslate, $configParaTranslate) !!}
             @endif
-            <div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraIdInner}}'>
+            <div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraIdInner . '_' . $columnaName}}'>
                 <div class='{{$config['class_labelcont']}}'>
-                    {{ Form::label($extraIdInner, ucfirst($columnaT['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
+                    {{ Form::label($extraIdInner . '_' . $columnaName, ucfirst($columnaT['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
                     @if (isset($columnaT['description']))
-                    <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $extraIdInner }}_help">
+                    <small class="form-text text-muted mt-0" id="{{ $tabla . '_' . $extraIdInner . '_' . $columnaName }}_help">
                         {!! CrudGenerator::translateDato($columnaT['description'], $registroParaTranslate, $datos) !!}
                     </small>
                     @endif
                 </div>
                 <div class="{{ $config['class_divinput'] }}">
-                    {{ Form::text($extraIdInner, $valorM, array_merge(
+                    {{ Form::text($extraIdInner . '_' . $columnaName, $valorM, array_merge(
                         $extraDataInput,
-                        ['class' => "form-control-plaintext {$config['class_input']} $claseError $extraClassInput", 'id' => $extraIdInner,"readonly"=>"readonly"])) }}
+                        ['class' => "form-control-plaintext {$config['class_input']} $claseError $extraClassInput", 'id' => $extraIdInner . '_' . $columnaName,"readonly"=>"readonly"])) }}
                     @if($help != "")
                     <small class="form-text text-muted mt-0">
                         {!! $help !!}
