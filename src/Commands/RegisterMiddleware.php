@@ -41,7 +41,7 @@ class RegisterMiddleware extends Command
         if (CrudGenerator::registerMiddleware()) {
             $this->info("CrudGenerator middleware registered");
         } else {
-            $this->error("Something went wrong registering CrudGenerator middleware, please register ir in app/Http/Kernel.php");
+            $this->error("Something went wrong registering CrudGenerator middleware, please register it in app/Http/Kernel.php");
         }
         return 0;
     }
