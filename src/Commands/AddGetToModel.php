@@ -73,7 +73,7 @@ class AddGetToModel extends Command
         $bar->advance();
         $this->info("File loaded!");
         //$this->info(print_r($config, true));
-        $confirm = $this->choice("Do you wisth to continue and edit model file in '{$path}' with the className '{$className}'?", ['yes', 'no'], 0);
+        $confirm = $this->choice("Do you wish to continue and edit model file in '{$path}' with the className '{$className}'?", ['yes', 'no'], 0);
         if ($confirm == 'yes') {
             $this->info("Saving Model for {$modelName} in {$path} with className '{$className}'");
             if (CrudGenerator::addGetToModel(base_path($justPath), $fileName)) {

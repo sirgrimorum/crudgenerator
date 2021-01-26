@@ -70,7 +70,7 @@ class CreateLang extends Command
             $this->info("for {$local}'");
             if (is_string($local)) {
                 if ($local != config("app.locale")) {
-                    $confirm = $this->choice("Do you wisth to create a Lang File for the model in {$local}?", ['yes', 'no'], 0);
+                    $confirm = $this->choice("Do you wish to create a Lang File for the model in {$local}?", ['yes', 'no'], 0);
                     if ($confirm == 'yes') {
                         $path = "lang/vendor/crudgenerator/{$local}";
                         $filename = Str::finish(strtolower($model), ".php");

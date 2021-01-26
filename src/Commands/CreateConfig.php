@@ -62,13 +62,13 @@ class CreateConfig extends Command
         $this->info("Config generated!");
         //$this->info(print_r($config, true));
         $bar->advance();
-        $confirm = $this->choice("Do you wisth to continue and save config to '{$path}'?", ['yes', 'no'], 0);
+        $confirm = $this->choice("Do you wish to continue and save config to '{$path}'?", ['yes', 'no'], 0);
         if ($confirm == 'yes') {
             $this->info("Saving Config for {$model} in {$path}");
             if (CrudGenerator::saveConfig($config, $path)) {
                 $this->info("Config file saved!");
                 $bar->advance();
-                $confirm = $this->choice("Do you wisth to register the new config to the crudgenerator configuration file?", ['yes', 'no'], 0);
+                $confirm = $this->choice("Do you wish to register the new config to the crudgenerator configuration file?", ['yes', 'no'], 0);
                 if ($confirm == 'yes') {
                     $this->info("Registering Config for {$model} in crudgenerator configuration file");
                     if (CrudGenerator::registerConfig($config, $path)) {
