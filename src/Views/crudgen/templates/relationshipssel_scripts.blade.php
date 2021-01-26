@@ -208,7 +208,7 @@ if (count($extraParametersArr)>0){
     }
     
     function quitarPivote(idSelected,nameSelected){
-        console.log('quitar',idSelected,nameSelected);
+        //console.log('quitar',idSelected,nameSelected);
         confirmTitle = '{{$confirmTitle}}';
         confirmTitle = confirmTitle.replace(":modelId", idSelected).replace(":modelName", nameSelected);
         confirmContent = '{!!$confirmContent!!}';
