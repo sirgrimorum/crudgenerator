@@ -84,22 +84,22 @@ trait CrudModels
                 if (is_callable($config['query'])) {
                     $auxQuery = $config['query']();
                 } elseif (is_array($config['query'])) {
-                    if (count(data_get($config['query'], '*.*'))==0){
-                        if (Arr::isAssoc($config['query'])){
+                    if (count(data_get($config['query'], '*.*')) == 0) {
+                        if (Arr::isAssoc($config['query'])) {
                             $keys = array_keys($config['query']);
-                        }else{
+                        } else {
                             $keys = $config['query'];
                         }
                         $modeloM = ucfirst($config['modelo']);
                         $auxQuery = $modeloM::whereIn(Arr::get($config, "id", "id"), $keys);
-                    }else{
+                    } else {
                         $auxQuery = $config['query'];
                     }
-                } elseif(is_string($config['query'])) {
-                    try{
+                } elseif (is_string($config['query'])) {
+                    try {
                         $modeloM = ucfirst($config['modelo']);
                         $auxQuery = $modeloM::whereRaw("({$config['query']})");
-                    }catch(Exception $e){
+                    } catch (Exception $e) {
                         $auxQuery = $config['query'];
                     }
                 } else {
@@ -262,41 +262,46 @@ trait CrudModels
         $identificador = $config['id'];
         $nombre = $config['nombre'];
 
-        $row = [
-            $value->getKeyName() => $value->getKey()
-        ];
-        $rowSimple = [
-            $value->getKeyName() => $value->getKey()
-        ];
-        foreach ($campos as $columna => $datos) {
-            $celda = CrudGenerator::field_array($value, $columna, $config, $datos);
-            $row[$columna] = $celda;
-            $rowSimple[$columna] = $celda['value'];
-        }
-        if (is_array($botones)) {
-            $celda = [];
-            foreach ($botones as $boton) {
-                if (is_array($boton)) {
-                    $subBoton = [];
-                    foreach ($boton as $keySubBoton => $valueSubBoton) {
-                        if (is_string($valueSubBoton)) {
-                            $subBoton[$keySubBoton] = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $valueSubBoton));
-                        } else {
-                            $subBoton[$keySubBoton] = $valueSubBoton;
-                        }
-                    }
-                } elseif (is_string($boton)) {
-                    $celda[] = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $boton));
-                } else {
-                    $celda[] = $boton;
-                }
+        if ($value != null) {
+            $row = [
+                $value->getKeyName() => $value->getKey()
+            ];
+            $rowSimple = [
+                $value->getKeyName() => $value->getKey()
+            ];
+            foreach ($campos as $columna => $datos) {
+                $celda = CrudGenerator::field_array($value, $columna, $config, $datos);
+                $row[$columna] = $celda;
+                $rowSimple[$columna] = $celda['value'];
             }
-            $row["botones"] = $celda;
-        } elseif (is_string($botones)) {
-            $celda = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $botones));
-            $row["botones"] = $celda;
+            if (is_array($botones)) {
+                $celda = [];
+                foreach ($botones as $boton) {
+                    if (is_array($boton)) {
+                        $subBoton = [];
+                        foreach ($boton as $keySubBoton => $valueSubBoton) {
+                            if (is_string($valueSubBoton)) {
+                                $subBoton[$keySubBoton] = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $valueSubBoton));
+                            } else {
+                                $subBoton[$keySubBoton] = $valueSubBoton;
+                            }
+                        }
+                    } elseif (is_string($boton)) {
+                        $celda[] = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $boton));
+                    } else {
+                        $celda[] = $boton;
+                    }
+                }
+                $row["botones"] = $celda;
+            } elseif (is_string($botones)) {
+                $celda = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $botones));
+                $row["botones"] = $celda;
+            } else {
+                $row["botones"] = $botones;
+            }
         } else {
-            $row["botones"] = $botones;
+            $row = [];
+            $rowSimple = [];
         }
         if ($solo == 'simple') {
             return $rowSimple;
@@ -441,11 +446,11 @@ trait CrudModels
                                     $htmlShow .= '<dd class="col-sm-9 border-bottom border-secondary mb-0 pb-2">' .
                                         '<ul class="mb-0">';
                                     foreach ($datos['columnas'] as $infoPivote) {
-                                        if (isset($infoPivote['tipo'])){
+                                        if (isset($infoPivote['tipo'])) {
                                             $tipoPivote = $infoPivote['tipo'];
-                                        }elseif (isset($infoPivote['type'])){
+                                        } elseif (isset($infoPivote['type'])) {
                                             $tipoPivote = $infoPivote['type'];
-                                        }else{
+                                        } else {
                                             $tipoPivote = 'text';
                                         }
                                         if ($tipoPivote != "hidden" && $tipoPivote != "label") {
@@ -499,12 +504,34 @@ trait CrudModels
                 $celda = '-';
             }
         } elseif ($datos['tipo'] == "select") {
-            if (array_key_exists($value->{$columna}, $datos['opciones'])) {
-                $celda['data'] = $datos['opciones'][$value->{$columna}];
-                $celda['label'] = $datos['label'];
-                $celda['value'] = $datos['opciones'][$value->{$columna}];
+            if (Arr::get($datos, 'multiple', '') == 'multiple' && CrudGenerator::isJsonString($value->{$columna})) {
+                $celda = [];
+                $auxcelda2 = "";
+                $prefijo = "<ul><li>";
+                foreach (json_decode($value->{$columna}) as $opcion) {
+                    if (array_key_exists($opcion, $datos['opciones'])) {
+                        $auxcelda2 .= $prefijo . $datos['opciones'][$opcion];
+                        $celda[$opcion] =  $datos['opciones'][$opcion];
+                        $auxcelda2 .= "</li>";
+                        $prefijo = "<li>";
+                    }
+                }
+                if ($auxcelda2 != "") {
+                    $auxcelda2 .= "</ul>";
+                }
+                $celda = [
+                    "data" => $celda,
+                    "label" => $datos['label'],
+                    "value" => $auxcelda2
+                ];
             } else {
-                $celda = '-';
+                if (array_key_exists($value->{$columna}, $datos['opciones'])) {
+                    $celda['data'] = $datos['opciones'][$value->{$columna}];
+                    $celda['label'] = $datos['label'];
+                    $celda['value'] = $datos['opciones'][$value->{$columna}];
+                } else {
+                    $celda = '-';
+                }
             }
         } elseif ($datos['tipo'] == "checkbox" || $datos['tipo'] == "radio") {
             $auxdata = $value->{$columna};
@@ -1740,9 +1767,9 @@ trait CrudModels
                         case 'json':
                             if ($input->has($campo)) {
                                 if (is_array($input->input($campo))) {
-                                    if ($detalles['tipo'] == 'json'){
+                                    if ($detalles['tipo'] == 'json') {
                                         $objModelo->{$campo} = json_encode($input->input($campo));
-                                    }else{
+                                    } else {
                                         $objModelo->{$campo} = implode(Arr::get($detalles, 'glue', '_'), $input->input($campo));
                                     }
                                 } else {
@@ -1802,10 +1829,8 @@ trait CrudModels
                             break;
                         case 'select':
                             if ($input->has($campo)) {
-                                if (!isset($detalles["multiple"])) {
-                                    $objModelo->{$campo} = $input->input($campo);
-                                } elseif ($detalles["multiple"] != "multiple") {
-                                    $objModelo->{$campo} = $input->input($campo);
+                                if (Arr::get($detalles, "multiple", "") == "multiple" && is_array($input->input($campo))) {
+                                    $objModelo->{$campo} = json_encode($input->input($campo));
                                 } else {
                                     $objModelo->{$campo} = $input->input($campo);
                                 }
@@ -1910,7 +1935,7 @@ trait CrudModels
                                             if ($subdetalles['tipo'] != "label" && $subdetalles['tipo'] != "labelpivot") {
                                                 if ($input->has($campo . "_" . $subdetalles['campo'] . "_" . $id)) {
                                                     $datos[$id][$subdetalles['campo']] = $input->input($campo . "_" . $subdetalles['campo'] . "_" . $id);
-                                                } elseif(isset($subdetalles['valor'])) {
+                                                } elseif (isset($subdetalles['valor'])) {
                                                     $datos[$id][$subdetalles['campo']] = $subdetalles['valor'];
                                                 }
                                             }

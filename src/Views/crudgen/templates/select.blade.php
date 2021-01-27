@@ -63,17 +63,22 @@ if (is_callable($datos['opciones'])){
     if (!is_array($opciones)){
         $opciones = [];
     }
-}elseif(!is_array($datos['opciones'])){
+}elseif(is_array($datos['opciones'])){
     $opciones = $datos['opciones'];
 }else{
     $opciones = [];
 }
-$opciones = array_merge([""=>$placeholder], $opciones);
+if (!isset($datos['multiple'])){
+    $opciones = array_merge([""=>$placeholder], $opciones);
+}else{
+    $dato = json_decode($dato);
+}
 if (stripos(\Illuminate\Support\Arr::get($config,"rules.{$columna}", ""), "required")!==false){
     data_set($arrayAttr,'required',"required");
 }
 ?>
-<div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
+<div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo'
+    data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>
         {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))
@@ -99,8 +104,8 @@ if (stripos(\Illuminate\Support\Arr::get($config,"rules.{$columna}", ""), "requi
 <?php
 if ($js_section != "") {
     ?>
-    @push($js_section)
-    <?php
+@push($js_section)
+<?php
 }
 $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","scriptLoader") . "Creator";
 ?>
@@ -133,7 +138,7 @@ $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name","script
 <?php
 if ($js_section != "") {
     ?>
-    @endpush
-    <?php
+@endpush
+<?php
 }
 ?>
