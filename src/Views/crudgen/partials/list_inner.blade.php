@@ -9,7 +9,7 @@ $nombre = CrudGenerator::getJustValue('nombre',$value,$config, $key);
     <td class="position-relative">
         @if (isset($value[$columna]))
         @if (is_array($value[$columna]))
-        {!! CrudGenerator::getDatoToShow($value[$columna], "list", $datos) !!}
+        {!! CrudGenerator::getDatoToShow($value[$columna], "list", $datos, $value) !!}
         @elseif(!is_array($value[$columna]))
         {!! $value[$columna] !!}
         @else

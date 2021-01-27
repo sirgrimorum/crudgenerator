@@ -278,19 +278,20 @@ trait CrudStrings
      * @param array $datos The data values array from the $model->get("campo", false) function
      * @param string $action The name of the action (mainly show and list)
      * @param array $detalles The column configuration array
+     * @param object|array $registro The registry of the data
      * @param bool $justString If only return strings (the arrays print_r between <pre></pre>)
      * @return string|array The data to show after processing or the $data array
      */
-    public static function getDatoToShow($datos, $action, array $detalles, $justString = true)
+    public static function getDatoToShow($datos, $action, array $detalles, $registro, $justString = true)
     {
         if (isset($detalles["{$action}_data"])) {
             if (is_callable($detalles["{$action}_data"])) {
-                $return = $detalles["{$action}_data"]($datos);
+                $return = $detalles["{$action}_data"]($datos, $registro);
                 if (is_array($return) && $justString) {
                     return "<pre>" . print_r($return, true) . "</pre>";
                 }
-                return $return;
-            } elseif ($datos !== null && ($return = CrudGenerator::getNombreDeLista($datos, $detalles["{$action}_data"])) !== null) {
+                return CrudGenerator::getNombreDeLista($registro, $return);
+            } elseif ($datos !== null && ($return = CrudGenerator::getNombreDeLista($registro, $detalles["{$action}_data"])) !== null) {
                 if (is_array($return) && $justString) {
                     return "<pre>" . print_r($return, true) . "</pre>";
                 }
@@ -389,7 +390,7 @@ trait CrudStrings
                     $function = $preFunction;
                 }
                 if ($sigue) {
-                    if (is_string($item)) {
+                    if (is_string($item) && strlen($item) <= 255) {
                         if (strpos($item, $prefix) !== false) {
                             if ($function instanceof Closure) {
                                 $item = CrudGenerator::translateString($item, $prefix, $function);
@@ -404,7 +405,7 @@ trait CrudStrings
                     }
                 }
             }
-            if ($config != null && is_array($config) && $registro != null && is_object($registro)) {
+            if ($config != null && is_array($config) && $registro != null && is_object($registro) && is_string($item) && strlen($item) <= 255) {
                 if (isset($config['id']) && isset($registro->{$config['id']}) && (strpos($item, ":modelId") !== false || strpos($item, urlencode(":modelId")) !== false)) {
                     $item = str_replace([":modelId", urlencode(":modelId")], $registro->{$config['id']}, $item);
                 }
@@ -768,7 +769,7 @@ trait CrudStrings
                     return $strNombre;
                 } elseif (is_callable($campo)) {
                     return $campo($elemento);
-                } else {
+                } elseif (is_string($campo) && strlen($campo) <= 255) {
                     return CrudGenerator::replaceCamposEnString($elemento, $campo, $default);
                 }
             } elseif (is_string($elemento)) {

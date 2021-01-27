@@ -38,7 +38,7 @@ if ((($action == "create" && !isset($datos['nodb'])) || $action != "create") && 
                 $auxDato = data_get($registro, $columna, null);
             }
         }
-        $datos['valor'] = CrudGenerator::getDatoToShow($auxDato, $action, $datos, false);
+        $datos['valor'] = CrudGenerator::getDatoToShow($auxDato, $action, $datos, $registro, false);
         $datos['value'] = $datos['valor'];
     }
     if (View::exists("sirgrimorum::crudgen.templates." . $datos['tipo'])) {

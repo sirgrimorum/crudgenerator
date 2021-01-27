@@ -32,7 +32,7 @@
                 <div class="form-control-plaintext {{$config['class_input']}}">
                     @if (isset($registro[$columna]))
                     @if (is_array($registro[$columna]))
-                    {!! CrudGenerator::getDatoToShow($registro[$columna], "show", $datos) !!}
+                    {!! CrudGenerator::getDatoToShow($registro[$columna], "show", $datos, $registro) !!}
                     @elseif(!is_array($registro[$columna]))
                     {!! $registro[$columna] !!}
                     @else
