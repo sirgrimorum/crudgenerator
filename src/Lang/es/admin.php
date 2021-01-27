@@ -84,6 +84,7 @@ return [
     ],
     'messages' => [
         'permission' => 'No tiene permiso para ejecutar esta acción',
+        'not_found' => 'No se encuentra el registro ":modelId"',
         'error_json' => '',
         'confirm_destroy' => '¿Está seguro que desea eliminar el registro ":modelName"?',
         'confirm_removepivot' => '¿Está seguro que desea quitar la referencia al registro ":modelName"?',

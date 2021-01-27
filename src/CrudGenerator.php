@@ -129,20 +129,26 @@ class CrudGenerator
     {
         //$config = CrudGenerator::translateConfig($config);
         $modelo = strtolower(class_basename($config["modelo"]));
+        $config['id'] = Arr::get($config, "id", "id");
         if ($registro == null) {
-            if ($id != null && is_object($id)) {
+            $modeloM = ucfirst($config['modelo']);
+            if ($id == null) {
+                $registro = $modeloM::first();
+            } elseif (is_object($id) && isset($id->{$config['id']})) {
                 $registro = $id;
                 $id = $registro->{$config['id']};
             } else {
-                $registro = CrudGenerator::registry_array($config, $id, 'complete');
-                $id = $registro[$config['id']];
+                $registro = $modeloM::find($id);
             }
-        } elseif ($id == null) {
-            if (is_array($registro)) {
+        }elseif ($id == null) {
+            if (is_array($registro) && Arr::has($registro, $config['id'])) {
                 $id = $registro[$config['id']];
-            } else {
+            } elseif (is_object($registro) && isset($registro->{$config['id']})) {
                 $id = $registro->{$config['id']};
             }
+        }
+        if ($id == null || $id == 0 || $registro == null || (is_array($registro) && count($registro) == 0)){
+            return View::make('sirgrimorum::crudgen.partials.error', ['message' => str_replace(":modelId", $id, trans('crudgenerator::admin.messages.not_found'))]);
         }
         if (!CrudGenerator::checkPermission($config, $id, 'show')) {
             return View::make('sirgrimorum::crudgen.partials.error', ['message' => trans('crudgenerator::admin.messages.permission')]);
@@ -184,16 +190,26 @@ class CrudGenerator
         $modelo = strtolower(class_basename($config["modelo"]));
         $config = CrudGenerator::loadTodosFromConfig($config);
         $config['formId'] = Arr::get($config, 'formId', $config['tabla'] . "_" . Str::random(5));
+        $config['id'] = Arr::get($config, "id", "id");
         if ($registro == null) {
             $modeloM = ucfirst($config['modelo']);
             if ($id == null) {
                 $registro = $modeloM::first();
-            } elseif (is_object($id)) {
+            } elseif (is_object($id) && isset($id->{$config['id']})) {
                 $registro = $id;
-                $id = $registro->getKey();
+                $id = $registro->{$config['id']};
             } else {
                 $registro = $modeloM::find($id);
             }
+        }elseif ($id == null) {
+            if (is_array($registro) && Arr::has($registro, $config['id'])) {
+                $id = $registro[$config['id']];
+            } elseif (is_object($registro) && isset($registro->{$config['id']})) {
+                $id = $registro->{$config['id']};
+            }
+        }
+        if ($id == null || $id == 0 || $registro == null || (is_array($registro) && count($registro) == 0)){
+            return View::make('sirgrimorum::crudgen.partials.error', ['message' => str_replace(":modelId", $id, trans('crudgenerator::admin.messages.not_found'))]);
         }
         if (!CrudGenerator::checkPermission($config, $registro->getKey(), 'edit')) {
             return View::make('sirgrimorum::crudgen.partials.error', ['message' => trans('crudgenerator::admin.messages.permission')]);

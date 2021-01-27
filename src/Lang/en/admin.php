@@ -83,6 +83,7 @@ return [
     ],
     'messages' => [
         'permission' => "You don't have permission to execute this action",
+        'not_found' => 'Registry ":modelId" not found',
         'error_json' => '',
         'confirm_destroy' => 'Are you sure to delete ":modelName"?',
         'destroy_success' => '<strong>Great!</strong> ":modelName" has been deleted',
