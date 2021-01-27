@@ -213,7 +213,7 @@ trait CrudConfig
             $parametros = json_decode($request->__parametros, true);
             if (is_array($parametros)) {
                 if ($parametros["modelo"] == $modelo) {
-                    $newConfig = CrudGenerator::getConfig($parametros["modelo"], Arr::get($parametros,"smartMerge", $smartMerge), Arr::get($parametros,"config", $config), Arr::get($parametros,"baseConfig", $baseConfig), Arr::get($parametros,"trans", $trans), Arr::get($parametros,"fail", $fail), Arr::get($parametros,"override", $override));
+                    $newConfig = CrudGenerator::getConfig($parametros["modelo"], Arr::get($parametros, "smartMerge", $smartMerge), Arr::get($parametros, "config", $config), Arr::get($parametros, "baseConfig", $baseConfig), Arr::get($parametros, "trans", $trans), Arr::get($parametros, "fail", $fail), Arr::get($parametros, "override", $override));
                 }
             }
         }
@@ -1013,7 +1013,7 @@ trait CrudConfig
                 foreach ($preConfig as $key => $value) {
                     if (!Arr::has($config, $key)) {
                         if (is_array($value)) {
-                            if (($auxValue = CrudGenerator::smartMergeConfig("", $value))!== false) {
+                            if (($auxValue = CrudGenerator::smartMergeConfig("", $value)) !== false) {
                                 $config[$key] = $auxValue;
                             }
                         } elseif (is_object($value)) {
@@ -1060,9 +1060,9 @@ trait CrudConfig
                         $config["parametros"] = $parametros;
                     }
                     return $config;
-                } elseif(count($preConfig) == 0) {
+                } elseif (count($preConfig) == 0) {
                     return $preConfig;
-                }else{
+                } else {
                     return false;
                 }
             }
@@ -1292,9 +1292,9 @@ trait CrudConfig
      */
     public static function loadTodosForField($relacion, $clave = null, $config = null, $conAdicional = false, $adicionalText = null, $adicionalValor = "-")
     {
-        if (isset($relacion['todos'])){
+        if (isset($relacion['todos'])) {
             $relacion['todosOriginal'] = $relacion['todos'];
-        }else{
+        } else {
             $relacion['todosOriginal'] = $relacion['todos'] = "";
         }
         if ($relacion['tipo'] == "relationship" || $relacion['tipo'] == "relationships" || $relacion['tipo'] == "relationshipssel") {
@@ -1349,10 +1349,10 @@ trait CrudConfig
                 } elseif (is_callable($relacion['todos'])) {
                     $modelosM = $relacion['todos']();
                 } elseif (is_string($relacion['todos'])) {
-                    try{
+                    try {
                         $modeloM = ucfirst($relacion["modelo"]);
                         $modelosM = $modeloM::whereRaw("({$relacion['todos']})");
-                    }catch(Exception $e){
+                    } catch (Exception $e) {
                         $modelosM = $modeloM::whereRaw("(1=1)");
                     }
                 } else {
@@ -1418,7 +1418,7 @@ trait CrudConfig
             $config['class_form'] = '';
         }
         if (!isset($config['class_labelcont'])) {
-            $config['class_labelcont'] = !$sub ? 'col-xs-12 col-sm-12 col-md-3': 'col-xs-12 col-sm-12 col-md-12 col-lg-3';
+            $config['class_labelcont'] = !$sub ? 'col-xs-12 col-sm-12 col-md-3' : 'col-xs-12 col-sm-12 col-md-12 col-lg-3';
         }
         if (!isset($config['class_label'])) {
             $config['class_label'] = 'col-form-label font-weight-bold mb-0 pb-0';
@@ -1521,11 +1521,24 @@ trait CrudConfig
                 "create" => Arr::get($config['url'], 'create', route('sirgrimorum_modelos::create', ['modelo' => $modelo])),
             ];
         }
+        $textos = [
+            "show" => trans("crudgenerator::datatables.buttons.show"),
+            "edit" => trans("crudgenerator::datatables.buttons.edit"),
+            "remove" => trans("crudgenerator::datatables.buttons.remove"),
+            "create" => trans("crudgenerator::datatables.buttons.create"),
+        ];
+        $titles = [
+            "show" => Arr::get(__("crudgenerator::$modelo.labels"), "show", trans("crudgenerator::datatables.buttons.t_show") . " $singulares"),
+            "edit" => Arr::get(__("crudgenerator::$modelo.labels"), "edit", trans("crudgenerator::datatables.buttons.t_edit") . " $singulares"),
+            "remove" => Arr::get(__("crudgenerator::$modelo.labels"), "remove", trans("crudgenerator::datatables.buttons.t_remove") . " $singulares"),
+            "create" => Arr::get(__("crudgenerator::$modelo.labels"), "create", trans("crudgenerator::datatables.buttons.t_create") . " $singulares"),
+        ];
+
         return [
-            'show' => "<a class='btn btn-info' href='{$urls['show']}' title='" . trans('crudgenerator::datatables.buttons.t_show') . " $singulares'>" . trans("crudgenerator::datatables.buttons.show") . "</a>",
-            'edit' => "<a class='btn btn-success' href='{$urls['edit']}' title='" . trans('crudgenerator::datatables.buttons.t_edit') . " $singulares'>" . trans("crudgenerator::datatables.buttons.edit") . "</a>",
-            'remove' => "<a class='btn btn-danger' href='{$urls['remove']}' data-confirm='$textConfirm' data-yes='" . trans('crudgenerator::admin.layout.labels.yes') . "' data-no='" . trans('crudgenerator::admin.layout.labels.no') . "' data-confirmtheme='" . config('sirgrimorum.crudgenerator.confirm_theme') . "' data-confirmicon='" . config('sirgrimorum.crudgenerator.confirm_icon') . "' data-confirmtitle='' data-method='delete' rel='nofollow' title='" . trans('crudgenerator::datatables.buttons.t_remove') . " $plurales'>" . trans("crudgenerator::datatables.buttons.remove") . "</a>",
-            'create' => "<a class='btn btn-info' href='{$urls['create']}' title='" . trans('crudgenerator::datatables.buttons.t_create') . " $singulares'>" . trans("crudgenerator::datatables.buttons.create") . "</a>",
+            'show' => "<a class='btn btn-info' href='{$urls['show']}' title='{$titles['show']}'>{$textos['show']}</a>",
+            'edit' => "<a class='btn btn-success' href='{$urls['edit']}' title='{$titles['edit']}'>{$textos['edit']}</a>",
+            'remove' => "<a class='btn btn-danger' href='{$urls['remove']}' data-confirm='$textConfirm' data-yes='" . trans('crudgenerator::admin.layout.labels.yes') . "' data-no='" . trans('crudgenerator::admin.layout.labels.no') . "' data-confirmtheme='" . config('sirgrimorum.crudgenerator.confirm_theme') . "' data-confirmicon='" . config('sirgrimorum.crudgenerator.confirm_icon') . "' data-confirmtitle='' data-method='delete' rel='nofollow' title='{$titles['remove']}'>{$textos['remove']}</a>",
+            'create' => "<a class='btn btn-info' href='{$urls['create']}' title='{$titles['create']}'>{$textos['create']}</a>",
         ];
     }
 

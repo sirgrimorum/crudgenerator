@@ -14,9 +14,9 @@ return [
         "user_id" => "Autor",
         "edit" => "Editar artículo",
         "create" => "Crear artículo",
-        "ver" => "Ver",
-        "editar" => "Editar",
-        "eliminar" => "Eliminar",
+        "show" => "Ver",
+        "edit" => "Editar",
+        "remove" => "Eliminar",
     ],
     "placeholders" => [
         "scope" => "Nombre de la sección",
@@ -41,6 +41,7 @@ return [
         "create" => "Crear un artículo",
         "edit" => "Editar un artículo",
         "show" => "Ver artículo",
+        "remove" => "Eliminar artículos"
     ],
     "messages" => [
         'confirm_destroy' => '¿Está seguro que quiere eliminar el artículo ":modelName"?',

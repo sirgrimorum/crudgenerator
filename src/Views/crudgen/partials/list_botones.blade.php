@@ -62,7 +62,13 @@ if (is_string($butName)) {
         if ($textBoton == $butName) {
             if (Lang::has("crudgenerator::datatables.buttons." . $butName)) {
                 $textBoton = trans("crudgenerator::datatables.buttons." . $butName);
-                $titleBoton = $plurales . " - " . trans("crudgenerator::datatables.buttons.t_" . $butName);
+            }
+            if (Lang::has("crudgenerator::" . strtower(class_basename($config["modelo"])) . ".labels." . $butName)) {
+                $titleBoton = trans("crudgenerator::" . strtower(class_basename($config["modelo"])) . ".labels." . $butName);
+            } elseif (Lang::has("crudgenerator::datatables.buttons.t_" . $butName)) {
+                $titleBoton = trans("crudgenerator::datatables.buttons.t_" . $butName) . " $plurales";
+            } else {
+                $titleBoton = $textBoton;
             }
         }
     }elseif(is_array($boton)){

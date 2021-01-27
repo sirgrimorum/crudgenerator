@@ -95,6 +95,7 @@ return [
         "create" => "Crear {model}",
         "edit" => "Editar {model}",
         "show" => "Ver {model}",
+        "remove" => "Eliminar {{\Illuminate\Support\Str::plural($modelo)}}"
     ],
     "messages" => [
         'confirm_destroy' => '¿Está seguro que quiere eliminar el {Model} ":modelName"?',
