@@ -70,7 +70,7 @@ if (is_callable($datos['opciones'])){
 }
 if (!isset($datos['multiple'])){
     $opciones = array_merge([""=>$placeholder], $opciones);
-}else{
+}elseif(is_string($dato) && CrudGenerator::isJsonString($dato)){
     $dato = json_decode($dato);
 }
 if (stripos(\Illuminate\Support\Arr::get($config,"rules.{$columna}", ""), "required")!==false){
