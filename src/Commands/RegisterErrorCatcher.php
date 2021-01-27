@@ -4,6 +4,7 @@ namespace Sirgrimorum\CrudGenerator\Commands;
 
 use Illuminate\Console\Command;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
+use Illuminate\Support\Str;
 
 class RegisterErrorCatcher extends Command
 {
@@ -42,7 +43,9 @@ class RegisterErrorCatcher extends Command
             $confirm = $this->choice("Do you wish to register the error catching config to the crudgenerator configuration file?", ['yes', 'no'], 0);
             if ($confirm == 'yes') {
                 $this->info("Registering Config for catched errors in crudgenerator configuration file");
-                if (CrudGenerator::registerConfigSimple("CatchedErrors", "sirgrimorum.models.catchedError", config_path("sirgrimorum.models.catchedError"))) {
+                $path = "sirgrimorum.models.catchederror";
+                $path = Str::finish(str_replace([".", "/"], ["\\", "\\"], $path), '.php');
+                if (CrudGenerator::registerConfigSimple("Catchederror", "sirgrimorum.models.catchederror", config_path($path))) {
                     $this->info("Config registered!");
                 } else {
                     $this->error("Something went wrong and config could not be registered");

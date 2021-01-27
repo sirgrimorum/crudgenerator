@@ -278,13 +278,14 @@ trait CrudFiles
             $encontradoComienzo = -1;
             $encontradoParent = -1;
             $throwableVar = "exc";
+            $encontrado = -1;
             foreach ($contents as $index => $line) {
                 if (strpos($line, 'public function report') !== false) {
                     $inicio = $index;
                     $throwableVar =  Str::afterLast(Str::afterLast($line, 'Throwable'), '$');
-                    if (strpos($throwableVar, ",")){
+                    if (strpos($throwableVar, ",")) {
                         $throwableVar = Str::beforeLast($throwableVar, ',');
-                    }else{
+                    } else {
                         $throwableVar = Str::beforeLast($throwableVar, ')');
                     }
                     $throwableVar = str_replace(" ", "", $throwableVar);
@@ -295,30 +296,35 @@ trait CrudFiles
                 if (strpos($line, "parent::report") !== false && $inicio >= 0 && $encontradoComienzo >= 0 && $fin == -1 && $encontradoParent == -1) {
                     $encontradoParent = $index;
                 }
+                if (strpos($line, "\\Sirgrimorum\\CrudGenerator\\ErrorCatcher::catch") !== false && $inicio >= 0 && $encontradoComienzo >= 0 && $fin == -1) {
+                    $encontrado = $index;
+                }
                 if (strpos($line, "}") !== false && $inicio >= 0 && $encontradoComienzo >= 0 && $fin == -1) {
                     $fin = $index;
                 }
             }
-            $newTexto = chr(9) . chr(9) . "\\Sirgrimorum\\CrudGenerator\\ErrorCatcher::catch(\${$throwableVar});" . chr(13) . chr(10);
-            if ($inicio >= 0 && $fin >= 0 && $encontradoComienzo >= 0) {
-                $newContent = array_slice($contents, 0, $encontradoComienzo + 1);
-                $newContent[] = $newTexto;
-                if ($encontradoParent == -1){
-                    foreach (array_slice($contents, $encontradoComienzo + 1, $fin - $encontradoComienzo - 1) as $linea) {
+            if ($encontrado == -1) {
+                $newTexto = chr(9) . chr(9) . "\\Sirgrimorum\\CrudGenerator\\ErrorCatcher::catch(\${$throwableVar});" . chr(13) . chr(10);
+                if ($inicio >= 0 && $fin >= 0 && $encontradoComienzo >= 0) {
+                    $newContent = array_slice($contents, 0, $encontradoComienzo + 1);
+                    $newContent[] = $newTexto;
+                    if ($encontradoParent == -1) {
+                        foreach (array_slice($contents, $encontradoComienzo + 1, $fin - $encontradoComienzo - 1) as $linea) {
+                            $newContent[] = $linea;
+                        }
+                        $newContent[] = chr(9) . chr(9) . "parent::report(\${$throwableVar});" . chr(13) . chr(10);
+                    } else {
+                        foreach (array_slice($contents, $encontradoComienzo + 1, $fin - $encontradoComienzo - 1) as $linea) {
+                            $newContent[] = $linea;
+                        }
+                    }
+                    foreach (array_slice($contents, $fin) as $linea) {
                         $newContent[] = $linea;
                     }
-                    $newContent[] = chr(9) . chr(9) . "parent::report(\${$throwableVar});" . chr(13) . chr(10);
-                }else{
-                    foreach (array_slice($contents, $encontradoComienzo + 1, $fin - $encontradoComienzo - 1) as $linea) {
-                        $newContent[] = $linea;
-                    } 
+                    $contents = $newContent;
                 }
-                foreach (array_slice($contents, $fin) as $linea) {
-                    $newContent[] = $linea;
-                }
-                $contents = $newContent;
+                $contents = file_put_contents($path, $contents);
             }
-            $contents = file_put_contents($path, $contents);
         } else {
             $contents = false;
         }
@@ -687,7 +693,8 @@ trait CrudFiles
      * @param string $default Optional, The default disk to use, "local" as default
      * @return \Illuminate\Filesystem\FilesystemAdapter
      */
-    public static function getDisk($detalles = [], $default = "local"){
+    public static function getDisk($detalles = [], $default = "local")
+    {
         return Storage::disk(Arr::get($detalles, "disk", $default));
     }
 }

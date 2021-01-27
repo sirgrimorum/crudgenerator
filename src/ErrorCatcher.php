@@ -3,10 +3,13 @@
 namespace Sirgrimorum\CrudGenerator;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
 use Throwable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Sirgrimorum\CrudGenerator\Models\CatchedError;
+use Sirgrimorum\CrudGenerator\Models\Catchederror;
+use Sirgrimorum\CrudGenerator\CrudGenerator;
 
 class ErrorCatcher
 {
@@ -30,7 +33,21 @@ class ErrorCatcher
      *
      * @var  string
      */
-    protected $modelName = 'catchedError';
+    protected $modelName = 'catchederror';
+
+    /**
+     * The maximum depth for args in trace.
+     *
+     * @var  int
+     */
+    protected $maxDepth;
+
+    /**
+     * The maximum traces to track for args in trace.
+     *
+     * @var  int
+     */
+    protected $maxTraces;
 
     /**
      * The plan config array.
@@ -39,16 +56,18 @@ class ErrorCatcher
      */
     protected $config;
 
-    public function __construct(Throwable $exception)
+    public function __construct(Throwable $exception, $maxTraces = 15, $maxDepth = 5)
     {
         $this->exception = $exception;
         $this->request = request();
         $this->config = CrudGenerator::getConfig($this->modelName);
+        $this->maxDepth = $maxDepth;
+        $this->maxTraces = $maxTraces;
     }
 
     private function getErrorType()
     {
-        $calssesByType = collect([
+        $calssesByType = [
             "web" => [
                 "HttpExceptionInterface",
                 "HttpException",
@@ -74,16 +93,16 @@ class ErrorCatcher
             "ata" => [
                 "SuspiciousOperationException"
             ],
-        ]);
-        $tipos = $calssesByType->map(function ($item, $key) {
-            if (in_array(class_basename(get_class($this->exception)), $item)) {
-                return $key;
+        ];
+        $tipos = [];
+        foreach ($calssesByType as $tipo => $clases) {
+            if (in_array(class_basename(get_class($this->exception)), $clases)) {
+                $tipos[] = $tipo;
             }
-            return null;
-        })->all();
+        }
         if ($this->request->expectsJson()) {
             array_push($tipos, "api");
-        } elseif (!isset($tipos["web"])) {
+        } elseif (!in_array("web", $tipos)) {
             array_push($tipos, "web");
         }
         return $tipos;
@@ -93,9 +112,10 @@ class ErrorCatcher
      * Catch (save) an error
      * 
      * @param Throwable $exception The exception to catch
-     * @return CatchedError The error catched
+     * @return Catchederror The error catched
      */
-    public static function catch(Throwable $exception){
+    public static function catch(Throwable $exception)
+    {
         $catcher = new ErrorCatcher($exception);
         return $catcher->save();
     }
@@ -103,7 +123,7 @@ class ErrorCatcher
     /**
      * Save the error
      * 
-     * @return CatchedError The error catched
+     * @return Catchederror The error catched
      */
     public function save()
     {
@@ -112,18 +132,23 @@ class ErrorCatcher
             $dataAnterior = $this->processPreviousError($anterior);
             $num = data_get($dataAnterior, "occurrences.num", 1) + 1;
             $anteriores = data_get($dataAnterior, "occurrences.anteriores", []);
-            $dataAnterior = collect($dataAnterior)->except("occurrences");
-            $diferencia = $dataAnterior->diff($data)->all();
-            if (!in_array($diferencia, $anteriores)) {
-                $key = Carbon::now()->toIso8601String();
-                if (isset($anteriores[$key])) {
-                    $key .= "_" . Str::random(3);
+            $diferencia = ErrorCatcher::array_diff_recursive(collect($dataAnterior)->except("occurrences", "trace")->all(), collect($data)->except("occurrences", "trace")->all());
+            if (count($diferencia) > 0) {
+                if (!in_array($diferencia, $anteriores)) {
+                    $key = Carbon::now()->toIso8601String();
+                    if (isset($anteriores[$key])) {
+                        $key .= "_" . Str::random(3);
+                    }
+                    $anteriores[$key] = $diferencia;
                 }
-                $anteriores[$key] = $diferencia;
             }
-            $dataFinal["occurrences"] = [
-                "num" => $num,
-                "anteriores" => $anteriores,
+            $dataFinal = [
+                "occurrences" => [
+                    "num" => $num,
+                    "anteriores" => $anteriores,
+                ],
+                "trace" => data_get($dataAnterior, "trace", []),
+                "request" => data_get($dataAnterior, "request", []),
             ];
             return CrudGenerator::saveObjeto($this->config, new Request($dataFinal), $anterior);
         } else {
@@ -136,11 +161,58 @@ class ErrorCatcher
     }
 
     /**
+     * Return an array with the things that array2 has different to $array1
+     * 
+     * @param array $array1
+     * @param array $array2
+     * 
+     * @return array
+     */
+    private static function array_diff_recursive($array1, $array2)
+    {
+        $result = [];
+        if (is_array($array2) && is_array($array1)) {
+            foreach ($array2 as $key => $val) {
+                if (isset($array1[$key])) {
+                    if (is_array($val) && is_array($array1[$key])) {
+                        $auxResult = ErrorCatcher::array_diff_recursive($array1[$key], $val);
+                        if (count($auxResult) > 0) {
+                            $result[$key] = $auxResult;
+                        }
+                    } elseif ($val != $array1[$key]) {
+                        $result[$key] = $val;
+                    }
+                } else {
+                    $result[$key] = $val;
+                }
+            }
+        } elseif ($array2 != $array1) {
+            return $array2;
+        }
+        return $result;
+    }
+
+    /**
      * Get an array with the processed data of the current Throwable error
      * 
      * @return array
      */
-    private function processCurrentError(){
+    private function processCurrentError()
+    {
+        $traces = [];
+        foreach ($this->exception->getTrace() as $key => $trace) {
+            $args = $this->getArgs(Arr::get($trace, "args", []), 0);
+            $newTrace = Arr::except($trace, ["args"]);
+            $newTrace["args"] = $args;
+            $traces[$key] = $newTrace;
+            if (count($traces) >= $this->maxTraces) {
+                break;
+            }
+        }
+        $session = "Not set";
+        if ($this->request->hasSession()) {
+            $session = $this->request->session()->all();
+        }
         return [
             "url" => $this->request->url(),
             "file" => $this->exception->getFile(),
@@ -148,13 +220,13 @@ class ErrorCatcher
             "type" => $this->getErrorType(),
             "exception" => get_class($this->exception),
             "message" => $this->exception->getMessage(),
-            "trace" => $this->exception->getTrace(),
+            "trace" => $traces,
             "request" => [
                 "path" => $this->request->path(),
-                "query" => $this->reqeust->query(),
+                "query" => $this->request->query(),
                 "method" => $this->request->method(),
                 "data" => $this->request->all(),
-                "session" => $this->request->session()->all(),
+                "session" => $session,
                 "cookie" => $this->request->cookie(),
                 "ip" => $this->request->ip(),
                 "header" => collect($this->request->header())->only([
@@ -174,15 +246,50 @@ class ErrorCatcher
         ];
     }
 
+    private function getArgs($arg, $depth)
+    {
+        if (is_int($arg) || is_string($arg)) {
+            return $arg;
+        } elseif ($arg === true || $arg === false || $arg === null) {
+            return $arg;
+        } elseif (is_array($arg) && $depth <= $this->maxDepth) {
+            $args = [];
+            foreach ($arg as $key => $newArg) {
+                $args[$key] = $this->getArgs($newArg, $depth + 1);
+            }
+            return $args;
+        } elseif (is_object($arg)) {
+            if ($arg instanceof Request && $depth <= $this->maxDepth) {
+                $args = [];
+                foreach ($arg->all() as $key => $newArg) {
+                    $args[$key] = $this->getArgs($newArg, $depth + 1);
+                }
+                return $args;
+            } elseif ($arg instanceof Model && $depth <= $this->maxDepth) {
+                $args = [];
+                foreach ($arg->toArray() as $key => $newArg) {
+                    $args[$key] = $this->getArgs($newArg, $depth + 1);
+                }
+                return $args;
+            } else {
+                return get_class($arg);
+            }
+        } else {
+            return gettype($arg);
+        }
+    }
+
     /**
-     * Get an array with the processed data of a previous CatchedError
+     * Get an array with the processed data of a previous Catchederror
      * 
      * @return array
      */
-    private function processPreviousError(CatchedError $anterior){
+    private function processPreviousError(Catchederror $anterior)
+    {
         $devolver = collect($anterior->toArray())->only([
-            "ulr", "file", "line", "type", "exception", "message"
+            "url", "file", "line", "type", "exception", "message"
         ])->all();
+        $devolver["type"] = json_decode($anterior->type);
         $devolver["trace"] = $anterior->get("trace", false)["data"];
         $devolver["request"] = $anterior->get("request", false)["data"];
         $devolver["occurrences"] = $anterior->get("occurrences", false)["data"];
@@ -193,15 +300,15 @@ class ErrorCatcher
      * Get a previously catched error
      * 
      * @param array $data The array with all the error data processed
-     * @return CatchedError|bool The previously Catched Error or false if none found
+     * @return Catchederror|bool The previously Catched Error or false if none found
      */
     private function getAnterior($data)
     {
-        $query = CatchedError::where("file", $data["file"])
+        $query = Catchederror::where("file", $data["file"])
             ->where("line", $data["line"])
             ->where("exception", $data["exception"]);
         if ($query->count() > 0) {
-            $anterior = $query->orderBy("id","desc")->first();
+            $anterior = $query->orderBy("id", "desc")->first();
             return $anterior;
         }
         return false;

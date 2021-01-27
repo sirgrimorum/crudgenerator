@@ -2,8 +2,8 @@
 
 return [
     "labels" => [
-        "catchedError" => "Error",
-        "catchedErrors" => "Errors",
+        "catchederror" => "Error",
+        "catchederrors" => "Errors",
         "plural" => "Errors",
         "singular" => "Error",
         "type" => "Type",
