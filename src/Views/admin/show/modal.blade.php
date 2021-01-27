@@ -9,7 +9,7 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="{{$modelo}}_show_modalLabel">{{ trans('crudgenerator::admin.layout.ver') }} {{ ucfirst($singulares) }}</h5>
+                <h5 class="modal-title" id="{{$modelo}}_show_modalLabel">{{ \Illuminate\Support\Arr::get(__("crudgenerator::" . strtolower($modelo) . ".titulos"), "show", __('crudgenerator::admin.layout.labels.show') . " " .ucfirst($singulares)) }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="{{trans('crudgenerator::admin.layout.labels.close')}}"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">

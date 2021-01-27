@@ -44,7 +44,7 @@ if ($botones != "") {
         }
     }
 } else {
-    echo "<button onclick='$(\"#{$modeloUCF}_show_modal\").modal(\"show\");' class='" . $config['class_button'] . "'>" . trans('crudgenerator::admin.layout.labels.show') . "</button>";
+    echo "<button onclick='$(\"#{$modeloUCF}_show_modal\").modal(\"show\");' class='" . $config['class_button'] . "'>" . \Illuminate\Support\Arr::get(__("crudgenerator::" . strtolower($modelo) . ".labels"), "show", trans('crudgenerator::admin.layout.labels.show'). " " .ucfirst($singulares)) . "</button>";
 }
 ?>
 

@@ -21,7 +21,7 @@ if (Lang::has("crudgenerator::{model}.labels.singular")) {
         <li class="breadcrumb-item active" aria-current="page">[[ ucfirst($plurales) ]]</li>
     </ol>
 </nav>
-<h1>[[ ucfirst($plurales) ]]</h1>
+<h1>[[ \Illuminate\Support\Arr::get(__("crudgenerator::{model}.titulos"), "index", ucfirst($plurales)) ]]</h1>
 
 {?php}
 if (($textConfirm = trans('crudgenerator::{model}.messages.confirm_destroy')) == 'crudgenerator::{model}.mensajes.confirm_destroy') {

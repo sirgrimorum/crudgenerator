@@ -257,15 +257,15 @@ class CrudController extends BaseController
         $titulo = "";
         switch ($action) {
             case "destroy":
-                $titulo = trans('crudgenerator::admin.layout.borrar');
+                $titulo = trans('crudgenerator::admin.layout.labels.remove');
             case "show":
                 if ($titulo == "") {
-                    $titulo = trans('crudgenerator::admin.layout.ver');
+                    $titulo = trans('crudgenerator::admin.layout.labels.show');
                 }
             case "edit":
             case "update":
                 if ($titulo == "") {
-                    $titulo = trans('crudgenerator::admin.layout.editar');
+                    $titulo = trans('crudgenerator::admin.layout.labels.edit');
                 }
             case "create":
             case "store":
@@ -275,7 +275,7 @@ class CrudController extends BaseController
                     $singulares = $modelo;
                 }
                 if ($titulo == "") {
-                    $titulo = trans('crudgenerator::admin.layout.crear');
+                    $titulo = trans('crudgenerator::admin.layout.labels.create');
                 }
                 $titulo .= " " . ucfirst($singulares);
                 break;

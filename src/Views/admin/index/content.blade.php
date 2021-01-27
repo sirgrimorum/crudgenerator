@@ -12,7 +12,7 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
 }
 ?>
 @push('menuobj')
-<li><a class="nav-link" href="{{ URL::to($base_url . "/" . $plural .'/create') }}">{{ trans('crudgenerator::admin.layout.crear') }} {{ $singulares }}</a></li>
+<li><a class="nav-link" href="{{ URL::to($base_url . "/" . $plural .'/create') }}">{{ \Illuminate\Support\Arr::get(__("crudgenerator::" . strtolower($modelo) . ".labels"), "create", trans('crudgenerator::admin.layout.labels.create'). " " .ucfirst($singulares)) }}</a></li>
 @endpush
 
 @section('contenido')
@@ -21,7 +21,7 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
         <li class="breadcrumb-item active" aria-current="page">{{ ucfirst($plurales) }}</li>
     </ol>
 </nav>
-<h1>{{ ucfirst($plurales) }}</h1>
+<h1>{{ \Illuminate\Support\Arr::get(__("crudgenerator::" . strtolower($modelo) . ".titulos"), "index", ucfirst($plurales)) }}</h1>
 
 <?php
 //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modelo));

@@ -5,7 +5,7 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
     $singulares = $modelo;
 }
 ?>
-<!--h1>{{ trans('crudgenerator::admin.layout.crear') }} {{ ucfirst($singulares) }}</h1-->
+<!--h1>{{ \Illuminate\Support\Arr::get(__("crudgenerator::" . strtolower($modelo) . ".titulos"), "create", __('crudgenerator::admin.layout.labels.create') . " " .ucfirst($singulares)) }}</h1-->
 
 <?php
 //$config = config(config("sirgrimorum.crudgenerator.admin_routes." . $modelo));

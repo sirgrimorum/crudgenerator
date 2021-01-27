@@ -19,7 +19,7 @@ if (Lang::has("crudgenerator::{model}.labels.singular")) {
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="[[ route('home') ]]">[[trans("crudgenerator::admin.layout.labels.home")]]</a></li>
         <li class="breadcrumb-item"><a href="[[ route('{modelo}.index') ]]">[[ ucfirst($plurales) ]]</a></li>
-        <li class="breadcrumb-item active" aria-current="page">[[ trans('crudgenerator::admin.layout.ver') ]] [[ ucfirst($singulares) ]]</li>
+        <li class="breadcrumb-item active" aria-current="page">[[ \Illuminate\Support\Arr::get(__("crudgenerator::{model}.titulos"), "show", __('crudgenerator::admin.layout.labels.show') . " " .ucfirst($singulares)) ]]</li>
     </ol>
 </nav>
 {?php}

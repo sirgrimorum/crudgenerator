@@ -64,7 +64,7 @@ class CrudGenerator
             if (Lang::has('crudgenerator::' . $modelo . '.labels.create')) {
                 $config['botones'] = trans("crudgenerator::$modelo.labels.create");
             } else {
-                $config['botones'] = trans("crudgenerator::admin.layout.crear");
+                $config['botones'] = trans("crudgenerator::admin.layout.labels.create");
             }
         } elseif (is_array($config['url'])) {
             $config['url'] = Arr::get($config['url'], 'store', route("sirgrimorum_modelo::store", ["modelo" => $modelo]));
@@ -73,7 +73,7 @@ class CrudGenerator
             if (Lang::has('crudgenerator::' . $modelo . '.labels.create')) {
                 $config['botones'] = trans("crudgenerator::$modelo.labels.create");
             } else {
-                $config['botones'] = trans("crudgenerator::admin.layout.crear");
+                $config['botones'] = trans("crudgenerator::admin.layout.labels.create");
             }
         }
         if (request()->has('_itemRelSel')) {
@@ -219,7 +219,7 @@ class CrudGenerator
             if (Lang::has('crudgenerator::' . $modelo . '.labels.edit')) {
                 $config['botones'] = trans("crudgenerator::$modelo.labels.edit");
             } else {
-                $config['botones'] = trans("crudgenerator::admin.layout.editar");
+                $config['botones'] = trans("crudgenerator::admin.layout.labels.edit");
             }
         } elseif (is_array($config['url'])) {
             $config['url'] = Arr::get($config['url'], 'update', route("sirgrimorum_modelo::update", ["modelo" => $modelo, "registro" => $registro->id]));
@@ -227,7 +227,7 @@ class CrudGenerator
         if (Lang::has('crudgenerator::' . $modelo . '.labels.edit')) {
             $config['botones'] = trans("crudgenerator::$modelo.labels.edit");
         } else {
-            $config['botones'] = trans("crudgenerator::admin.layout.editar");
+            $config['botones'] = trans("crudgenerator::admin.layout.labels.edit");
         }
         if (!$simple) {
             $js_section = config("sirgrimorum.crudgenerator.js_section");
