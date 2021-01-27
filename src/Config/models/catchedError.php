@@ -71,7 +71,7 @@ return [
 			"show_data" => "<p><-message.value-></p><p><small><-file.value-> (<-line.value->)</small></p>",
 			"valor" => "Not set",
 			"list_data" => function($data){
-				$mensaje = Sirgrimorum\CrudGenerator\CrudGenerator::truncateText($data['value'],50);
+				$mensaje = Sirgrimorum\CrudGenerator\CrudGenerator::truncateText($data['value'],80);
 				return "$mensaje <p><small>(<-file.value->: <-line.value->)</small></p>";
 			}
 		],
