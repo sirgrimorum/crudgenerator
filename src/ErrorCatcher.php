@@ -3,6 +3,7 @@
 namespace Sirgrimorum\CrudGenerator;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Throwable;
 use Illuminate\Http\Request;
@@ -127,36 +128,50 @@ class ErrorCatcher
      */
     public function save()
     {
-        $data = $this->processCurrentError();
-        if (($anterior = $this->getAnterior($data)) !== false) {
-            $dataAnterior = $this->processPreviousError($anterior);
-            $num = data_get($dataAnterior, "occurrences.num", 1) + 1;
-            $anteriores = data_get($dataAnterior, "occurrences.anteriores", []);
-            $diferencia = ErrorCatcher::array_diff_recursive(collect($dataAnterior)->except("occurrences", "trace")->all(), collect($data)->except("occurrences", "trace")->all());
-            if (count($diferencia) > 0) {
-                if (!in_array($diferencia, $anteriores)) {
-                    $key = Carbon::now()->toIso8601String();
-                    if (isset($anteriores[$key])) {
-                        $key .= "_" . Str::random(3);
-                    }
-                    $anteriores[$key] = $diferencia;
-                }
-            }
-            $dataFinal = [
-                "occurrences" => [
-                    "num" => $num,
-                    "anteriores" => $anteriores,
-                ],
-                "trace" => data_get($dataAnterior, "trace", []),
-                "request" => data_get($dataAnterior, "request", []),
-            ];
-            return CrudGenerator::saveObjeto($this->config, new Request($dataFinal), $anterior);
+        $query = $this->getAnteriorQuery(null, false);
+        if ($query->count() > 0) {
+            $anterior = $query->orderBy("id", "desc")->first();
+            $occurrencesData = $anterior->get("occurrences", false)["data"];
+            $num = data_get($occurrencesData, "num", 1) + 1;
+            $anteriores = data_get($occurrencesData, "anteriores", []);
+            $anterior->occurrences = json_encode([
+                "num" => $num,
+                "anteriores" => $anteriores,
+            ]);
+            $anterior->save();
+            return $anterior;
         } else {
-            $data["occurrences"] = [
-                "num" => 1,
-                "anteriores" => [],
-            ];
-            return CrudGenerator::saveObjeto($this->config, new Request($data));
+            $data = $this->processCurrentError();
+            if (($anterior = $this->getAnterior($data)) !== false) {
+                $dataAnterior = $this->processPreviousError($anterior);
+                $num = data_get($dataAnterior, "occurrences.num", 1) + 1;
+                $anteriores = data_get($dataAnterior, "occurrences.anteriores", []);
+                $diferencia = ErrorCatcher::array_diff_recursive(collect($dataAnterior)->except("occurrences", "trace")->all(), collect($data)->except("occurrences", "trace")->all());
+                if (count($diferencia) > 0) {
+                    if (!in_array($diferencia, $anteriores)) {
+                        $key = Carbon::now()->toIso8601String();
+                        if (isset($anteriores[$key])) {
+                            $key .= "_" . Str::random(3);
+                        }
+                        $anteriores[$key] = $diferencia;
+                    }
+                }
+                $dataFinal = [
+                    "occurrences" => [
+                        "num" => $num,
+                        "anteriores" => $anteriores,
+                    ],
+                    "trace" => data_get($dataAnterior, "trace", []),
+                    "request" => data_get($dataAnterior, "request", []),
+                ];
+                return CrudGenerator::saveObjeto($this->config, new Request($dataFinal), $anterior);
+            } else {
+                $data["occurrences"] = [
+                    "num" => 1,
+                    "anteriores" => [],
+                ];
+                return CrudGenerator::saveObjeto($this->config, new Request($data));
+            }
         }
     }
 
@@ -221,6 +236,7 @@ class ErrorCatcher
             "exception" => get_class($this->exception),
             "message" => $this->exception->getMessage(),
             "trace" => $traces,
+            "reportar" => 1,
             "request" => [
                 "path" => $this->request->path(),
                 "query" => $this->request->query(),
@@ -304,13 +320,36 @@ class ErrorCatcher
      */
     private function getAnterior($data)
     {
-        $query = Catchederror::where("file", $data["file"])
-            ->where("line", $data["line"])
-            ->where("exception", $data["exception"]);
+        $query = $this->getAnteriorQuery($data);
         if ($query->count() > 0) {
             $anterior = $query->orderBy("id", "desc")->first();
             return $anterior;
         }
         return false;
+    }
+
+    /**
+     * Get the query of previously catched errors
+     * 
+     * @param array $data Optional The array with all the error data processed, if null (default) will take the data from the current exception
+     * @param bool $reportar Optional The status field, null (default) not take it into account
+     * @return Builder
+     */
+    private function getAnteriorQuery($data = null, $reportar = null)
+    {
+        if ($data == null) {
+            $data = [
+                "file" => $this->exception->getFile(),
+                "line" => $this->exception->getLine(),
+                "exception" => get_class($this->exception),
+            ];
+        }
+        $query = Catchederror::where("file", $data["file"])
+            ->where("line", $data["line"])
+            ->where("exception", $data["exception"]);
+        if ($reportar !== null) {
+            $query = $query->where("reportar", $reportar == true ? "1" : "0");
+        }
+        return $query;
     }
 }

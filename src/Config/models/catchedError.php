@@ -14,11 +14,15 @@ return [
 	"conditions" => true,
 	"filters" => false,
 	"query" => function(){
-		return Sirgrimorum\CrudGenerator\Models\Catchederror::whereRaw("1=1")->orderBy("updated_at", "desc");
+		return Sirgrimorum\CrudGenerator\Models\Catchederror::where("reportar","1")->orderBy("updated_at", "desc");
 	},
 	"campos" => [
 		"url" => [
-			"tipo" => "url", 
+			"tipo" => "url",
+			"tipos_temporales" => [ // temporary type of fields to be taken just for a specific action ("list", "show", "create", "edit") 
+				"create" => "hidden",
+			],
+			"valor" => "/", 
 			"label" => "__trans__crudgenerator::catchederror.labels.url", 
 			"placeholder" => "__trans__crudgenerator::catchederror.placeholders.url", 
 			"help" => "__trans__crudgenerator::catchederror.descriptions.url",
@@ -58,17 +62,34 @@ return [
 		], 
 		"message" => [
 			"tipo" => "textarea", 
+			"tipos_temporales" => [ // temporary type of fields to be taken just for a specific action ("list", "show", "create", "edit") 
+				"create" => "hidden",
+			],
 			"label" => "__trans__crudgenerator::catchederror.labels.message", 
 			"placeholder" => "__trans__crudgenerator::catchederror.placeholders.message", 
 			"description" => "__trans__crudgenerator::catchederror.descriptions.message",
 			"show_data" => "<p><-message.value-></p><p><small><-file.value-> (<-line.value->)</small></p>",
+			"valor" => "Not set",
 			"list_data" => function($data){
 				$mensaje = Sirgrimorum\CrudGenerator\CrudGenerator::truncateText($data['value'],50);
 				return "$mensaje <p><small>(<-file.value->: <-line.value->)</small></p>";
 			}
 		],
+		"reportar" => [
+			"tipo" => "select", 
+			"label" => "__trans__crudgenerator::catchederror.labels.reportar", 
+			"placeholder" => "__trans__crudgenerator::catchederror.placeholders.reportar", 
+			"description" => "__trans__crudgenerator::catchederror.descriptions.reportar",
+			"opciones" => "__trans__crudgenerator::catchederror.selects.reportar",
+			"hide" => ["select"],
+			"valor" => "0",
+			"readonly" => ["create"],
+		],
 		"occurrences" => [
 			"tipo" => "json", 
+			"tipos_temporales" => [ // temporary type of fields to be taken just for a specific action ("list", "show", "create", "edit") 
+				"create" => "hidden",
+			],
 			"label" => "__trans__crudgenerator::catchederror.labels.occurrences", 
 			"description" => "__trans__crudgenerator::catchederror.descriptions.occurrences",
 			"readonly" => "readonly",
@@ -81,6 +102,9 @@ return [
 		], 
 		"trace" => [
 			"tipo" => "json", 
+			"tipos_temporales" => [ // temporary type of fields to be taken just for a specific action ("list", "show", "create", "edit") 
+				"create" => "hidden",
+			],
 			"label" => "__trans__crudgenerator::catchederror.labels.trace",  
 			"readonly" => "readonly",
 			"valor" => "{}",
@@ -92,6 +116,9 @@ return [
 		], 
 		"request" => [
 			"tipo" => "json", 
+			"tipos_temporales" => [ // temporary type of fields to be taken just for a specific action ("list", "show", "create", "edit") 
+				"create" => "hidden",
+			],
 			"label" => "__trans__crudgenerator::catchederror.labels.request", 
 			"description" => "__trans__crudgenerator::catchederror.descriptions.request",
 			"readonly" => "readonly",
@@ -112,6 +139,7 @@ return [
 		"occurrences" => "bail|required", 
 		"trace" => "bail|required", 
 		"request" => "bail|required", 
+		"reportar" => "bail|required", 
 	], 
 	"permissions" => [ //the permissions to validate before doing an action, if not present, uses the "sirgrimorum_cms::permission" closure, false send back to the 'sirgrimorum_cms::login_path' 
         "default" => function() {
@@ -125,7 +153,7 @@ return [
 			return true;
 		},
 		"edit" => function(){
-			return true;
+			return false;
 		},
 		"update" => function(){
 			return false;

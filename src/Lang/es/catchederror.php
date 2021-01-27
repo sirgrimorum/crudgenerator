@@ -2,8 +2,8 @@
 
 return [
     "labels" => [
-        "catchederror" => "Error",
-        "catchederrors" => "Errores",
+        "catchedError" => "Error",
+        "catchedErrors" => "Errores",
         "plural" => "Errores",
         "singular" => "Error",
         "type" => "Tipo",
@@ -15,11 +15,11 @@ return [
         "occurrences" => "Variantes",
         "trace" => "Trace",
         "request" => "Request",
-        "call_info" => "Información del llamado",
-        "create" => "Crear reporte de error",
-        "ver" => "Ver",
-        "editar" => "Editar",
-        "eliminar" => "Eliminar",
+        "reportar" => "Estado",
+        "create" => "No reportar un tipo de error",
+        "show" => "Ver",
+        "edit" => "Editar",
+        "remove" => "Eliminar",
     ],
     "placeholders" => [
         "exception" => "Exception",
@@ -27,6 +27,7 @@ return [
         "line" => "222",
         "message" => "Algo muy malo",
         "url" => "Dónde",
+        "reportar" => "Escoja alguno...",
     ],
     "descriptions" => [
         "type" => "Tipo de error",
@@ -38,7 +39,7 @@ return [
         "occurrences" => "Diferencias encontradas con otras veces que este mismo error ocurrió",
         "trace" => "Trace",
         "request" => "Datos capturados al momento del error",
-        "call_info" => "Parametros usados para la llamada que ocasionó el error",
+        "reportar" => "Si este tipo de errores se deben reportar o no",
     ],
     "selects" => [
         "type" => [
@@ -50,12 +51,17 @@ return [
             "web" => "Http en web",
             "ata" => "Posible ataque",
         ],
+        "reportar" => [
+            "0" => "No volver a reportar este tipo de errores",
+            "1" => "Reportar este tipo de errores cada vez que ocurran",
+        ],
     ],
     "titulos" => [
         "index" => "Errores atrapados",
         "create" => "Crear un reporte de error",
         "edit" => "Editar un error",
         "show" => "Ver el error",
+        "remove" => "Eliminar errores"
     ],
     "messages" => [
         'confirm_destroy' => '¿Está seguro que quiere eliminar el Error ":modelName"?',

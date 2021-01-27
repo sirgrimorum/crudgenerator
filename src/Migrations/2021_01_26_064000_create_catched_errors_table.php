@@ -22,6 +22,7 @@ class CreateCatchedErrorsTable extends Migration
             $table->string('file');
             $table->string('url');
             $table->integer('line');
+            $table->boolean('reportar')->default(true);
             $table->json('trace');
             $table->json('request');
             $table->json('occurrences');

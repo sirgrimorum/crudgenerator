@@ -2,8 +2,8 @@
 
 return [
     "labels" => [
-        "catchederror" => "Error",
-        "catchederrors" => "Errors",
+        "catchedError" => "Error",
+        "catchedErrors" => "Errors",
         "plural" => "Errors",
         "singular" => "Error",
         "type" => "Type",
@@ -15,11 +15,11 @@ return [
         "occurrences" => "Variants",
         "trace" => "Trace",
         "request" => "Request",
-        "call_info" => "Call Info",
-        "create" => "Create error report",
-        "ver" => "Show",
-        "editar" => "Edit",
-        "eliminar" => "Delete",
+        "reportar" => "Status",
+        "create" => "Do not report a type of error",
+        "show" => "Show",
+        "edit" => "Edit",
+        "remove" => "Delete",
     ],
     "placeholders" => [
         "exception" => "Exception",
@@ -27,6 +27,7 @@ return [
         "line" => "222",
         "message" => "Something very bad",
         "url" => "Where",
+        "reportar" => "Choose one...",
     ],
     "descriptions" => [
         "type" => "Type of error",
@@ -38,7 +39,7 @@ return [
         "occurrences" => "Differences in other circumpstances that this error occur",
         "trace" => "Trace",
         "request" => "Data captured at the moment of the error",
-        "call_info" => "Parameters used for the call that caused the error",
+        "reportar" => "Wether this kind of error is reported or not",
     ],
     "selects" => [
         "type" => [
@@ -49,12 +50,17 @@ return [
             "job" => "Job",
             "web" => "Web",
         ],
+        "reportar" => [
+            "0" => "Not report this kind of errors anymore",
+            "1" => "Report this kind of errors every time they occur"
+        ]
     ],
     "titulos" => [
         "index" => "Catched Errors",
         "create" => "Create a report of an error",
         "edit" => "Edit error",
         "show" => "Show error",
+        "remove" => "Remove errors",
     ],
     "messages" => [
         'confirm_destroy' => 'Are you sure to delete the Error ":modelName"?',
