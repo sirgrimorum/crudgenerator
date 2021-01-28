@@ -126,7 +126,7 @@ trait CrudConfig
              */
             if (!$modeloClass = CrudGenerator::getModel($modelo, $config)) {
                 if ($fail) {
-                    abort(500, 'There is no Model class for the model name "' . $modelo . '" ind the CrudGenerator::getConfig(String $modelo)');
+                    abort(500, 'There is no Model class for the model name "' . $modelo . '" in the CrudGenerator::getConfig(String $modelo)');
                 } else {
                     return false;
                 }
