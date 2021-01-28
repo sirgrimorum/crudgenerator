@@ -11,11 +11,12 @@ trait CrudGenForModels
      * 
      * @param string $key The field to return
      * @param boolean $justValue Optional If return just the formated value (true) or an array with 3 elements, label, value and data (detailed data for the field)
+     * @param mixed $config Optional, The configuration route or array to load. empty or ''(default) to automaticaly get it form curdgen configuration file and/or __parameters
      * @return mixed
      */
-    public function get($key, $justValue = true)
+    public function get($key, $justValue = true, $config = "")
     {
-        $celda = \Sirgrimorum\CrudGenerator\CrudGenerator::field_array($this, $key);
+        $celda = \Sirgrimorum\CrudGenerator\CrudGenerator::field_array($this, $key, $config);
         if ($justValue) {
             return $celda['value'];
         } else {
