@@ -147,9 +147,11 @@ class ErrorCatcher
                 $num = data_get($dataAnterior, "occurrences.num", 1) + 1;
                 $anteriores = data_get($dataAnterior, "occurrences.anteriores", []);
                 $anteriorParaDiff = Arr::except($dataAnterior, ["occurrences", "trace", "request"]);
-                $anteriorParaDiff['request'] = Arr::except($dataAnterior['request'], ["cookie"]);
+                $anteriorParaDiff['request'] = Arr::except(Arr::get($dataAnterior, 'request', []), ["cookie", "session"]);
+                $anteriorParaDiff['request']['session'] = Arr::except(Arr::get($dataAnterior, 'request.session', []), ["_token"]);
                 $dataParaDiff = collect($data)->except("occurrences", "trace", "request")->all();
-                $dataParaDiff['request'] = Arr::except($data['request'], ["cookie"]);
+                $dataParaDiff['request'] = Arr::except(Arr::get($data, 'request', []), ["cookie", "session"]);
+                $dataParaDiff['request']['session'] = Arr::except(Arr::get($data, 'request.session', []), ["_token"]);
                 $diferencia = ErrorCatcher::array_diff_recursive($anteriorParaDiff, $dataParaDiff);
                 if (count($diferencia) > 0) {
                     if (!in_array($diferencia, $anteriores)) {
