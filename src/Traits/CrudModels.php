@@ -57,7 +57,9 @@ trait CrudModels
         }
         if (is_callable($callback)) {
             if (($numArgs = CrudGenerator::isFunction($callback)) !== false && $numArgs > 0) {
-                if ($registro > 0) {
+                if (is_object($registro)){
+                    $resultado = (bool) $callback($registro);
+                }elseif ($registro > 0) {
                     $objModelo = $config['modelo']::find($registro);
                     $resultado = (bool) $callback($objModelo);
                 } else {
