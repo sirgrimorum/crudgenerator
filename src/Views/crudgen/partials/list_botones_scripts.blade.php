@@ -2,7 +2,7 @@
 <script id="{{ $tablaid }}_datatables_buttons_scripts_block">
 <?php
 foreach (\Illuminate\Support\Arr::only($botones, ['create', 'show', 'edit', 'remove']) as $butName => $boton) {
-if (is_string($butName)) {
+if (is_string($butName) && CrudGenerator::shouldShowButton($config, $butName)) {
     $confirmTheme = config('sirgrimorum.crudgenerator.confirm_theme');
     $confirmIcon = config('sirgrimorum.crudgenerator.confirm_icon');
     if (($confirmContent = trans('crudgenerator::' . strtolower($modelo) . '.messages.confirm_destroy')) == 'crudgenerator::' . strtolower($modelo) . '.messages.confirm_destroy') {

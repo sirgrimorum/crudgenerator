@@ -140,7 +140,13 @@ return [
 		"trace" => "bail|required", 
 		"request" => "bail|required", 
 		"reportar" => "bail|required", 
-	], 
+	],
+	"show_button_list" => [ // if the buttons sould be shown in lists, default is true, remember to use request() ans auth() helpers if needed
+		"create" => false, 
+		"edit" => function(){return false;},
+		"remove" => true,
+		"boton_adicional1" => function(){return true;},
+	],
 	"permissions" => [ //the permissions to validate before doing an action, if not present, uses the "sirgrimorum_cms::permission" closure, false send back to the 'sirgrimorum_cms::login_path' 
         "default" => function() {
             if (auth()->check()){
@@ -149,9 +155,6 @@ return [
             }
             return false;
         }, // the default permission to validate if others not present, false send back to the 'sirgrimorum_cms::login_path' 
-		"create" => function(){
-			return true;
-		},
 		"edit" => function(){
 			return false;
 		},

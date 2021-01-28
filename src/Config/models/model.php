@@ -187,6 +187,13 @@
             ],
             "error_messages" => [ //the validation error messages. If not here, it whill search for them in the model, public property with the same name, use "[relation]__[field_in_pivot_table].[rule]" for por custom error messages for the rules of pivot table columns, and :submodel to change for the name of the related registry
             ],
+            "show_button_list" => [ // if the buttons sould be shown in lists, default is true, remember to use request() ans auth() helpers if needed
+                "create" => [closure() that returns true or false], 
+                "show" => [closure() that returns true or false],
+                "edit" => [closure() that returns true or false],
+                "remove" => [closure() that returns true or false],
+                "boton_adicional1" => [closure() taht return true or false],
+            ],
             "permissions" => [ //the permissions to validate before doing an action, for CrudController if not present, uses the "sirgrimorum_cms::permission" closure, false send back to the 'sirgrimorum_cms::login_path' 
                 "default" => [closure that returns true or false], // the default permission to validate if others not present, remember to use request() helper if needed, for CrudCrontroller false send back to the 'sirgrimorum_cms::login_path' 
                 "index" => [closure that returns true or false], // permission for the index action of Crud, for CrudCrontroller false send back to the 'sirgrimorum_cms::login_path' 

@@ -11,9 +11,11 @@ if (Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
     $singulares = $modelo;
 }
 ?>
+@if(CrudGenerator::shouldShowButton($config, "create"))
 @push('menuobj')
 <li><a class="nav-link" href="{{ URL::to($base_url . "/" . $plural .'/create') }}">{{ \Illuminate\Support\Arr::get(__("crudgenerator::" . strtolower($modelo) . ".labels"), "create", trans('crudgenerator::admin.layout.labels.create'). " " .ucfirst($singulares)) }}</a></li>
 @endpush
+@endif
 
 @section('contenido')
 <nav aria-label="breadcrumb">

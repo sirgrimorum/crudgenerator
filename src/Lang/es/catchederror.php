@@ -17,9 +17,11 @@ return [
         "request" => "Request",
         "reportar" => "Estado",
         "create" => "No reportar un tipo de error",
-        "show" => "Ver",
+        "show" => "Ver detalles",
         "edit" => "Editar",
-        "remove" => "Eliminar",
+        "remove" => "Eliminar errores",
+        "show_not_reported" => "Ir a no reportados",
+        "show_reported" => "Ir a reportados",
     ],
     "placeholders" => [
         "exception" => "Exception",
@@ -58,7 +60,7 @@ return [
     ],
     "titulos" => [
         "index" => "Errores atrapados",
-        "create" => "Crear un reporte de error",
+        "create" => "Crear una plantilla de error que no se va a reportar",
         "edit" => "Editar un error",
         "show" => "Ver el error",
         "remove" => "Eliminar errores"

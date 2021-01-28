@@ -56,9 +56,13 @@ trait CrudModels
             $callback = config('sirgrimorum.crudgenerator.permission');
         }
         if (is_callable($callback)) {
-            if ($registro > 0) {
-                $objModelo = $config['modelo']::find($registro);
-                $resultado = (bool) $callback($objModelo);
+            if (($numArgs = CrudGenerator::isFunction($callback)) !== false && $numArgs > 0) {
+                if ($registro > 0) {
+                    $objModelo = $config['modelo']::find($registro);
+                    $resultado = (bool) $callback($objModelo);
+                } else {
+                    $resultado = (bool) $callback(null);
+                }
             } else {
                 $resultado = (bool) $callback();
             }
@@ -66,6 +70,24 @@ trait CrudModels
             $resultado = (bool) $callback;
         }
 
+        return $resultado;
+    }
+
+    /**
+     * If a button should be shown in list or not, ussing the "show_button_list" options of config
+     * 
+     * @param array $config the configuration array
+     * @param string $butName The name of thef burron
+     * @return bool
+     */
+    public static function shouldShowButton(array $config, $butName)
+    {
+        $callback = Arr::get($config, "show_button_list.$butName", true);
+        if (is_callable($callback)) {
+            $resultado = (bool) $callback();
+        } else {
+            $resultado = (bool) $callback;
+        }
         return $resultado;
     }
 

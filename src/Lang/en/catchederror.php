@@ -17,9 +17,11 @@ return [
         "request" => "Request",
         "reportar" => "Status",
         "create" => "Do not report a type of error",
-        "show" => "Show",
+        "show" => "Show details",
         "edit" => "Edit",
-        "remove" => "Delete",
+        "remove" => "Delete errors",
+        "show_not_reported" => "Show Not reported",
+        "show_reported" => "Show Reported",
     ],
     "placeholders" => [
         "exception" => "Exception",
@@ -57,7 +59,7 @@ return [
     ],
     "titulos" => [
         "index" => "Catched Errors",
-        "create" => "Create a report of an error",
+        "create" => "Create an error template that will be not reported",
         "edit" => "Edit error",
         "show" => "Show error",
         "remove" => "Remove errors",

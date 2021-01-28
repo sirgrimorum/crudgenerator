@@ -36,7 +36,7 @@ buttons: [
 <?php
 if (is_array($botones)) {
 foreach ($botones as $butName => $boton) {
-if (is_string($butName)) {
+if (is_string($butName) && CrudGenerator::shouldShowButton($config, $butName)) {
     $buttonClass = "";
     $textBoton = $butName;
     $titleBoton = $butName;
