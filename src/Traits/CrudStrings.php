@@ -526,20 +526,33 @@ trait CrudStrings
                 if (!class_exists($modeloClass)) {
                     $modeloClass = "App\\" . $modelo;
                     if (!class_exists($modeloClass)) {
-                        $modeloClass = "Sirgrimorum\\TransArticles\\Models\\" . $modeloM;
-                        if (!class_exists($modeloClass)) {
-                            $modeloClass = "Sirgrimorum\\TransArticles\\Models\\" . $modelo;
+                        if (strtolower($modelo) == "catchederror") {
+                            $modeloClass = "Sirgrimorum\\CrudGenerator\\Models\\Catchederror";
                             if (!class_exists($modeloClass)) {
-                                if (strtolower($modelo) == "paymentpass") {
-                                    $modeloClass = "Sirgrimorum\\PaymentPass\\Models\\PaymentPass";
-                                    if (!class_exists($modeloClass)) {
-                                        //return 'There is no Model class for the model name "' . $modelo . '" ind the CrudGenerator::getConfig(String $modelo)';
-                                        return false;
-                                    }
-                                } else {
-                                    return false;
-                                }
+                                return false;
                             }
+                        } elseif (strtolower($modelo) == "article") {
+                            $modeloClass = "Sirgrimorum\\TransArticles\\Models\\Article";
+                            if (!class_exists($modeloClass)) {
+                                return false;
+                            }
+                        } elseif (strtolower($modelo) == "paymentpass") {
+                            $modeloClass = "Sirgrimorum\\PaymentPass\\Models\\PaymentPass";
+                            if (!class_exists($modeloClass)) {
+                                return false;
+                            }
+                        } elseif (strtolower($modelo) == "pagina") {
+                            $modeloClass = "Sirgrimorum\\Pages\\Models\\Pagina";
+                            if (!class_exists($modeloClass)) {
+                                return false;
+                            }
+                        } elseif (strtolower($modelo) == "section") {
+                            $modeloClass = "Sirgrimorum\\Pages\\Models\\Section";
+                            if (!class_exists($modeloClass)) {
+                                return false;
+                            }
+                        } else {
+                            return false;
                         }
                     }
                 }
