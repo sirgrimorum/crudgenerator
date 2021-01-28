@@ -1,6 +1,9 @@
 @if (is_array($botones))
 <script id="{{ $tablaid }}_datatables_buttons_scripts_block">
 <?php
+foreach(\Illuminate\Support\Arr::get($config, 'js_vars', []) as $variable => $contenido){
+    echo "var $variable = '" . str_replace("'", "\"", $contenido) . "'";
+}
 foreach (\Illuminate\Support\Arr::only($botones, ['create', 'show', 'edit', 'remove']) as $butName => $boton) {
 if (is_string($butName) && CrudGenerator::shouldShowButton($config, $butName)) {
     $confirmTheme = config('sirgrimorum.crudgenerator.confirm_theme');

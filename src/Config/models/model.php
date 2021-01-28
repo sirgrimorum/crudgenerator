@@ -45,6 +45,9 @@
                 'remove' => "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/article/:modelId/destroy",
                 'create' => "__url____route__sirgrimorum_home,{'localecode':'__getLocale__'}__/articles/create",
             ],
+            "js_vars" => [ // variable to have available in javascript in lists for "botones"
+                "var1" => "value", //
+            ],
             "rememberPreFiltersFor" => (5*60), // Duration in seconds of the cookie to remember pre_filters in index, default is 5 minutes. put 0 to not remember pre-filters
             "forguetPreFiltersAfterFirstUse" => false, // If the Prefilters should be forget after the first remember (comeback to the page and leaving without changing them)
             "multiRemove" => true, // Alows to remove several registries at once in the list view, default is true,
