@@ -131,7 +131,7 @@ class ErrorCatcher
         $query = $this->getAnteriorQuery(null, false);
         if ($query->count() > 0) {
             $anterior = $query->orderBy("id", "desc")->first();
-            $occurrencesData = $anterior->get("occurrences", false)["data"];
+            $occurrencesData = $anterior->get("occurrences", false, $this->config)["data"];
             $num = data_get($occurrencesData, "num", 1) + 1;
             $anteriores = data_get($occurrencesData, "anteriores", []);
             $anterior->occurrences = json_encode([
@@ -146,7 +146,11 @@ class ErrorCatcher
                 $dataAnterior = $this->processPreviousError($anterior);
                 $num = data_get($dataAnterior, "occurrences.num", 1) + 1;
                 $anteriores = data_get($dataAnterior, "occurrences.anteriores", []);
-                $diferencia = ErrorCatcher::array_diff_recursive(collect($dataAnterior)->except("occurrences", "trace")->all(), collect($data)->except("occurrences", "trace")->all());
+                $anteriorParaDiff = Arr::except($dataAnterior, ["occurrences", "trace", "request"]);
+                $anteriorParaDiff['request'] = Arr::except($dataAnterior['request'], ["cookie"]);
+                $dataParaDiff = collect($data)->except("occurrences", "trace", "request")->all();
+                $dataParaDiff['request'] = Arr::except($data['request'], ["cookie"]);
+                $diferencia = ErrorCatcher::array_diff_recursive($anteriorParaDiff, $dataParaDiff);
                 if (count($diferencia) > 0) {
                     if (!in_array($diferencia, $anteriores)) {
                         $key = Carbon::now()->toIso8601String();
@@ -156,14 +160,10 @@ class ErrorCatcher
                         $anteriores[$key] = $diferencia;
                     }
                 }
-                $dataFinal = [
-                    "occurrences" => [
-                        "num" => $num,
-                        "anteriores" => $anteriores,
-                    ],
-                    "trace" => data_get($dataAnterior, "trace", []),
-                    "request" => data_get($dataAnterior, "request", []),
-                ];
+                $dataFinal = array_merge(Arr::except($dataAnterior, ["occurrences"]), ["occurrences" => [
+                    "num" => $num,
+                    "anteriores" => $anteriores,
+                ]]);
                 return CrudGenerator::saveObjeto($this->config, new Request($dataFinal), $anterior);
             } else {
                 $data["occurrences"] = [
@@ -303,12 +303,12 @@ class ErrorCatcher
     private function processPreviousError(Catchederror $anterior)
     {
         $devolver = collect($anterior->toArray())->only([
-            "url", "file", "line", "type", "exception", "message"
+            "url", "file", "line", "type", "exception", "message", "reportar"
         ])->all();
         $devolver["type"] = json_decode($anterior->type);
-        $devolver["trace"] = $anterior->get("trace", false)["data"];
-        $devolver["request"] = $anterior->get("request", false)["data"];
-        $devolver["occurrences"] = $anterior->get("occurrences", false)["data"];
+        $devolver["trace"] = $anterior->get("trace", false, $this->config)["data"];
+        $devolver["request"] = $anterior->get("request", false, $this->config)["data"];
+        $devolver["occurrences"] = $anterior->get("occurrences", false, $this->config)["data"];
         return $devolver;
     }
 
