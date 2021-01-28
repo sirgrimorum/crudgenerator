@@ -68,9 +68,9 @@ trait CrudConfig
          */
         if (!Arr::has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
             $modelo = ucfirst($modelo);
-            if (!Arr::has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
+            //if (!Arr::has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
                 //$modelo = strtolower($modelo);
-            }
+            //}
         }
         if (!$override) {
             if ($config == '') {
