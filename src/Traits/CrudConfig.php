@@ -1025,7 +1025,9 @@ trait CrudConfig
                             }
                         } elseif (is_object($value)) {
                             $config[$key] = $value;
-                        } elseif (strtolower($value) !== "notthistime") {
+                        } elseif (is_string($value) && strtolower($value) !== "notthistime") {
+                            $config[$key] = $value;
+                        } else {
                             $config[$key] = $value;
                         }
                     } else {
@@ -1036,8 +1038,8 @@ trait CrudConfig
                                 unset($config[$key]);
                             }
                         } elseif (is_object($value)) {
-                            $config[$key] == $value;
-                        } elseif (strtolower($value) === "notthistime") {
+                            $config[$key] = $value;
+                        } elseif (is_string($value) && strtolower($value) === "notthistime") {
                             unset($config[$key]);
                         } else {
                             $config[$key] = $value;
@@ -1058,7 +1060,9 @@ trait CrudConfig
                         }
                     } elseif (is_object($value)) {
                         $config[$key] = $value;
-                    } elseif (strtolower($value) !== "notthistime") {
+                    } elseif (is_string($value) && strtolower($value) !== "notthistime") {
+                        $config[$key] = $value;
+                    } else {
                         $config[$key] = $value;
                     }
                 }
@@ -1075,8 +1079,10 @@ trait CrudConfig
             }
         } elseif (is_object($preConfig)) {
             return $preConfig;
-        } elseif (strtolower($preConfig) === "notthistime") {
+        } elseif (is_string($preConfig) && strtolower($preConfig) === "notthistime") {
             return false;
+        } elseif (is_callable($preConfig)) {
+            return $preConfig;
         } elseif (!$preConfig) {
             return false;
         } else {
