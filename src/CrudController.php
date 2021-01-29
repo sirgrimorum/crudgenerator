@@ -11,6 +11,8 @@ use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Lang;
+use Sirgrimorum\CrudGenerator\Exceptions\PreparingFileException;
+use Sirgrimorum\CrudGenerator\Exceptions\PreparingFileForModelException;
 
 class CrudController extends BaseController
 {
@@ -123,10 +125,10 @@ class CrudController extends BaseController
                 $filename = $request->_f;
                 return $this->devolverFile($filename, $registro, $detalles);
             } else {
-                abort(500, "Error preparing no file in query '_f' for the model '$modelo");
+                throw new PreparingFileForModelException($modelo);
             }
         }
-        abort(500, "Error preparing the file for the model '$modelo");
+        throw new PreparingFileForModelException($modelo);
     }
 
     public function file(Request $request)
@@ -135,7 +137,7 @@ class CrudController extends BaseController
             $filename = $request->_f;
             return $this->devolverFile($filename);
         }
-        abort(500, "Error no file in query '_f'");
+        throw new PreparingFileException("");
     }
 
     private function devolverFile($filename, $id = null, $detalles = [])

@@ -1,6 +1,9 @@
 <?php
 
 namespace Sirgrimorum\CrudGenerator;
+
+use Sirgrimorum\CrudGenerator\Exceptions\NoStreamException;
+
 /**
  * Description of VideoStream
  *
@@ -25,7 +28,7 @@ class AudioStream {
      */
     private function open() {
         if (!($this->stream = fopen($this->path, 'rb'))) {
-            abort(500,'Could not open stream for reading');
+            throw new NoStreamException($this->path);
         }
     }
 

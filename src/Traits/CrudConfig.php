@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Lang;
 use ReflectionClass;
 use ReflectionMethod;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
+use Sirgrimorum\CrudGenerator\Exceptions\NoModelClassInConfigException;
+use Sirgrimorum\CrudGenerator\Exceptions\NoTableForModelException;
+use Sirgrimorum\CrudGenerator\Exceptions\SmartMergeConfigException;
 
 trait CrudConfig
 {
@@ -104,8 +107,12 @@ trait CrudConfig
                             $config = CrudGenerator::translateConfig($config);
                         }
                         $auxConfig = CrudGenerator::smartMergeConfig($config, $preConfig);
-                        if ($auxConfig === false && $$fail == true) {
-                            $auxConfig = $config;
+                        if ($auxConfig === false) {
+                            if ($fail) {
+                                throw new SmartMergeConfigException($modelo);
+                            } else {
+                                $auxConfig = $config;
+                            }
                         }
                         $auxConfig['parametros'] = $parametros;
                         return $auxConfig;
@@ -126,7 +133,7 @@ trait CrudConfig
              */
             if (!$modeloClass = CrudGenerator::getModel($modelo, $config)) {
                 if ($fail) {
-                    abort(500, 'There is no Model class for the model name "' . $modelo . '" in the CrudGenerator::getConfig(String $modelo)');
+                    throw new NoModelClassInConfigException($modelo);
                 } else {
                     return false;
                 }
@@ -148,7 +155,7 @@ trait CrudConfig
 
             if (!$columns = CrudGenerator::getModelDetailsFromDb($tabla, $columns)) {
                 if ($fail) {
-                    abort(500, 'There is no valid table for the model name "' . $modelo . '" ind the CrudGenerator::getConfig(String $modelo)');
+                    throw new NoTableForModelException($modelo);
                 } else {
                     return false;
                 }

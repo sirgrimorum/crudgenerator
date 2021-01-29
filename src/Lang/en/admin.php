@@ -101,6 +101,12 @@ return [
         '404' => 'Page not found',
         'na' => 'This request doesn\'t make sens',
         'no_result_query' => 'No result for "{{query}}"',
+        'no_model_class' => 'There is no Model class for the model named ":Modelo" in CrudGenerator::getConfig(":modelo")',
+        'smart_config_error' => 'The SmartMerge of the config for the model ":Modelo" went wrong',
+        'no_table_for_model' => 'There is no valid table for the model named ":Modelo" in CrudGenerator::getConfig(":modelo")',
+        'error_preparing_file_for_model' => 'Error preparing the file for the model ":Modelo"',
+        'error_preparing_file' => 'Error preparing the file',
+        'no_stream_for_reading' => 'Could not open stream for reading ":modelo"',
     ],
     'error_messages' => [
         'unique_composite' => 'Already exists a row with the same combination of :fields',

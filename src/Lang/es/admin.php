@@ -102,6 +102,12 @@ return [
         '404' => 'Página no encontrada',
         'na' => 'Esta solicitud no tiene sentido',
         'no_result_query' => 'No hay resultados para "{{query}}"',
+        'no_model_class' => 'No se encontró una clase para el modelo con nombre ":Modelo" in CrudGenerator::getConfig(":modelo")',
+        'smart_config_error' => 'Algo salió mal al realizar el SmartMerge del modelo ":Modelo"',
+        'no_table_for_model' => 'No hay una tabla válida para el modelo ":Modelo" en CrudGenerator::getConfig(":modelo")',
+        'error_preparing_file_for_model' => 'Ocurrió un error alistando el archivo para el modelo ":Modelo"',
+        'error_preparing_file' => 'Ocurrió un error alistando el archivo',
+        'no_stream_for_reading' => 'No fue posible abrir el stream para leer ":modelo"',
     ],
     'error_messages' => [
         'required' => 'El campo ":attribute" es obligatorio',
