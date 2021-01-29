@@ -6,7 +6,41 @@ return [
 	"nombre" => "id", 
 	"id" => "id", 
 	"url" => "Sirgrimorum_CrudAdministrator", 
-	"botones" => "__trans__crudgenerator::admin.layout.labels.create", 
+	"botones" => [
+		'no_reportados' => [ // Aditional buttons to use in lists, The show, edit, remove or create ones must bue only strings
+			"title" => "__trans__crudgenerator::catchederror.labels.show_not_reported",
+			"text" => "<i class='fas fa-virus-slash fa-lg' aria-hidden='true'></i>",
+			"extendSelected" => false,
+			"class" => "btn btn-warning",
+			"callback" => "function(idsSelected, namesSelected, rowsSelected){
+				var params = {
+					'modelo':'catchederror',
+					'config':'sirgrimorum.models.catchederror_hidden',
+					'baseConfig':'sirgrimorum.models.catchederror',
+					'smartMerge':true,
+				};
+				window.location.href = window.location.pathname+'?__parametros=' + encodeURIComponent(JSON.stringify(params));
+			}", // Will be called with 3 arguments: idsSelected (int|string), namesSelected (string), rowsSelected (object)
+		],
+		'no_reportar' => [ // Aditional buttons to use in lists, The show, edit, remove or create ones must bue only strings
+			"title" => "__trans__crudgenerator::catchederror.labels.bt_no_report",
+			"text" => "<i class='fas fa-archive fa-lg' aria-hidden='true'></i>",
+			"extendSelected" => true,
+			"class" => "btn btn-danger",
+			"callback" => "function(idsSelected, namesSelected, rowsSelected){
+				form_string = '<form method=\'POST\' action=\'' + ulr_no_reportar.replace(':idSelected',idsSelected[0]) + '\' accept-charset=\'UTF-8\'>'
+				form_string = form_string + '<input name=\'catchederror\' type=\'hidden\' value=\'' + idsSelected[0] + '\'>';
+				form_string = form_string + '<input name=\'_token\' type=\'hidden\' value=\'' + $('meta[name=csrf-token]').attr('content') + '\'>';
+                form_string = form_string + '</form>';
+                form = $(form_string);
+				form.appendTo('body');
+                form.submit();
+			}", // Will be called with 3 arguments: idsSelected (int|string), namesSelected (string), rowsSelected (object)
+		],
+	], 
+	"js_vars" => [
+		"ulr_no_reportar" => "__route__sirgrimorum_errorcatcher::no_report,{'catchederror':':idSelected'}__",
+	],
 	"files" => true, 
 	"icono" => "<i class='fa fa-bug mr-1'></i>",
 	"ajax" => false,
@@ -35,6 +69,21 @@ return [
 			"multiple" => "multiple",
 			"description" => "__trans__crudgenerator::catchederror.descriptions.type",
 		],
+		"message" => [
+			"tipo" => "textarea", 
+			"tipos_temporales" => [ // temporary type of fields to be taken just for a specific action ("list", "show", "create", "edit") 
+				"create" => "hidden",
+			],
+			"label" => "__trans__crudgenerator::catchederror.labels.message", 
+			"placeholder" => "__trans__crudgenerator::catchederror.placeholders.message", 
+			"description" => "__trans__crudgenerator::catchederror.descriptions.message",
+			"show_data" => "<p><-message.value-></p><p><small><-file.value-> (<-line.value->)</small></p>",
+			"valor" => "Not set",
+			"list_data" => function($data){
+				$mensaje = Sirgrimorum\CrudGenerator\CrudGenerator::truncateText($data['value'],80);
+				return "$mensaje <p><small>(<-file.value->: <-line.value->)</small></p>";
+			}
+		],
 		"exception" => [
 			"tipo" => "text", 
 			"label" => "__trans__crudgenerator::catchederror.labels.exception", 
@@ -60,28 +109,13 @@ return [
 				"2" => ".",
             ],
 		], 
-		"message" => [
-			"tipo" => "textarea", 
-			"tipos_temporales" => [ // temporary type of fields to be taken just for a specific action ("list", "show", "create", "edit") 
-				"create" => "hidden",
-			],
-			"label" => "__trans__crudgenerator::catchederror.labels.message", 
-			"placeholder" => "__trans__crudgenerator::catchederror.placeholders.message", 
-			"description" => "__trans__crudgenerator::catchederror.descriptions.message",
-			"show_data" => "<p><-message.value-></p><p><small><-file.value-> (<-line.value->)</small></p>",
-			"valor" => "Not set",
-			"list_data" => function($data){
-				$mensaje = Sirgrimorum\CrudGenerator\CrudGenerator::truncateText($data['value'],80);
-				return "$mensaje <p><small>(<-file.value->: <-line.value->)</small></p>";
-			}
-		],
 		"reportar" => [
 			"tipo" => "select", 
 			"label" => "__trans__crudgenerator::catchederror.labels.reportar", 
 			"placeholder" => "__trans__crudgenerator::catchederror.placeholders.reportar", 
 			"description" => "__trans__crudgenerator::catchederror.descriptions.reportar",
 			"opciones" => "__trans__crudgenerator::catchederror.selects.reportar",
-			"hide" => ["select"],
+			"hide" => ["list"],
 			"valor" => "0",
 			"readonly" => ["create"],
 		],
@@ -129,6 +163,27 @@ return [
 				return "";
 			}
 		],
+		"created_at" => [
+			"tipo" => "datetime",
+			"label" => "__trans__crudgenerator::catchederror.labels.created_at",
+			"placeholder" => "",
+			"format" => [
+				"carbon" => "__trans__crudgenerator::admin.formats.carbon.datetime",
+				"moment" => "__trans__crudgenerator::admin.formats.moment.datetime",
+			],
+			"nodb" => "nodb",
+			"hide" => ["list"],
+		],
+		"updated_at" => [
+			"tipo" => "datetime",
+			"label" => "__trans__crudgenerator::catchederror.labels.updated_at",
+			"placeholder" => "",
+			"format" => [
+				"carbon" => "__trans__crudgenerator::admin.formats.carbon.datetime",
+				"moment" => "__trans__crudgenerator::admin.formats.moment.datetime",
+			],
+			"nodb" => "nodb",
+		],
 	], 
 	"rules" => [
 		"url" => "bail|required", 
@@ -142,10 +197,10 @@ return [
 		"reportar" => "bail|required", 
 	],
 	"show_button_list" => [ // if the buttons sould be shown in lists, default is true, remember to use request() ans auth() helpers if needed
-		"create" => false, 
+		"create" => true, 
 		"edit" => function(){return false;},
 		"remove" => true,
-		"boton_adicional1" => function(){return true;},
+		"no_reportados" => true,
 	],
 	"permissions" => [ //the permissions to validate before doing an action, if not present, uses the "sirgrimorum_cms::permission" closure, false send back to the 'sirgrimorum_cms::login_path' 
         "default" => function() {

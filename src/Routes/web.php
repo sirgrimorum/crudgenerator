@@ -37,4 +37,6 @@ Route::group(['prefix' => Sirgrimorum\CrudGenerator\CrudGenerator::setLocale() .
         Route::any('{registro}/file/{campo}', '\Sirgrimorum\CrudGenerator\CrudController@modelfile')->name('modelfile');
     });
     Route::any('/file', '\Sirgrimorum\CrudGenerator\CrudController@file')->name('sirgrimorum_file');
+    Route::post('/no_report/{catchederror}/error', '\Sirgrimorum\CrudGenerator\ErrorCatcherController@NoReport')->name('sirgrimorum_errorcatcher::no_report');
+    Route::post('/report/{catchederror}/error', '\Sirgrimorum\CrudGenerator\ErrorCatcherController@Report')->name('sirgrimorum_errorcatcher::report');
 });

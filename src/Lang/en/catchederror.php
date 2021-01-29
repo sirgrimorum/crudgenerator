@@ -24,6 +24,8 @@ return [
         "remove" => "Delete errors",
         "show_not_reported" => "Show Not reported",
         "show_reported" => "Show Reported",
+        "bt_no_report" => "Not report this error anymore",
+        "bt_report" => "Report this error again",
     ],
     "placeholders" => [
         "exception" => "Exception",

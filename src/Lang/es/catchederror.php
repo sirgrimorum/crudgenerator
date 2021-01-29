@@ -24,6 +24,8 @@ return [
         "remove" => "Eliminar errores",
         "show_not_reported" => "Ir a no reportados",
         "show_reported" => "Ir a reportados",
+        "bt_no_report" => "No volver a reportar este tipo de error",
+        "bt_report" => "Volver a reportar este tipo de error",
     ],
     "placeholders" => [
         "exception" => "Exception",
