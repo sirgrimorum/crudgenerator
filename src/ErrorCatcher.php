@@ -148,10 +148,18 @@ class ErrorCatcher
                 $anteriores = data_get($dataAnterior, "occurrences.anteriores", []);
                 $anteriorParaDiff = Arr::except($dataAnterior, ["occurrences", "trace", "request"]);
                 $anteriorParaDiff['request'] = Arr::except(Arr::get($dataAnterior, 'request', []), ["cookie", "session"]);
-                $anteriorParaDiff['request']['session'] = Arr::except(Arr::get($dataAnterior, 'request.session', []), ["_token"]);
+                if (is_array($sessionAnterior = Arr::get($dataAnterior, 'request.session', []))) {
+                    $anteriorParaDiff['request']['session'] = Arr::except($sessionAnterior, ["_token"]);
+                } else {
+                    $anteriorParaDiff['request']['session'] = $sessionAnterior;
+                }
                 $dataParaDiff = collect($data)->except("occurrences", "trace", "request")->all();
                 $dataParaDiff['request'] = Arr::except(Arr::get($data, 'request', []), ["cookie", "session"]);
-                $dataParaDiff['request']['session'] = Arr::except(Arr::get($data, 'request.session', []), ["_token"]);
+                if (is_array($sessionData = Arr::get($data, 'request.session', []))) {
+                    $dataParaDiff['request']['session'] = Arr::except($sessionData, ["_token"]);
+                } else {
+                    $dataParaDiff['request']['session'] = $sessionData;
+                }
                 $diferencia = ErrorCatcher::array_diff_recursive($anteriorParaDiff, $dataParaDiff);
                 if (count($diferencia) > 0) {
                     if (!in_array($diferencia, $anteriores)) {
