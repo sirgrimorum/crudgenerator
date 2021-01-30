@@ -56,6 +56,7 @@ return [
             "job" => "Job",
             "web" => "Http en web",
             "ata" => "Posible ataque",
+            "scg" => "CrudGenerator",
         ],
         "reportar" => [
             "0" => "No volver a reportar este tipo de errores",

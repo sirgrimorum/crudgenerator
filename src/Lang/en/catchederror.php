@@ -55,6 +55,8 @@ return [
             "api" => "API",
             "job" => "Job",
             "web" => "Web",
+            "ata" => "Posible ataque",
+            "scg" => "CrudGenerator",
         ],
         "reportar" => [
             "0" => "Not report this kind of errors anymore",

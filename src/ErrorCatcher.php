@@ -94,6 +94,14 @@ class ErrorCatcher
             "ata" => [
                 "SuspiciousOperationException"
             ],
+            "scg" => [
+                "NoModelClassInConfigException",
+                "NoStreamException",
+                "NoTableForModelException",
+                "PreparingFileException",
+                "PreparingFileForModelException",
+                "SmartMergeConfigException"
+            ],
         ];
         $tipos = [];
         foreach ($calssesByType as $tipo => $clases) {
