@@ -15,9 +15,10 @@ if ($css_section != "") {
         font-size: 0;
     }
     #{{ $tabla . '_' . $extraId }}_container span.typeahead__cancel-button:before{
-        font-family: FontAwesome; 
+        font-family: 'Font Awesome 5 Free', 'FontAwesome'; 
         font-size: 1.2rem;
-        content: '\f00d';
+        font-weight: 900;
+        content: '\f057';
     }
 </style>
 <?php
