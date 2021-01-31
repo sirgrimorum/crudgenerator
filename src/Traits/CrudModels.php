@@ -1956,7 +1956,14 @@ trait CrudModels
                                     foreach ($input->input($campo) as $pivot => $id) {
                                         $datos[$id] = [];
                                         foreach ($detalles['columnas'] as $subdetalles) {
-                                            if ($subdetalles['tipo'] != "label" && $subdetalles['tipo'] != "labelpivot") {
+                                            if (isset($subdetalles['tipo'])) {
+                                                $tipoPivote = $subdetalles['tipo'];
+                                            } elseif (isset($subdetalles['type'])) {
+                                                $tipoPivote = $subdetalles['type'];
+                                            } else {
+                                                $tipoPivote = 'text';
+                                            }
+                                            if ($tipoPivote != "label" && $tipoPivote != "labelpivot") {
                                                 if ($input->has($campo . "_" . $subdetalles['campo'] . "_" . $id)) {
                                                     $datos[$id][$subdetalles['campo']] = $input->input($campo . "_" . $subdetalles['campo'] . "_" . $id);
                                                 } elseif (isset($subdetalles['valor'])) {
