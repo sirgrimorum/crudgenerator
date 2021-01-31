@@ -463,10 +463,17 @@ trait CrudModels
                         $auxcelda5 = "";
                         $prefijo2 = "<ul><li>";
                         $htmlShow .= '</dt>';
-                        if (array_key_exists('columnas', $datos)) {
+                        if (Arr::has($datos, 'columnas')) {
                             if (is_array($datos['columnas'])) {
                                 if (is_object($sub->pivot)) {
-                                    $celda[$sub->getKey()]['data'] = [];
+                                    $smartMergeRelation = false;
+                                    $configRelation = "";
+                                    if (Arr::has($datos, "config")){
+                                        $configRelation = Arr::get($datos, "config", "");
+                                        $smartMergeRelation = Arr::get($datos, "smartMerge", true);
+                                    }
+                                    $configRelation = CrudGenerator::getConfig(class_basename($datos["modelo"]), $smartMergeRelation , $configRelation);
+                                    $celda[$sub->getKey()]['data'] = CrudGenerator::registry_array($configRelation, $sub, "simple");
                                     $htmlShow .= '<dd class="col-sm-9 border-bottom border-secondary mb-0 pb-2">' .
                                         '<ul class="mb-0">';
                                     foreach ($datos['columnas'] as $infoPivote) {
@@ -478,9 +485,9 @@ trait CrudModels
                                             $tipoPivote = 'text';
                                         }
                                         if ($tipoPivote != "hidden" && $tipoPivote != "label") {
-                                            $celda[$sub->getKey()]['data'][$infoPivote['campo']] = ['label' => $infoPivote['label']];
+                                            $datoPivoteCampo = ['label' => $infoPivote['label']];
                                             if ($tipoPivote == "number" && isset($infoPivote['format'])) {
-                                                $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = number_format($sub->pivot->{$infoPivote['campo']}, $infoPivote['format'][0], $infoPivote['format'][1], $infoPivote['format'][2]);
+                                                $datoPivoteCampo['value'] = number_format($sub->pivot->{$infoPivote['campo']}, $infoPivote['format'][0], $infoPivote['format'][1], $infoPivote['format'][2]);
                                             } elseif ($tipoPivote == "select" && isset($infoPivote['opciones'])) {
                                                 if (is_callable($infoPivote['opciones'])) {
                                                     $opciones = $infoPivote['opciones']($sub);
@@ -489,15 +496,20 @@ trait CrudModels
                                                 } else {
                                                     $opciones = [];
                                                 }
-                                                $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = Arr::get($opciones, $sub->pivot->{$infoPivote['campo']}, $sub->pivot->{$infoPivote['campo']});
+                                                $datoPivoteCampo['value'] = Arr::get($opciones, $sub->pivot->{$infoPivote['campo']}, $sub->pivot->{$infoPivote['campo']});
                                             } else {
-                                                $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = $sub->pivot->{$infoPivote['campo']} . ', ';
+                                                $datoPivoteCampo['value'] = $sub->pivot->{$infoPivote['campo']} . ', ';
                                             }
-                                            $auxcelda4 .= $prefijo2 . $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] . "</li>";
+                                            $auxcelda4 .= $prefijo2 . $datoPivoteCampo['value'] . "</li>";
                                             $prefijo2 = "<li>";
                                             $htmlShow .= '<li>' .
-                                                $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] .
+                                            $datoPivoteCampo['value'] .
                                                 '</li>';
+                                            if (Arr::has($celda, "{$sub->getKey()}.data.{$infoPivote['campo']}")){
+                                                data_set($celda, "{$sub->getKey()}.data.pivote.{$infoPivote['campo']}", $datoPivoteCampo);
+                                            }else{
+                                                data_set($celda, "{$sub->getKey()}.data.{$infoPivote['campo']}", $datoPivoteCampo);
+                                            }
                                         } elseif ($tipoPivote == "label") {
                                             if (isset($infoPivote['campo'])) {
                                                 $auxcelda5 = CrudGenerator::getNombreDeLista($sub, $infoPivote['campo']);
@@ -730,7 +742,11 @@ trait CrudModels
         } elseif ($datos['tipo'] == "json") {
             $celda['data'] = json_decode($value->{$columna}, true);
             $celda['label'] = $datos['label'];
-            $celda['value'] = $value->{$columna};
+            if (Arr::get($datos,'arrayInValue', false) == true){
+                $celda['value'] = $celda['data'];
+            }else{
+                $celda['value'] = $value->{$columna};
+            }
             $celda['html'] = "<pre><code>" . json_encode($celda['data'], JSON_PRETTY_PRINT) . "</code></pre>";
             $fileHtml = '<div class="card text-left">' .
                 '<div class="card-header">' .
@@ -991,7 +1007,10 @@ trait CrudModels
                 $celda['html_cell'] = $celda['html_cell'] . Str::start($celda['post'], " ");
             }
         }
-        $celda['value'] = CrudGenerator::translateDato($celda['value'], $value, $config);
+        if (!is_array($celda['value']) || (is_array($celda['value']) && count(array_filter(array_keys($celda['value']), 'is_string')) == 0)){
+            $celda['value'] = CrudGenerator::translateDato($celda['value'], $value, $config);
+        }
+        
         if (isset($celda['html'])) {
             $celda['html'] = CrudGenerator::translateDato($celda['html'], $value, $config);
         }

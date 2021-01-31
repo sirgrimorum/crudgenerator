@@ -105,6 +105,7 @@
                             'checked' => true, // for checked or radio if is checked by default
                         ]
                     ],
+                    "arrayInValue" => false, //for the json type, if should return de json_decoded in the value from get(), false (default) return the json string
                     "show_data" => "[]", // function(array $dato (the one obtain after using $model->get("campo", false)) or string with field_names between <-field_name-> or <-fied_name.value-> to use to process data of the column in the show view
                     "list_data" => "[]", // function(array $dato (the one obtain after using $model->get("campo", false)) or string with field_names between <-field_name-> or <-fied_name.value-> to use to process data of the column in the list view
                     "create_data" => "[]", // function() or string with field_names between <-field_name-> or <-fied_name.value-> to use to process data of the column in the list view, will be used to replace "valor" and "value" fields if not present
