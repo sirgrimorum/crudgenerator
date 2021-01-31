@@ -57,9 +57,9 @@ trait CrudModels
         }
         if (is_callable($callback)) {
             if (($numArgs = CrudGenerator::isFunction($callback)) !== false && $numArgs > 0) {
-                if (is_object($registro)){
+                if (is_object($registro)) {
                     $resultado = (bool) $callback($registro);
-                }elseif ($registro > 0) {
+                } elseif ($registro > 0) {
                     $objModelo = $config['modelo']::find($registro);
                     $resultado = (bool) $callback($objModelo);
                 } else {
@@ -482,7 +482,14 @@ trait CrudModels
                                             if ($tipoPivote == "number" && isset($infoPivote['format'])) {
                                                 $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = number_format($sub->pivot->{$infoPivote['campo']}, $infoPivote['format'][0], $infoPivote['format'][1], $infoPivote['format'][2]);
                                             } elseif ($tipoPivote == "select" && isset($infoPivote['opciones'])) {
-                                                $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = $infoPivote['opciones'][$sub->pivot->{$infoPivote['campo']}];
+                                                if (is_callable($infoPivote['opciones'])) {
+                                                    $opciones = $infoPivote['opciones']($sub);
+                                                } elseif (is_array($infoPivote['opciones'])) {
+                                                    $opciones = $infoPivote['opciones'];
+                                                } else {
+                                                    $opciones = [];
+                                                }
+                                                $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = Arr::get($opciones, $sub->pivot->{$infoPivote['campo']}, $sub->pivot->{$infoPivote['campo']});
                                             } else {
                                                 $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = $sub->pivot->{$infoPivote['campo']} . ', ';
                                             }
