@@ -86,6 +86,10 @@ trait CrudConfig
                 $config = config($config);
             }
 
+            if (Arr::has($config, "forceSmartMerge")){
+                $smartMerge = Arr::get($config, "forceSmartMerge", false) == true;
+            }
+
             /**
              * Separate baseConfig for smart merge y principal config
              */

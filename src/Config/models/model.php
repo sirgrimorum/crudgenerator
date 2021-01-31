@@ -5,6 +5,7 @@
  * structure:
             "modelo" => "[Model object]",
             "tabla" => "[table name]",
+            "forceSmartMerge" => false, // If should force smartMerge on load or not, if not set, will use the specifications from parameters or false as default
             "nombre" => "[attribute taken as name for the model]",
             "id" => "[id field name]",
             "url" => "[url to use as action for the form]" | [ // use "Sirgrimorum_CrudAdministrator" if you want the crudgen to manage it, change if you want to handle it diferently, this
