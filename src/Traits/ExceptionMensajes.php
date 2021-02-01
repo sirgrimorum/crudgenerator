@@ -4,6 +4,7 @@ namespace Sirgrimorum\CrudGenerator\Traits;
 
 use Exception;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 trait ExceptionMensajes
 {
@@ -43,13 +44,17 @@ trait ExceptionMensajes
                 $default = 'Could not open stream for reading ":modelo"';
                 $tipo = 'no_stream_for_reading';
                 break;
+            case 'NoValueInCeldaException':
+                $default = 'Could not set the value of the field ":campo" in ":modelos"';
+                $tipo = 'no_value_in_celda';
+                break;
             default:
                 $default = 'An error occur with the model ":Modelo"';
                 $tipo = 'no_error_know_class';
                 break;
         }
         $mensaje = Arr::get(__('crudgenerator::admin.messages'), $tipo, $default);
-        $mensaje = str_replace([":modelo", ":Modelo"], [strtolower($model), ucfirst($model)], $mensaje);
+        $mensaje = str_replace([":modelo", ":Modelo", ":modelos", ":Modelos"], [strtolower($model), ucfirst($model), Str::plural(strtolower($model)), Str::plural(ucfirst($model))], $mensaje);
         return $mensaje;
     }
 }

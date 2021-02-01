@@ -108,6 +108,7 @@ return [
         'error_preparing_file_for_model' => 'Ocurrió un error alistando el archivo para el modelo ":Modelo"',
         'error_preparing_file' => 'Ocurrió un error alistando el archivo',
         'no_stream_for_reading' => 'No fue posible abrir el stream para leer ":modelo"',
+        'no_value_in_celda' => 'No se pudo definir el valor del campo ":campo" en ":modelos"'
     ],
     'error_messages' => [
         'required' => 'El campo ":attribute" es obligatorio',

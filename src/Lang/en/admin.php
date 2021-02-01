@@ -107,6 +107,7 @@ return [
         'error_preparing_file_for_model' => 'Error preparing the file for the model ":Modelo"',
         'error_preparing_file' => 'Error preparing the file',
         'no_stream_for_reading' => 'Could not open stream for reading ":modelo"',
+        'no_value_in_celda' => 'Could not set the value of the field ":campo" in ":modelos"'
     ],
     'error_messages' => [
         'unique_composite' => 'Already exists a row with the same combination of :fields',
