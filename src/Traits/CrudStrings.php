@@ -764,22 +764,27 @@ trait CrudStrings
         if (isset($campo)) {
             if (is_object($elemento) || is_array($elemento)) {
                 if (is_array($campo)) {
-                    $strNombre = "";
-                    $preNombre = "";
-                    foreach ($campo as $indiceCampo => $nombreCampo) {
-                        if (($dato = data_get($elemento, $nombreCampo, null)) !== null) {
-                            if (is_string($dato)) {
-                                $stringDato = $dato;
-                            } elseif (is_array($dato) || is_object($dato)) {
-                                $stringDato = json_encode($dato);
-                            } else {
-                                $stringDato = (string) $dato;
+                    //no es asociativo ni multi
+                    if (count(array_filter(array_keys($campo), 'is_string')) == 0 && count(array_filter($campo, 'is_array')) == 0) {
+                        $strNombre = "";
+                        $preNombre = "";
+                        foreach ($campo as $indiceCampo => $nombreCampo) {
+                            if (($dato = data_get($elemento, $nombreCampo, null)) !== null) {
+                                if (is_string($dato)) {
+                                    $stringDato = $dato;
+                                } elseif (is_array($dato) || is_object($dato)) {
+                                    $stringDato = json_encode($dato);
+                                } else {
+                                    $stringDato = (string) $dato;
+                                }
+                                $strNombre .= $preNombre . $stringDato;
+                                $preNombre = $separador;
                             }
-                            $strNombre .= $preNombre . $stringDato;
-                            $preNombre = $separador;
                         }
+                        return $strNombre;
+                    } else {
+                        return $campo;
                     }
-                    return $strNombre;
                 } elseif (is_callable($campo)) {
                     return $campo($elemento);
                 } elseif (is_string($campo) && strlen($campo) <= 255) {
