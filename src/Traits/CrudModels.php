@@ -526,7 +526,11 @@ trait CrudModels
                                         $smartMergeRelation = Arr::get($datos, "smartMerge", true);
                                     }
                                     $configRelation = CrudGenerator::getConfig(class_basename($datos["modelo"]), $smartMergeRelation, $configRelation);
-                                    $celda[$sub->getKey()]['data'] = CrudGenerator::registry_array($configRelation, $sub, "simple");
+                                    if ($arrayInValue && $solo == 'simple') {
+                                        $celda[$sub->getKey()] = CrudGenerator::registry_array($configRelation, $sub, "simple");
+                                    } else {
+                                        $celda[$sub->getKey()]['data'] = CrudGenerator::registry_array($configRelation, $sub, "simple");
+                                    }
                                     if ($solo != 'simple') {
                                         $htmlShow .= "<div class='collapse' aria-labelledby='{$extraId}_{$tablaOtroId}_principal' id='{$extraId}_{$tablaOtroId}_pivote' data-parent='#{$extraId}_lgroup'>" .
                                             '<ul class="mb-0">';
@@ -545,6 +549,7 @@ trait CrudModels
                                             $tablaTranslate = $sub->pivot;
                                             $configParaTranslate = null;
                                             if ($tipoPivote == "number" && isset($infoPivote['format'])) {
+                                                $datoPivoteCampo['data'] = $sub->pivot->{$infoPivote['campo']};
                                                 $datoPivoteCampo['value'] = number_format($sub->pivot->{$infoPivote['campo']}, $infoPivote['format'][0], $infoPivote['format'][1], $infoPivote['format'][2]);
                                             } elseif ($tipoPivote == "select" && isset($infoPivote['opciones'])) {
                                                 if (is_callable($infoPivote['opciones'])) {
@@ -554,23 +559,29 @@ trait CrudModels
                                                 } else {
                                                     $opciones = [];
                                                 }
+                                                $datoPivoteCampo['data'] = $sub->pivot->{$infoPivote['campo']};
                                                 $datoPivoteCampo['value'] = Arr::get($opciones, $sub->pivot->{$infoPivote['campo']}, $sub->pivot->{$infoPivote['campo']});
                                             } elseif ($tipoPivote == "label") {
                                                 $tablaTranslate = $sub;
                                                 $configParaTranslate = $datos;
                                                 if (isset($infoPivote['campo'])) {
                                                     $datoPivoteCampo['value'] = $infoPivote['campo'];
+                                                    $datoPivoteCampo['data'] = $infoPivote['campo'];
                                                 } else {
                                                     $datoPivoteCampo['value'] = $infoPivote['label'];
+                                                    $datoPivoteCampo['data'] = $infoPivote['label'];
                                                 }
                                             } elseif ($tipoPivote == "labelpivot") {
                                                 if (isset($infoPivote['campo'])) {
                                                     $datoPivoteCampo['value'] = $infoPivote['campo'];
+                                                    $datoPivoteCampo['data'] = $infoPivote['campo'];
                                                 } else {
                                                     $datoPivoteCampo['value'] = $infoPivote['label'];
+                                                    $datoPivoteCampo['data'] = $infoPivote['label'];
                                                 }
                                             } else {
                                                 $datoPivoteCampo['value'] = $infoPivote['campo'];
+                                                $datoPivoteCampo['data'] = $infoPivote['campo'];
                                             }
                                             if (isset($infoPivote['pre'])) {
                                                 $datoPivoteCampo['value'] = $infoPivote['pre'] . " {$datoPivoteCampo['value']}";
@@ -578,7 +589,10 @@ trait CrudModels
                                             if (isset($infoPivote['post'])) {
                                                 $datoPivoteCampo['value'] .= " " . $infoPivote['post'];
                                             }
-                                            $datoPivoteCampo['value'] = CrudGenerator::translateDato($datoPivoteCampo['value'], $tablaTranslate, $configParaTranslate);
+                                            if (!$arrayInValue || $solo != 'simple') {
+                                                $datoPivoteCampo['value'] = CrudGenerator::translateDato($datoPivoteCampo['value'], $tablaTranslate, $configParaTranslate);
+                                            }
+                                            $datoPivoteCampo['data'] = CrudGenerator::translateDato($datoPivoteCampo['data'], $tablaTranslate, $configParaTranslate);
                                             $datoCelda4 = "<strong>{$datoPivoteCampo['label']}: </strong>{$datoPivoteCampo['value']}";
                                             $auxcelda4 .= "$prefijo2{$datoCelda4}</li>";
                                             $prefijo2 = "<li>";
@@ -588,9 +602,10 @@ trait CrudModels
                                                     '</li>';
                                             }
                                             $nombreCampoCelda = str_replace(["<-", "->"], "", $infoPivote['campo']);
-                                            if ($arrayInValue){
+                                            if ($arrayInValue && $solo == 'simple') {
                                                 $extraDataKey = "";
-                                            }else{
+                                                $datoPivoteCampo = $datoPivoteCampo['data'];
+                                            } else {
                                                 $extraDataKey = ".data";
                                             }
                                             if (!Arr::has($celda, "{$sub->getKey()}{$extraDataKey}.{$nombreCampoCelda}")) {
@@ -639,12 +654,12 @@ trait CrudModels
                         "html_show" => $htmlShow,
                         "html_cell" => '<div style="max-height:10em;max-width:30em;overflow-y:auto;">' . str_replace(['<h5', 'h5>'], ['<span', 'span>'], $htmlShow) . '</div>',
                     ];
-                    if($arrayInValue) {
+                    if ($arrayInValue) {
                         $celda['value'] = $celda['data'];
-                    }else{
+                    } else {
                         $celda['value'] = $auxcelda3;
                     }
-                } elseif($arrayInValue) {
+                } elseif ($arrayInValue) {
                     $celda = [
                         "value" => $celda,
                     ];
