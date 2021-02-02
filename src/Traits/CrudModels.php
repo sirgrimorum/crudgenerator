@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Validator;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
 use Illuminate\Support\Str;
 use Sirgrimorum\CrudGenerator\DynamicCompare;
+use Sirgrimorum\CrudGenerator\Exceptions\NoValueInCeldaException;
 
 trait CrudModels
 {
@@ -251,7 +252,6 @@ trait CrudModels
      */
     public static function registry_array($config, $registro = null, $solo = false)
     {
-        $modeloM = ucfirst($config['modelo']);
         if ($registro != null && is_object($registro)) {
             $value = $registro;
             $registro = $value->{$config['id']};
@@ -278,53 +278,56 @@ trait CrudModels
         } else {
             $botones = [];
         }
-        $tabla = $config['tabla'];
-        $tablaid = $tabla . "_" . Str::random(5);
-        if (isset($config['relaciones'])) {
-            $relaciones = $config['relaciones'];
-        }
         $identificador = $config['id'];
         $nombre = $config['nombre'];
 
         if ($value != null) {
-            $row = [
-                $value->getKeyName() => $value->getKey()
-            ];
+            if ($solo != 'simple') {
+                $row = [
+                    $value->getKeyName() => $value->getKey()
+                ];
+            }
             $rowSimple = [
                 $value->getKeyName() => $value->getKey()
             ];
             foreach ($campos as $columna => $datos) {
-                $celda = CrudGenerator::field_array($value, $columna, $config, $datos);
-                $row[$columna] = $celda;
+                $celda = CrudGenerator::field_array($value, $columna, $solo, $config, $datos);
+                if ($solo != 'simple') {
+                    $row[$columna] = $celda;
+                }
                 $rowSimple[$columna] = $celda['value'];
             }
-            if (is_array($botones)) {
-                $celda = [];
-                foreach ($botones as $boton) {
-                    if (is_array($boton)) {
-                        $subBoton = [];
-                        foreach ($boton as $keySubBoton => $valueSubBoton) {
-                            if (is_string($valueSubBoton)) {
-                                $subBoton[$keySubBoton] = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $valueSubBoton));
-                            } else {
-                                $subBoton[$keySubBoton] = $valueSubBoton;
+            if ($solo != 'simple') {
+                if (is_array($botones)) {
+                    $celda = [];
+                    foreach ($botones as $boton) {
+                        if (is_array($boton)) {
+                            $subBoton = [];
+                            foreach ($boton as $keySubBoton => $valueSubBoton) {
+                                if (is_string($valueSubBoton)) {
+                                    $subBoton[$keySubBoton] = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $valueSubBoton));
+                                } else {
+                                    $subBoton[$keySubBoton] = $valueSubBoton;
+                                }
                             }
+                        } elseif (is_string($boton)) {
+                            $celda[] = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $boton));
+                        } else {
+                            $celda[] = $boton;
                         }
-                    } elseif (is_string($boton)) {
-                        $celda[] = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $boton));
-                    } else {
-                        $celda[] = $boton;
                     }
+                    $row["botones"] = $celda;
+                } elseif (is_string($botones)) {
+                    $celda = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $botones));
+                    $row["botones"] = $celda;
+                } else {
+                    $row["botones"] = $botones;
                 }
-                $row["botones"] = $celda;
-            } elseif (is_string($botones)) {
-                $celda = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $botones));
-                $row["botones"] = $celda;
-            } else {
-                $row["botones"] = $botones;
             }
         } else {
-            $row = [];
+            if ($solo != 'simple') {
+                $row = [];
+            }
             $rowSimple = [];
         }
         if ($solo == 'simple') {
@@ -345,11 +348,12 @@ trait CrudModels
      *
      * @param Model $value The object
      * @param string $columna The field to show
+     * @param boolean|string $solo Optional if 'simple' will return only ('value'), otherwise will return the all the options ('value', 'data', 'label', 'html', 'html_cell', 'html_show', 'pre', 'post')
      * @param array $config Optional the configuration array for the model
      * @param array $datos Optional The configuration array for the field
      * @return array with the values in the config format
      */
-    public static function field_array($value, $columna, $config = "", $datos = "")
+    public static function field_array($value, $columna, $solo = 'complete', $config = "", $datos = "")
     {
         $modelo = strtolower(class_basename(get_class($value)));
         if ($config == "") {
@@ -360,39 +364,55 @@ trait CrudModels
                 if (is_array($config['campos'][$columna])) {
                     $datos = $config['campos'][$columna];
                 } else {
+                    if ($solo == 'simple') {
+                        $celda = [
+                            "value" => CrudGenerator::translateDato($value->{$columna})
+                        ];
+                    } else {
+                        $celda = [
+                            "data" => $value->{$columna},
+                            "label" => $columna,
+                            "value" => CrudGenerator::translateDato($value->{$columna})
+                        ];
+                    }
+
+                    return $celda;
+                }
+            } else {
+                if ($solo == 'simple') {
+                    $celda = [
+                        "value" => CrudGenerator::translateDato($value->{$columna})
+                    ];
+                } else {
                     $celda = [
                         "data" => $value->{$columna},
                         "label" => $columna,
                         "value" => CrudGenerator::translateDato($value->{$columna})
                     ];
-                    return $celda;
                 }
-            } else {
-                $celda = [
-                    "data" => $value->{$columna},
-                    "label" => $columna,
-                    "value" => CrudGenerator::translateDato($value->{$columna})
-                ];
                 return $celda;
             }
         }
         $celda = [];
-        $celdaData = [];
+        $celdaDataPP = [];
         $auxcelda = "";
         if (isset($datos["pre"])) {
-            $celdaData["pre"] = $datos["pre"];
+            $celdaDataPP["pre"] = $datos["pre"];
         }
         if ($datos['tipo'] == "relationship") {
             if (CrudGenerator::hasRelation($value, $columna)) {
                 if (isset($value->{$columna})) {
                     if (array_key_exists('enlace', $datos)) {
-                        $auxcelda = '<a href = "' . CrudGenerator::getNombreDeLista($value->{$columna}, $datos['enlace']) . '">';
+                        $auxcelda = '<a href = "' . CrudGenerator::translateDato($datos['enlace'], $value->{$columna}, $datos) . '">';
                     } else {
                         $auxcelda = '';
                     }
-                    $celda['data'] = CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
-                    $celda['label'] = $datos['label'];
-                    $auxcelda .= $celda['data'];
+                    $celdaData = CrudGenerator::translateDato($datos['campo'], $value->{$columna}, $datos);
+                    if ($solo != 'simple') {
+                        $celda['data'] = $celdaData;
+                        $celda['label'] = $datos['label'];
+                    }
+                    $auxcelda .= $celdaData;
                     if (array_key_exists('enlace', $datos)) {
                         $auxcelda .= '</a>';
                     }
@@ -405,33 +425,43 @@ trait CrudModels
             }
         } elseif ($datos['tipo'] == "relationships") {
             if (CrudGenerator::hasRelation($value, $columna)) {
-                $celda = [];
+                if ($solo != 'simple') {
+                    $celda = [];
+                }
                 $auxcelda2 = "";
                 $prefijo = "<ul><li>";
                 foreach ($value->{$columna}()->get() as $sub) {
                     $auxcelda = "";
                     if (array_key_exists('enlace', $datos)) {
-                        $auxcelda2 .= $prefijo . '<a href = "' .  CrudGenerator::getNombreDeLista($sub, $datos['enlace']) . '">';
+                        $auxcelda2 .= $prefijo . '<a href = "' .  CrudGenerator::translateDato($datos['enlace'], $sub, $datos) . '">';
                     } else {
                         $auxcelda2 .= $prefijo;
                     }
-                    $auxcelda = CrudGenerator::getNombreDeLista($sub, $datos['campo']);
+                    $auxcelda = CrudGenerator::translateDato($datos['campo'], $sub, $datos);
                     $auxcelda2 .= $auxcelda;
                     if (array_key_exists('enlace', $datos)) {
                         $auxcelda2 .= '</a>';
                     }
                     $auxcelda2 .= "</li>";
                     $prefijo = "<li>";
-                    $celda[$sub->getKey()] = $auxcelda;
+                    if ($solo != 'simple') {
+                        $celda[$sub->getKey()] = $auxcelda;
+                    }
                 }
                 if ($auxcelda2 != "") {
                     $auxcelda2 .= "</ul>";
                 }
-                $celda = [
-                    "data" => $celda,
-                    "label" => $datos['label'],
-                    "value" => $auxcelda2
-                ];
+                if ($solo == 'simple') {
+                    $celda = [
+                        "value" => $auxcelda2
+                    ];
+                } else {
+                    $celda = [
+                        "data" => $celda,
+                        "label" => $datos['label'],
+                        "value" => $auxcelda2
+                    ];
+                }
             } else {
                 $celda = '-';
             }
@@ -441,41 +471,49 @@ trait CrudModels
                 $auxcelda3 = "";
                 $prefijo = "<ul><li>";
                 $htmlShow = "-";
+                $extraId = "{$columna}_{$value->getKey()}";
                 if ($value->{$columna}()->count() > 0) {
-                    $htmlShow = '<dl class="row border-top border-secondary">';
+                    $htmlShow = '<div class="list-group" id="' . "{$extraId}_lgroup" . '">';
                     foreach ($value->{$columna}()->get() as $sub) {
+                        $tablaOtroId = $sub->getKey();
                         $celda[$sub->getKey()] = [];
                         $auxcelda = "";
-                        $htmlShow .= '<dt class="col-sm-3 border-bottom border-secondary pt-2">';
+                        $htmlShow .= '<div id="' . "{$extraId}_{$tablaOtroId}_principal" . '" class="list-group-item list-group-item-action flex-column align-items-start">' .
+                            '<div data-toggle="collapse" data-target="#' . "{$extraId}_{$tablaOtroId}_pivote" . '" aria-expanded="false" aria-controls="' . "{$extraId}_{$tablaOtroId}_pivote" . '" class="d-flex w-100 justify-content-between" style="cursor:pointer;">';
                         if (array_key_exists('enlace', $datos)) {
-                            $auxcelda = '<a href = "' . CrudGenerator::getNombreDeLista($sub, $datos['enlace']) . '">';
-                            $htmlShow .= $auxcelda;
+                            $auxcelda = '<a class="pr-2" href="' . CrudGenerator::translateDato($datos['enlace'], $sub, $datos) . '">';
+                            $htmlShow .= $auxcelda . CrudGenerator::getIcon('url', true) . '</a>';
                         }
-                        $auxcelda2 = CrudGenerator::getNombreDeLista($sub, $datos['campo']);
-                        $htmlShow .= $auxcelda2;
+                        $auxcelda2 = CrudGenerator::translateDato($datos['campo'], $sub, $datos);
                         $auxcelda .= $auxcelda2;
                         if (array_key_exists('enlace', $datos)) {
                             $auxcelda .= '</a>';
-                            $htmlShow .= '</a>';
                         }
                         $auxcelda3 .= $prefijo . $auxcelda;
                         $auxcelda4 = "";
-                        $auxcelda5 = "";
+                        if ($solo != 'simple') {
+                            $htmlShow .= '<h5 class="mb-1 mr-auto">' . $auxcelda2 .  '</h5>' .
+                                //'<small><button type="button" class="btn btn-dark" title="' . trans("crudgenerator::admin.layout.labels.info"). '">' . CrudGenerator::getIcon('info',true) . '</button></small>' .
+                                '</div>';
+                            $auxcelda5 = "";
+                        }
                         $prefijo2 = "<ul><li>";
-                        $htmlShow .= '</dt>';
                         if (Arr::has($datos, 'columnas')) {
                             if (is_array($datos['columnas'])) {
                                 if (is_object($sub->pivot)) {
                                     $smartMergeRelation = false;
                                     $configRelation = "";
-                                    if (Arr::has($datos, "config")){
+                                    if (Arr::has($datos, "config")) {
                                         $configRelation = Arr::get($datos, "config", "");
                                         $smartMergeRelation = Arr::get($datos, "smartMerge", true);
                                     }
-                                    $configRelation = CrudGenerator::getConfig(class_basename($datos["modelo"]), $smartMergeRelation , $configRelation);
+                                    $configRelation = CrudGenerator::getConfig(class_basename($datos["modelo"]), $smartMergeRelation, $configRelation);
                                     $celda[$sub->getKey()]['data'] = CrudGenerator::registry_array($configRelation, $sub, "simple");
-                                    $htmlShow .= '<dd class="col-sm-9 border-bottom border-secondary mb-0 pb-2">' .
-                                        '<ul class="mb-0">';
+                                    if ($solo != 'simple') {
+                                        $htmlShow .= "<div class='collapse' aria-labelledby='{$extraId}_{$tablaOtroId}_principal' id='{$extraId}_{$tablaOtroId}_pivote' data-parent='#{$extraId}_lgroup'>" .
+                                            '<ul class="mb-0">';
+                                    }
+                                    $i = 0;
                                     foreach ($datos['columnas'] as $infoPivote) {
                                         if (isset($infoPivote['tipo'])) {
                                             $tipoPivote = $infoPivote['tipo'];
@@ -484,8 +522,10 @@ trait CrudModels
                                         } else {
                                             $tipoPivote = 'text';
                                         }
-                                        if ($tipoPivote != "hidden" && $tipoPivote != "label") {
+                                        if ($tipoPivote != "hidden" && ($tipoPivote != "label" || ($tipoPivote == "label" && $i > 0))) {
                                             $datoPivoteCampo = ['label' => $infoPivote['label']];
+                                            $tablaTranslate = $sub->pivot;
+                                            $configParaTranslate = null;
                                             if ($tipoPivote == "number" && isset($infoPivote['format'])) {
                                                 $datoPivoteCampo['value'] = number_format($sub->pivot->{$infoPivote['campo']}, $infoPivote['format'][0], $infoPivote['format'][1], $infoPivote['format'][2]);
                                             } elseif ($tipoPivote == "select" && isset($infoPivote['opciones'])) {
@@ -497,29 +537,56 @@ trait CrudModels
                                                     $opciones = [];
                                                 }
                                                 $datoPivoteCampo['value'] = Arr::get($opciones, $sub->pivot->{$infoPivote['campo']}, $sub->pivot->{$infoPivote['campo']});
+                                            } elseif ($tipoPivote == "label") {
+                                                $tablaTranslate = $sub;
+                                                $configParaTranslate = $datos;
+                                                if (isset($infoPivote['campo'])) {
+                                                    $datoPivoteCampo['value'] = $infoPivote['campo'];
+                                                } else {
+                                                    $datoPivoteCampo['value'] =$infoPivote['label'];
+                                                }
+                                            } elseif ($tipoPivote == "labelpivot") {
+                                                if (isset($infoPivote['campo'])) {
+                                                    $datoPivoteCampo['value'] = $infoPivote['campo'];
+                                                } else {
+                                                    $datoPivoteCampo['value'] = $infoPivote['label'];
+                                                }
                                             } else {
-                                                $datoPivoteCampo['value'] = $sub->pivot->{$infoPivote['campo']} . ', ';
+                                                $datoPivoteCampo['value'] = $infoPivote['campo'];
                                             }
-                                            $auxcelda4 .= $prefijo2 . $datoPivoteCampo['value'] . "</li>";
+                                            if (isset($infoPivote['pre'])) {
+                                                $datoPivoteCampo['value'] = $infoPivote['pre'] . " {$datoPivoteCampo['value']}";
+                                            }
+                                            if (isset($infoPivote['post'])) {
+                                                $datoPivoteCampo['value'] .= " " . $infoPivote['post'];
+                                            }
+                                            $datoPivoteCampo['value'] = CrudGenerator::translateDato($datoPivoteCampo['value'], $tablaTranslate, $configParaTranslate);
+                                            $datoCelda4 = "<strong>{$datoPivoteCampo['label']}: </strong>{$datoPivoteCampo['value']}";
+                                            $auxcelda4 .= "$prefijo2{$datoCelda4}</li>";
                                             $prefijo2 = "<li>";
-                                            $htmlShow .= '<li>' .
-                                            $datoPivoteCampo['value'] .
-                                                '</li>';
-                                            if (Arr::has($celda, "{$sub->getKey()}.data.{$infoPivote['campo']}")){
-                                                data_set($celda, "{$sub->getKey()}.data.pivote.{$infoPivote['campo']}", $datoPivoteCampo);
-                                            }else{
-                                                data_set($celda, "{$sub->getKey()}.data.{$infoPivote['campo']}", $datoPivoteCampo);
+                                            if ($solo != 'simple') {
+                                                $htmlShow .= '<li>' .
+                                                    $datoCelda4 .
+                                                    '</li>';
                                             }
-                                        } elseif ($tipoPivote == "label") {
+                                            $nombreCampoCelda = str_replace(["<-", "->"], "", $infoPivote['campo']);
+                                            if (!Arr::has($celda, "{$sub->getKey()}.data.{$nombreCampoCelda}")) {
+                                                data_set($celda, "{$sub->getKey()}.data.{$nombreCampoCelda}", $datoPivoteCampo);
+                                            }
+                                            data_set($celda, "{$sub->getKey()}.data.pivote.{$nombreCampoCelda}", $datoPivoteCampo);
+                                        } elseif ($tipoPivote == "label" && $i == 0 && $solo != 'simple') {
                                             if (isset($infoPivote['campo'])) {
-                                                $auxcelda5 = CrudGenerator::getNombreDeLista($sub, $infoPivote['campo']);
+                                                $auxcelda5 = CrudGenerator::translateDato($infoPivote['campo'], $sub, $infoPivote);
                                             } else {
                                                 $auxcelda5 = $infoPivote['label'];
                                             }
                                         }
+                                        $i++;
                                     }
-                                    $htmlShow .= '</ul>' .
-                                        '</dd>';
+                                    if ($solo != 'simple') {
+                                        $htmlShow .= '</ul>' .
+                                            '</div>';
+                                    }
                                 }
                             }
                         }
@@ -528,33 +595,49 @@ trait CrudModels
                         }
                         $auxcelda3 .= $auxcelda4 . "</li>";
                         $prefijo = "<li>";
-                        $celda[$sub->getKey()]['name'] = $auxcelda2;
-                        $celda[$sub->getKey()]['value'] = $auxcelda;
-                        $celda[$sub->getKey()]['label'] = $auxcelda5;
+                        $celda[$sub->getKey()]['value'] = $auxcelda . $auxcelda4;
+                        if ($solo != 'simple') {
+                            $celda[$sub->getKey()]['name'] = $auxcelda2;
+                            $celda[$sub->getKey()]['label'] = $auxcelda5;
+                            $htmlShow .= '</div>';
+                        }
                     }
                     if ($auxcelda3 != "") {
                         $auxcelda3 .= "</ul>";
                     }
-                    $htmlShow .= '</dl>';
+                    if ($solo != 'simple') {
+                        $htmlShow .= '</div>';
+                    }
                 }
-                $celda = [
-                    "data" => $celda,
-                    "label" => $datos['label'],
-                    "value" => $auxcelda3,
-                    "html_show" => $htmlShow,
-                ];
+                if ($solo != 'simple') {
+                    $celda = [
+                        "data" => $celda,
+                        "label" => $datos['label'],
+                        "value" => $auxcelda3,
+                        "html_show" => $htmlShow,
+                        "html_cell" => str_replace(['<h5', 'h5>'], ['<span', 'span>'], $htmlShow),
+                    ];
+                } else {
+                    $celda = [
+                        "value" => $auxcelda3,
+                    ];
+                }
             } else {
                 $celda = '-';
             }
         } elseif ($datos['tipo'] == "select") {
             if (Arr::get($datos, 'multiple', '') == 'multiple' && CrudGenerator::isJsonString($value->{$columna})) {
-                $celda = [];
+                if ($solo != 'simple') {
+                    $celda = [];
+                }
                 $auxcelda2 = "";
                 $prefijo = "<ul><li>";
                 foreach (json_decode($value->{$columna}) as $opcion) {
                     if (array_key_exists($opcion, $datos['opciones'])) {
                         $auxcelda2 .= $prefijo . $datos['opciones'][$opcion];
-                        $celda[$opcion] =  $datos['opciones'][$opcion];
+                        if ($solo != 'simple') {
+                            $celda[$opcion] =  $datos['opciones'][$opcion];
+                        }
                         $auxcelda2 .= "</li>";
                         $prefijo = "<li>";
                     }
@@ -562,16 +645,24 @@ trait CrudModels
                 if ($auxcelda2 != "") {
                     $auxcelda2 .= "</ul>";
                 }
-                $celda = [
-                    "data" => $celda,
-                    "label" => $datos['label'],
-                    "value" => $auxcelda2
-                ];
+                if ($solo != 'simple') {
+                    $celda = [
+                        "data" => $celda,
+                        "label" => $datos['label'],
+                        "value" => $auxcelda2
+                    ];
+                } else {
+                    $celda = [
+                        "value" => $auxcelda2
+                    ];
+                }
             } else {
                 if (array_key_exists($value->{$columna}, $datos['opciones'])) {
-                    $celda['data'] = $datos['opciones'][$value->{$columna}];
-                    $celda['label'] = $datos['label'];
                     $celda['value'] = $datos['opciones'][$value->{$columna}];
+                    if ($solo != 'simple') {
+                        $celda['data'] = $celda['value'];
+                        $celda['label'] = $datos['label'];
+                    }
                 } else {
                     $celda = '-';
                 }
@@ -585,30 +676,38 @@ trait CrudModels
                     if (is_array($auxcelda)) {
                         $auxcelda = Arr::get($auxcelda, 'label', Arr::get($auxcelda, 'description', Arr::get($auxcelda, 'help', $value->{$columna})));
                     }
-                    $celda['data_labels'][$value->{$columna}] = $datos['value'][$value->{$columna}];
+                    if ($solo != 'simple') {
+                        $celda['data_labels'][$value->{$columna}] = $datos['value'][$value->{$columna}];
+                    }
                 } elseif (strpos($value->{$columna}, Arr::get($datos, 'glue', '_')) !== false) {
                     $auxdata = explode(Arr::get($datos, 'glue', '_'), $value->{$columna});
-                    $auxdataLabels = [];
                     $auxcelda = "";
                     $precelda = "";
-                    $auxhtml = "";
+                    if ($solo != 'simple') {
+                        $auxdataLabels = [];
+                        $auxhtml = "";
+                    }
                     foreach ($auxdata as $datico) {
                         if (array_key_exists($datico, $datos['value'])) {
                             $auxDatico = $datos['value'][$datico];
                             if (is_array($auxDatico)) {
                                 $auxDatico = Arr::get($auxDatico, 'label', Arr::get($auxDatico, 'description', Arr::get($auxDatico, 'help', $datico)));
                             }
-                            $auxdataLabels[$datico] = $auxDatico;
                             $auxcelda .= $precelda . $auxDatico;
                             $precelda = ", ";
-                            $auxhtml .= "<li>{$auxDatico}</li>";
+                            if ($solo != 'simple') {
+                                $auxdataLabels[$datico] = $auxDatico;
+                                $auxhtml .= "<li>{$auxDatico}</li>";
+                            }
                         }
                     }
-                    if ($auxhtml != "") {
-                        $celda['html'] = "<ul>{$auxhtml}</ul>";
-                        $celda['html_cell'] = '<div style="max-height:10em;min-width:22em;white-space:normal;overflow-y:scroll;">' . $celda['html'] . '</div>';
+                    if ($solo != 'simple') {
+                        if ($auxhtml != "") {
+                            $celda['html'] = "<ul>{$auxhtml}</ul>";
+                            $celda['html_cell'] = '<div style="max-height:10em;min-width:22em;white-space:normal;overflow-y:scroll;">' . $celda['html'] . '</div>';
+                        }
+                        $celda['data_labels'] = $auxdataLabels;
                     }
-                    $celda['data_labels'] = $auxdataLabels;
                 } else {
                     if ($value->{$columna} === true) {
                         $auxcelda = trans('crudgenerator::admin.layout.labels.yes');
@@ -627,8 +726,10 @@ trait CrudModels
                     $auxcelda = trans('crudgenerator::admin.layout.labels.no');
                 }
             }
-            $celda['data'] = $auxdata;
-            $celda['label'] = $datos['label'];
+            if ($solo != 'simple') {
+                $celda['data'] = $auxdata;
+                $celda['label'] = $datos['label'];
+            }
             $celda['value'] = $auxcelda;
         } elseif ($datos['tipo'] == "function") {
             if (isset($datos['format'])) {
@@ -640,8 +741,10 @@ trait CrudModels
             } else {
                 $auxcelda = $value->{$columna}();
             }
-            $celda['data'] = $auxcelda;
-            $celda['label'] = $datos['label'];
+            if ($solo != 'simple') {
+                $celda['data'] = $auxcelda;
+                $celda['label'] = $datos['label'];
+            }
             $celda['value'] = $auxcelda;
         } elseif ($datos['tipo'] == "date" || $datos['tipo'] == "datetime" || $datos['tipo'] == "time") {
             $format = "Y-m-d H:i:s";
@@ -673,8 +776,10 @@ trait CrudModels
             } else {
                 $date = $value->{$columna};
             }
-            $celda['data'] = $date;
-            $celda['label'] = $datos['label'];
+            if ($solo != 'simple') {
+                $celda['data'] = $date;
+                $celda['label'] = $datos['label'];
+            }
             $celda['value'] = $dato;
         } elseif ($datos['tipo'] == "url" || ($datos['tipo'] == "file" && Str::startsWith(strtolower($value->{$columna}), ["http:", "https:"]))) {
             if ($datos['tipo'] == "url" && !Str::startsWith(strtolower($value->{$columna}), ["http:", "https:"])) {
@@ -682,26 +787,32 @@ trait CrudModels
             } else {
                 $url = $value->{$columna};
             }
-            $celda = [
-                'value' => $url,
-                'data' => $url,
-            ];
-            if (CrudGenerator::urlType($url) == "youtube") {
-                $youtubeId = CrudGenerator::getYoutubeId($url);
-                $celda['embed'] = "https://www.youtube.com/embed/" . $youtubeId;
-                $celda['html_show'] = '<div class="card text-center" >' .
-                    '<iframe class="card-img-top" height="400" src="https://www.youtube.com/embed/' . $youtubeId . '" style="border: none;"></iframe>' .
-                    '<div clas="card-body" >' .
-                    '<h5 class="card-title">' . $url . '</h5>' .
-                    '</div>' .
-                    '</div>';
+            if ($solo == 'simple') {
+                $celda = [
+                    'value' => $url,
+                ];
             } else {
-                $celda['embed'] = $url;
-                $celda['html_show'] = "<a class='btn' href='{$url}' target='_blank'><i class='mt-2 " . CrudGenerator::getIcon('url') . "' aria-hidden='true'></i></a> {$url}";
+                $celda = [
+                    'value' => $url,
+                    'data' => $url,
+                ];
+                if (CrudGenerator::urlType($url) == "youtube") {
+                    $youtubeId = CrudGenerator::getYoutubeId($url);
+                    $celda['embed'] = "https://www.youtube.com/embed/" . $youtubeId;
+                    $celda['html_show'] = '<div class="card text-center" >' .
+                        '<iframe class="card-img-top" height="400" src="https://www.youtube.com/embed/' . $youtubeId . '" style="border: none;"></iframe>' .
+                        '<div clas="card-body" >' .
+                        '<h5 class="card-title">' . $url . '</h5>' .
+                        '</div>' .
+                        '</div>';
+                } else {
+                    $celda['embed'] = $url;
+                    $celda['html_show'] = "<a class='btn' href='{$url}' target='_blank'><i class='mt-2 " . CrudGenerator::getIcon('url') . "' aria-hidden='true'></i></a> {$url}";
+                }
+                $celda['label'] = $datos['label'];
+                $celda['html'] = "<a href='{$url}' target='_blank'><i class='mt-2 " . CrudGenerator::getIcon('url') . "' aria-hidden='true'></i></a>";
+                $celda['html_cell'] = $celda['html'];
             }
-            $celda['label'] = $datos['label'];
-            $celda['html'] = "<a href='{$url}' target='_blank'><i class='mt-2 " . CrudGenerator::getIcon('url') . "' aria-hidden='true'></i></a>";
-            $celda['html_cell'] = $celda['html'];
         } elseif ($datos['tipo'] == "article" && class_exists(config('sirgrimorum.transarticles.default_articles_model'))) {
             $modelClass = config('sirgrimorum.transarticles.default_articles_model');
             $langColumn = config('sirgrimorum.transarticles.default_lang_column');
@@ -721,164 +832,91 @@ trait CrudModels
                     }
                 }
             }
-            $celda = [
-                'value' => $strArticle,
-                'label' => $datos['label'],
-                'html_cell' => '<div style="max-height:10em;max-width:40em;overflow-y:scroll;">' . $strArticle . '</div>',
-            ];
-            $celda['data'] = [];
-            foreach (config("sirgrimorum.crudgenerator.list_locales") as $localeCode) {
-                $articles = $modelClass::{$findArticle}($value->{$columna})->where($langColumn, "=", $localeCode)->first();
-                if (isset($articles)) {
-                    $celda['data'][$localeCode] = $articles->content;
-                } else {
-                    if (isset($datos['valor'])) {
-                        $celda['data'][$localeCode] = $datos['valor'];
+            if ($solo == 'simple') {
+                $celda = [
+                    'value' => $strArticle,
+                ];
+            } else {
+                $celda = [
+                    'value' => $strArticle,
+                    'label' => $datos['label'],
+                    'html_cell' => '<div style="max-height:10em;max-width:40em;overflow-y:scroll;">' . $strArticle . '</div>',
+                ];
+                $celda['data'] = [];
+                foreach (config("sirgrimorum.crudgenerator.list_locales") as $localeCode) {
+                    $articles = $modelClass::{$findArticle}($value->{$columna})->where($langColumn, "=", $localeCode)->first();
+                    if (isset($articles)) {
+                        $celda['data'][$localeCode] = $articles->content;
                     } else {
-                        $celda['data'][$localeCode] = $value->{$columna};
+                        if (isset($datos['valor'])) {
+                            $celda['data'][$localeCode] = $datos['valor'];
+                        } else {
+                            $celda['data'][$localeCode] = $value->{$columna};
+                        }
                     }
                 }
             }
         } elseif ($datos['tipo'] == "json") {
-            $celda['data'] = json_decode($value->{$columna}, true);
-            $celda['label'] = $datos['label'];
-            if (Arr::get($datos,'arrayInValue', false) == true){
-                $celda['value'] = $celda['data'];
-            }else{
+            $celdaData = null;
+            if (Arr::get($datos, 'arrayInValue', false) == true) {
+                $celdaData = json_decode($value->{$columna}, true);
+                $celda['value'] = $celdaData;
+            } else {
                 $celda['value'] = $value->{$columna};
             }
-            $celda['html'] = "<pre><code>" . json_encode($celda['data'], JSON_PRETTY_PRINT) . "</code></pre>";
-            $fileHtml = '<div class="card text-left">' .
-                '<div class="card-header">' .
-                'JSON' .
-                '</div>' .
-                '<div class="card-body w-100" style="max-height:20em;overflow-y:scroll;">' .
-                $celda['html'] .
-                '</div>' .
-                '</div>';
-            $celda['html_show'] = $fileHtml;
-            $celda['html_cell'] = '<div style="max-height:10em;max-width:30em;overflow-y:scroll;">' . $celda['html'] . '</div>';
+            if ($solo != 'simple') {
+                $celda['data'] = $celdaData ?? json_decode($value->{$columna}, true);
+                $celda['label'] = $datos['label'];
+                $celda['html'] = "<pre><code>" . json_encode($celda['data'], JSON_PRETTY_PRINT) . "</code></pre>";
+                $fileHtml = '<div class="card text-left">' .
+                    '<div class="card-header">' .
+                    'JSON' .
+                    '</div>' .
+                    '<div class="card-body w-100" style="max-height:20em;overflow-y:scroll;">' .
+                    $celda['html'] .
+                    '</div>' .
+                    '</div>';
+                $celda['html_show'] = $fileHtml;
+                $celda['html_cell'] = '<div style="max-height:10em;max-width:30em;overflow-y:scroll;">' . $celda['html'] . '</div>';
+            }
         } elseif ($datos['tipo'] == "file") {
             if ($value->{$columna} == "") {
                 $celda = '';
             } else {
                 [$filename, $urlFile] = CrudGenerator::getFileUrl($value->{$columna}, $value, $modelo, $columna, $datos, $config);
-                $tipoFile = CrudGenerator::filenameIs($value->{$columna}, $datos);
-                if (stripos($value->{$columna}, '__') !== false) {
-                    $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
-                } else {
-                    $auxprevioName = substr($value->{$columna}, 0, stripos($value->{$columna}, '.', 0));
-                }
-                $tipoMime = CrudGenerator::fileMime(strtolower($filename), $datos);
-                $fileHtml = '<div class="card text-center">';
-                $titleFileHtml = $auxprevioName;
-                if ($value->{$columna} == "") {
-                    $fileHtmlCell = '-';
-                    $fileHtml = '-';
-                } elseif ($tipoFile == 'image') {
-                    $fileHtmlCell = '<figure class="figure">' .
-                        '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
-                        '<img src="' . $urlFile . '" class="figure-img img-fluid rounded" alt="' . $auxprevioName . '">' .
-                        '<figcaption class="figure-caption">' . $auxprevioName . '</figcaption>' .
-                        '</a>' .
-                        '</figure>';
-                    $fileHtml .= '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
-                        '<img class="card-img-top" style="width:auto;max-width:100%;" src="' . $urlFile . '" alt="' . $auxprevioName . '">' .
-                        '</a>';
-                } else {
-                    $fileHtmlCell = '<ul class="fa-ul">' .
-                        '<li class="pl-2">' .
-                        CrudGenerator::getIcon($tipoFile, true, 'fa-li') .
-                        '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
-                        $auxprevioName .
-                        '</a>' .
-                        '</li>' .
-                        '</ul>';
-                    if ($tipoFile == 'video') {
-                        $fileHtml .= '<video class="card-img-top" controls preload="auto" height="300" >' .
-                            '<source src="' . $urlFile . '" type="video/mp4" />' .
-                            '</video>';
-                    } elseif ($tipoFile == 'audio') {
-                        $fileHtml .= '<audio class="card-img-top" controls preload="auto" >' .
-                            '<source src="' . $urlFile . '" type="audio/mpeg" />' .
-                            '</audio>';
-                    } elseif ($tipoFile == 'pdf') {
-                        $fileHtml .= '<iframe class="card-img-top" height="300" src="' . $urlFile . '" style="border: none;"></iframe>';
-                    } else {
-                        $fileHtml .= '<div class="card-header">' .
-                            CrudGenerator::getIcon($tipoFile, true, 'fa-3x') .
-                            '</div>';
-                        $titleFileHtml = '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
-                            "{$titleFileHtml}" .
-                            '</a>';
-                    }
-                }
-                $fileHtml .= '<div class="card-body" >' .
-                    '<h5 class="card-title">' . $titleFileHtml . '</h5>' .
-                    '</div>' .
-                    '</div>';
-                $celda = [
-                    "name" => $auxprevioName,
-                    "value" => $filename,
-                    "url_public" => CrudGenerator::getDisk($datos)->url($filename),
-                    "url" => $urlFile,
-                    "label" => $datos['label'],
-                    "type" => $tipoFile,
-                    "html" => CrudGenerator::getHtmlParaFile($tipoFile, $urlFile, $auxprevioName, $tipoMime),
-                    "html_cell" => $fileHtmlCell,
-                    "html_show" => $fileHtml,
-                ];
-            }
-        } elseif ($datos['tipo'] == "files") {
-            if ($value->{$columna} == "") {
-                $celda = '';
-            } else {
-                try {
-                    $auxprevios = json_decode($value->{$columna});
-                    if (!is_array($auxprevios)) {
-                        $auxprevios = [];
-                    }
-                } catch (Exception $ex) {
-                    $auxprevios = [];
-                }
-                $celda['data'] = [];
-                $celda['label'] = $datos['label'];
-                $celda['value'] = $value->{$columna};
-                $fileHtml = '<div class="row">';
-                $fileHtmlCell = '<ul class="fa-ul">';
-                foreach ($auxprevios as $datoReg) {
-                    if (is_object($datoReg)) {
-                        [$filename, $urlFile] = CrudGenerator::getFileUrl($datoReg->file, $value, $modelo, $columna, $datos, $config);
-                        $tipoFile = CrudGenerator::filenameIs($datoReg->file, $datos);
+                if ($solo != 'simple') {
+                    $tipoFile = CrudGenerator::filenameIs($value->{$columna}, $datos);
+                    if (stripos($value->{$columna}, '__') !== false) {
                         $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
-                        $tipoMime = CrudGenerator::fileMime(strtolower($filename), $datos);
-                        $fileHtml = CrudGenerator::getHtmlParaFile($tipoFile, $urlFile, $auxprevioName, $tipoMime);
-                        $celda['data'][] = [
-                            "name" => $datoReg->name,
-                            "value" => $filename,
-                            "url_public" => CrudGenerator::getDisk($datos)->url($filename),
-                            "url" => $urlFile,
-                            "type" => $tipoFile,
-                            "html" => $fileHtml,
-                        ];
-                        $fileHtmlCell .= '<li class="pl-2">';
-                        if ($tipoFile == 'image') {
-                            $fileHtmlCell .= '<i class="' . CrudGenerator::getIcon('empty') . ' fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="' . $urlFile . '"></i>';
-                        } else {
-                            $fileHtmlCell .= CrudGenerator::getIcon($tipoFile, true, 'fa-li');
-                        }
-                        $fileHtmlCell .= '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
-                            $datoReg->name .
+                    } else {
+                        $auxprevioName = substr($value->{$columna}, 0, stripos($value->{$columna}, '.', 0));
+                    }
+                    $tipoMime = CrudGenerator::fileMime(strtolower($filename), $datos);
+                    $fileHtml = '<div class="card text-center">';
+                    $titleFileHtml = $auxprevioName;
+                    if ($value->{$columna} == "") {
+                        $fileHtmlCell = '-';
+                        $fileHtml = '-';
+                    } elseif ($tipoFile == 'image') {
+                        $fileHtmlCell = '<figure class="figure">' .
+                            '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
+                            '<img src="' . $urlFile . '" class="figure-img img-fluid rounded" alt="' . $auxprevioName . '">' .
+                            '<figcaption class="figure-caption">' . $auxprevioName . '</figcaption>' .
                             '</a>' .
-                            '</li>';
-                        $fileHtml .= '<div class="col-md-6 col-sm-12 col-xs-12">' .
-                            '<div class="card text-center">';
-                        $titleFileHtml = $datoReg->name;
-                        if ($tipoFile == 'image') {
-                            $fileHtml .= '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
-                                '<img class="card-img-top" src="' . $urlFile . '">' .
-                                '</a>';
-                        } elseif ($tipoFile == 'video') {
+                            '</figure>';
+                        $fileHtml .= '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
+                            '<img class="card-img-top" style="width:auto;max-width:100%;" src="' . $urlFile . '" alt="' . $auxprevioName . '">' .
+                            '</a>';
+                    } else {
+                        $fileHtmlCell = '<ul class="fa-ul">' .
+                            '<li class="pl-2">' .
+                            CrudGenerator::getIcon($tipoFile, true, 'fa-li') .
+                            '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
+                            $auxprevioName .
+                            '</a>' .
+                            '</li>' .
+                            '</ul>';
+                        if ($tipoFile == 'video') {
                             $fileHtml .= '<video class="card-img-top" controls preload="auto" height="300" >' .
                                 '<source src="' . $urlFile . '" type="video/mp4" />' .
                                 '</video>';
@@ -896,57 +934,156 @@ trait CrudModels
                                 "{$titleFileHtml}" .
                                 '</a>';
                         }
-                        $fileHtml .= '<div class="card-body" >' .
-                            '<h5 class="card-title">' . $titleFileHtml . '</h5>' .
-                            '</div>' .
-                            '</div>' .
-                            '</div>';
+                    }
+                    $fileHtml .= '<div class="card-body" >' .
+                        '<h5 class="card-title">' . $titleFileHtml . '</h5>' .
+                        '</div>' .
+                        '</div>';
+                    $celda = [
+                        "name" => $auxprevioName,
+                        "value" => $filename,
+                        "url_public" => CrudGenerator::getDisk($datos)->url($filename),
+                        "url" => $urlFile,
+                        "label" => $datos['label'],
+                        "type" => $tipoFile,
+                        "html" => CrudGenerator::getHtmlParaFile($tipoFile, $urlFile, $auxprevioName, $tipoMime),
+                        "html_cell" => $fileHtmlCell,
+                        "html_show" => $fileHtml,
+                    ];
+                } else {
+                    $celda = [
+                        "value" => $filename,
+                    ];
+                }
+            }
+        } elseif ($datos['tipo'] == "files") {
+            if ($value->{$columna} == "") {
+                $celda = '';
+            } else {
+                if (Arr::get($datos, 'arrayInValue', false) == true || $solo != 'simple') {
+                    try {
+                        $auxprevios = json_decode($value->{$columna});
+                        if (!is_array($auxprevios)) {
+                            $auxprevios = [];
+                        }
+                    } catch (Exception $ex) {
+                        $auxprevios = [];
                     }
                 }
-                if (count($auxprevios) == 0) {
-                    $fileHtmlCell = "-";
-                    $fileHtml = "-";
+                if (Arr::get($datos, 'arrayInValue', false) == true) {
+                    $celda['value'] = $auxprevios;
                 } else {
-                    $fileHtmlCell .= '</ul>';
-                    $fileHtml .= '</div>';
+                    $celda['value'] = $value->{$columna};
                 }
-                $celda['html'] = $fileHtml;
-                $celda['html_cell'] = $fileHtmlCell;
+                if ($solo != 'simple') {
+                    $celda['data'] = [];
+                    $celda['label'] = $datos['label'];
+                    $fileHtml = '<div class="row">';
+                    $fileHtmlCell = '<ul class="fa-ul">';
+                    foreach ($auxprevios as $datoReg) {
+                        if (is_object($datoReg)) {
+                            [$filename, $urlFile] = CrudGenerator::getFileUrl($datoReg->file, $value, $modelo, $columna, $datos, $config);
+                            $tipoFile = CrudGenerator::filenameIs($datoReg->file, $datos);
+                            $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
+                            $tipoMime = CrudGenerator::fileMime(strtolower($filename), $datos);
+                            $fileHtml = CrudGenerator::getHtmlParaFile($tipoFile, $urlFile, $auxprevioName, $tipoMime);
+                            $celda['data'][] = [
+                                "name" => $datoReg->name,
+                                "value" => $filename,
+                                "url_public" => CrudGenerator::getDisk($datos)->url($filename),
+                                "url" => $urlFile,
+                                "type" => $tipoFile,
+                                "html" => $fileHtml,
+                            ];
+                            $fileHtmlCell .= '<li class="pl-2">';
+                            if ($tipoFile == 'image') {
+                                $fileHtmlCell .= '<i class="' . CrudGenerator::getIcon('empty') . ' fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="' . $urlFile . '"></i>';
+                            } else {
+                                $fileHtmlCell .= CrudGenerator::getIcon($tipoFile, true, 'fa-li');
+                            }
+                            $fileHtmlCell .= '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
+                                $datoReg->name .
+                                '</a>' .
+                                '</li>';
+                            $fileHtml .= '<div class="col-md-6 col-sm-12 col-xs-12">' .
+                                '<div class="card text-center">';
+                            $titleFileHtml = $datoReg->name;
+                            if ($tipoFile == 'image') {
+                                $fileHtml .= '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
+                                    '<img class="card-img-top" src="' . $urlFile . '">' .
+                                    '</a>';
+                            } elseif ($tipoFile == 'video') {
+                                $fileHtml .= '<video class="card-img-top" controls preload="auto" height="300" >' .
+                                    '<source src="' . $urlFile . '" type="video/mp4" />' .
+                                    '</video>';
+                            } elseif ($tipoFile == 'audio') {
+                                $fileHtml .= '<audio class="card-img-top" controls preload="auto" >' .
+                                    '<source src="' . $urlFile . '" type="audio/mpeg" />' .
+                                    '</audio>';
+                            } elseif ($tipoFile == 'pdf') {
+                                $fileHtml .= '<iframe class="card-img-top" height="300" src="' . $urlFile . '" style="border: none;"></iframe>';
+                            } else {
+                                $fileHtml .= '<div class="card-header">' .
+                                    CrudGenerator::getIcon($tipoFile, true, 'fa-3x') .
+                                    '</div>';
+                                $titleFileHtml = '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
+                                    "{$titleFileHtml}" .
+                                    '</a>';
+                            }
+                            $fileHtml .= '<div class="card-body" >' .
+                                '<h5 class="card-title">' . $titleFileHtml . '</h5>' .
+                                '</div>' .
+                                '</div>' .
+                                '</div>';
+                        }
+                    }
+                    if (count($auxprevios) == 0) {
+                        $fileHtmlCell = "-";
+                        $fileHtml = "-";
+                    } else {
+                        $fileHtmlCell .= '</ul>';
+                        $fileHtml .= '</div>';
+                    }
+                    $celda['html'] = $fileHtml;
+                    $celda['html_cell'] = $fileHtmlCell;
+                }
             }
         } elseif ($datos['tipo'] == "color") {
-            $celda = [
-                'value' => $value->{$columna},
-                'data' => $value->{$columna},
-            ];
-            $celda['label'] = $datos['label'];
-            $color = false;
-            if (!isset($value->{$columna}) && isset($datos['valor'])) {
-                $color = $datos['valor'];
-            } elseif (isset($value->{$columna})) {
-                $color = $value->{$columna};
-            }
-            if ($color) {
-                $celda['html'] = '<span title="' . $color . '" style="display:inline-block;width:1.5em;height:1.5em;border:1px solid #000;background-color:' . $color . ';"></span>';
-                $celda['html_cell'] = $celda['html'];
-                $fileHtml = '<div class="card text-center">' .
-                    '<div class="card-header">' .
-                    '<span style="display:inline-block;width:90%;height:5em;border:1px solid #000;background-color:' . $color . ';"></span>' .
-                    '</div>' .
-                    '<div class="card-body" >' .
-                    '<h5 class="card-title">' . $color . '</h5>' .
-                    '</div>' .
-                    '</div>';
-                $celda['html_show'] = $fileHtml;
+            if ($solo == 'simple') {
+                $celda = [
+                    'value' => $value->{$columna},
+                ];
+            } else {
+                $celda = [
+                    'value' => $value->{$columna},
+                    'data' => $value->{$columna},
+                ];
+                $celda['label'] = $datos['label'];
+                $color = false;
+                if (!isset($value->{$columna}) && isset($datos['valor'])) {
+                    $color = $datos['valor'];
+                } elseif (isset($value->{$columna})) {
+                    $color = $value->{$columna};
+                }
+                if ($color) {
+                    $celda['html'] = '<span title="' . $color . '" style="display:inline-block;width:1.5em;height:1.5em;border:1px solid #000;background-color:' . $color . ';"></span>';
+                    $celda['html_cell'] = $celda['html'];
+                    $fileHtml = '<div class="card text-center">' .
+                        '<div class="card-header">' .
+                        '<span style="display:inline-block;width:90%;height:5em;border:1px solid #000;background-color:' . $color . ';"></span>' .
+                        '</div>' .
+                        '<div class="card-body" >' .
+                        '<h5 class="card-title">' . $color . '</h5>' .
+                        '</div>' .
+                        '</div>';
+                    $celda['html_show'] = $fileHtml;
+                }
             }
         } else {
             if (array_key_exists('enlace', $datos)) {
-                if (count($config) <= 0) {
-                    $modelo = strtolower(class_basename(get_class($value)));
-                    $config = CrudGenerator::getConfigWithParametros($modelo);
-                }
                 $auxcelda = '<a href = "' . $datos['enlace'] . '">';
             }
-            $htmlCell = $auxcelda;
+
             if ($datos['tipo'] == "number" && isset($datos['format'])) {
                 if (is_array($datos['format'])) {
                     $auxcelda .= number_format($value->{$columna}, $datos['format'][0], $datos['format'][1], $datos['format'][2]);
@@ -955,62 +1092,69 @@ trait CrudModels
                 }
                 $htmlCell = $auxcelda;
             } else {
+                $htmlCell = $auxcelda;
                 $auxcelda .= $value->{$columna};
-                if ($datos['tipo'] == "html") {
-                    $htmlCell = '<div style="max-height:10em;max-width:40em;overflow-y:scroll;">' . $value->{$columna} . '</div>';
-                } else {
-                    $htmlCell .= CrudGenerator::truncateText($value->{$columna});
+                if ($solo != 'simple') {
+                    if ($datos['tipo'] == "html") {
+                        $htmlCell = '<div style="max-height:10em;max-width:40em;overflow-y:scroll;">' . $value->{$columna} . '</div>';
+                    } else {
+                        $htmlCell .= CrudGenerator::truncateText($value->{$columna});
+                    }
                 }
             }
-            $celda['data'] = $value->{$columna};
-            $celda['label'] = Arr::get($datos, 'label', $columna);
-
             if (array_key_exists('enlace', $datos)) {
                 $auxcelda .= '</a>';
-                if ($datos['tipo'] != "html") {
+                if ($solo != 'simple' && $datos['tipo'] != "html") {
                     $htmlCell .= '</a>';
                 }
             }
             $celda['value'] = $auxcelda;
-            $celda['html_cell'] = $htmlCell;
+            if ($solo != 'simple') {
+                $celda['data'] = $value->{$columna};
+                $celda['label'] = Arr::get($datos, 'label', $columna);
+                $celda['html_cell'] = $htmlCell;
+            }
         }
         if (isset($datos["post"])) {
-            $celdaData['post'] = $datos["post"];
+            $celdaDataPP['post'] = $datos["post"];
         }
-        if (is_string($celda)) {
-            $celdaData['data'] = $celda;
-            $celdaData['value'] = $celda;
-            $celdaData['label'] = $datos['label'];
-            $celda = $celdaData;
-        } else {
-            $celda = array_merge($celda, $celdaData);
+        if ($solo != 'simple' && is_string($celda)) {
+            $celdaDataPP['value'] = $celda;
+            $celdaDataPP['data'] = $celda;
+            $celdaDataPP['label'] = $datos['label'];
+            $celda = $celdaDataPP;
+        } elseif ($solo != 'simple') {
+            $celda = array_merge($celda, $celdaDataPP);
+        } elseif (is_string($celda)) {
+            $celda['value'] = $celda;
         }
-        if (isset($celda['pre']) && is_string($celda['value'])) {
-            $celda['value'] = $celda['pre'] . $celda['value'];
+        if (isset($celdaDataPP['pre']) && is_string($celda['value'])) {
+            $celda['value'] = $celdaDataPP['pre'] . $celda['value'];
             if (isset($celda['html_show'])) {
-                $celda['html_show'] = $celda['pre'] . $celda['html_show'];
+                $celda['html_show'] = $celdaDataPP['pre'] . $celda['html_show'];
             } elseif (isset($celda['html'])) {
-                $celda['html_show'] = $celda['pre'] . $celda['html'];
+                $celda['html_show'] = $celdaDataPP['pre'] . $celda['html'];
             }
             if (isset($celda['html_cell'])) {
-                $celda['html_cell'] = $celda['pre'] . $celda['html_cell'];
+                $celda['html_cell'] = $celdaDataPP['pre'] . $celda['html_cell'];
             }
         }
-        if (isset($celda['post']) && is_string($celda['value'])) {
-            $celda['value'] = $celda['value'] . Str::start($celda['post'], " ");
+        if (isset($celdaDataPP['post']) && is_string($celda['value'])) {
+            $celda['value'] = $celda['value'] . Str::start($celdaDataPP['post'], " ");
             if (isset($celda['html_show'])) {
-                $celda['html_show'] = $celda['html_show'] . Str::start($celda['post'], " ");
+                $celda['html_show'] = $celda['html_show'] . Str::start($celdaDataPP['post'], " ");
             } elseif (isset($celda['html'])) {
-                $celda['html_show'] = $celda['html'] . Str::start($celda['post'], " ");
+                $celda['html_show'] = $celda['html'] . Str::start($celdaDataPP['post'], " ");
             }
             if (isset($celda['html_cell'])) {
-                $celda['html_cell'] = $celda['html_cell'] . Str::start($celda['post'], " ");
+                $celda['html_cell'] = $celda['html_cell'] . Str::start($celdaDataPP['post'], " ");
             }
         }
-        if (!is_array($celda['value']) || (is_array($celda['value']) && count(array_filter(array_keys($celda['value']), 'is_string')) == 0)){
+        if (isset($celda['value']) && (!is_array($celda['value']) || (is_array($celda['value']) && count(array_filter(array_keys($celda['value']), 'is_string')) == 0))) {
             $celda['value'] = CrudGenerator::translateDato($celda['value'], $value, $config);
+        } elseif (!Arr::has($celda, 'value')) {
+            throw (new NoValueInCeldaException($modelo, $columna));
         }
-        
         if (isset($celda['html'])) {
             $celda['html'] = CrudGenerator::translateDato($celda['html'], $value, $config);
         }
