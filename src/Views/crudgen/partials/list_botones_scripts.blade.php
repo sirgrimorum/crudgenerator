@@ -2,7 +2,7 @@
 <script id="{{ $tablaid }}_datatables_buttons_scripts_block">
 <?php
 foreach(\Illuminate\Support\Arr::get($config, 'js_vars', []) as $variable => $contenido){
-    echo "var $variable = '" . str_replace("'", "\"", $contenido) . "'";
+    echo "var $variable = '" . str_replace("'", "\"", $contenido) . "';" . chr(13);
 }
 foreach (\Illuminate\Support\Arr::only($botones, ['create', 'show', 'edit', 'remove']) as $butName => $boton) {
 if (is_string($butName) && CrudGenerator::shouldShowButton($config, $butName)) {
