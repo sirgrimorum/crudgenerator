@@ -1181,7 +1181,7 @@ trait CrudModels
                 $celda['html_cell'] = $celda['html_cell'] . Str::start($celdaDataPP['post'], " ");
             }
         }
-        if (isset($celda['value']) && (!is_array($celda['value']) || (is_array($celda['value']) && count(array_filter(array_keys($celda['value']), 'is_string')) == 0))) {
+        if (isset($celda['value']) && (!is_array($celda['value']) || (is_array($celda['value']) && count(array_filter(array_keys($celda['value']), 'is_string')) == 0 && count(array_filter($celda['value'], 'is_array')) == 0))) {
             $celda['value'] = CrudGenerator::translateDato($celda['value'], $value, $config);
         } elseif (!Arr::has($celda, 'value')) {
             throw (new NoValueInCeldaException($modelo, $columna));
