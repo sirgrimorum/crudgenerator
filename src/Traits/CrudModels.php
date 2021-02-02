@@ -427,39 +427,56 @@ trait CrudModels
             if (CrudGenerator::hasRelation($value, $columna)) {
                 if ($solo != 'simple') {
                     $celda = [];
+                    $auxcelda2 = "";
+                    $prefijo = "<div class='list-group'><a href='#' class='list-group-item list-group-item-action'>";
                 }
-                $auxcelda2 = "";
-                $prefijo = "<ul><li>";
+                $auxcelda3 = "";
+                $prefijo2 = "<ul><li>";
                 foreach ($value->{$columna}()->get() as $sub) {
                     $auxcelda = "";
                     if (array_key_exists('enlace', $datos)) {
-                        $auxcelda2 .= $prefijo . '<a href = "' .  CrudGenerator::translateDato($datos['enlace'], $sub, $datos) . '">';
+                        $enlace = CrudGenerator::translateDato($datos['enlace'], $sub, $datos);
+                        $auxcelda3 .= $prefijo2 . "<a href = '$enlace'>";
+                        if ($solo != 'simple') {
+                            $auxcelda2 .= str_replace("href='#'", "href='$enlace'", $prefijo);
+                        }
                     } else {
-                        $auxcelda2 .= $prefijo;
+                        $auxcelda3 .= $prefijo2;
+                        if ($solo != 'simple') {
+                            $auxcelda2 .= $prefijo;
+                        }
                     }
                     $auxcelda = CrudGenerator::translateDato($datos['campo'], $sub, $datos);
-                    $auxcelda2 .= $auxcelda;
+                    $auxcelda3 .= $auxcelda;
                     if (array_key_exists('enlace', $datos)) {
-                        $auxcelda2 .= '</a>';
+                        $auxcelda3 .= '</a>';
                     }
-                    $auxcelda2 .= "</li>";
-                    $prefijo = "<li>";
+                    $auxcelda3 .= "</li>";
+                    $prefijo2 = "<li>";
                     if ($solo != 'simple') {
+                        $auxcelda2 .= $auxcelda;
+                        $auxcelda2 .= "</a>";
+                        $prefijo = "<a href='#' class='list-group-item list-group-item-action'>";
                         $celda[$sub->getKey()] = $auxcelda;
                     }
                 }
-                if ($auxcelda2 != "") {
-                    $auxcelda2 .= "</ul>";
+                if ($auxcelda3 != "") {
+                    if ($solo != 'simple') {
+                        $auxcelda2 .= "</div>";
+                    }
+                    $auxcelda3 .= "</ul>";
                 }
                 if ($solo == 'simple') {
                     $celda = [
-                        "value" => $auxcelda2
+                        "value" => $auxcelda3
                     ];
                 } else {
                     $celda = [
                         "data" => $celda,
                         "label" => $datos['label'],
-                        "value" => $auxcelda2
+                        "value" => $auxcelda3,
+                        "html_cell" => $auxcelda3,
+                        "html_show" => $auxcelda2,
                     ];
                 }
             } else {
@@ -543,7 +560,7 @@ trait CrudModels
                                                 if (isset($infoPivote['campo'])) {
                                                     $datoPivoteCampo['value'] = $infoPivote['campo'];
                                                 } else {
-                                                    $datoPivoteCampo['value'] =$infoPivote['label'];
+                                                    $datoPivoteCampo['value'] = $infoPivote['label'];
                                                 }
                                             } elseif ($tipoPivote == "labelpivot") {
                                                 if (isset($infoPivote['campo'])) {
@@ -615,7 +632,7 @@ trait CrudModels
                         "label" => $datos['label'],
                         "value" => $auxcelda3,
                         "html_show" => $htmlShow,
-                        "html_cell" => str_replace(['<h5', 'h5>'], ['<span', 'span>'], $htmlShow),
+                        "html_cell" => '<div style="max-height:10em;max-width:30em;overflow-y:auto;">' . str_replace(['<h5', 'h5>'], ['<span', 'span>'], $htmlShow) . '</div>',
                     ];
                 } else {
                     $celda = [
@@ -704,7 +721,7 @@ trait CrudModels
                     if ($solo != 'simple') {
                         if ($auxhtml != "") {
                             $celda['html'] = "<ul>{$auxhtml}</ul>";
-                            $celda['html_cell'] = '<div style="max-height:10em;min-width:22em;white-space:normal;overflow-y:scroll;">' . $celda['html'] . '</div>';
+                            $celda['html_cell'] = '<div style="max-height:10em;min-width:22em;white-space:normal;overflow-y:auto;">' . $celda['html'] . '</div>';
                         }
                         $celda['data_labels'] = $auxdataLabels;
                     }
@@ -840,7 +857,7 @@ trait CrudModels
                 $celda = [
                     'value' => $strArticle,
                     'label' => $datos['label'],
-                    'html_cell' => '<div style="max-height:10em;max-width:40em;overflow-y:scroll;">' . $strArticle . '</div>',
+                    'html_cell' => '<div style="max-height:10em;max-width:40em;overflow-y:auto;">' . $strArticle . '</div>',
                 ];
                 $celda['data'] = [];
                 foreach (config("sirgrimorum.crudgenerator.list_locales") as $localeCode) {
@@ -872,12 +889,12 @@ trait CrudModels
                     '<div class="card-header">' .
                     'JSON' .
                     '</div>' .
-                    '<div class="card-body w-100" style="max-height:20em;overflow-y:scroll;">' .
+                    '<div class="card-body w-100" style="max-height:20em;overflow-y:auto;">' .
                     $celda['html'] .
                     '</div>' .
                     '</div>';
                 $celda['html_show'] = $fileHtml;
-                $celda['html_cell'] = '<div style="max-height:10em;max-width:30em;overflow-y:scroll;">' . $celda['html'] . '</div>';
+                $celda['html_cell'] = '<div style="max-height:10em;max-width:30em;overflow-y:auto;">' . $celda['html'] . '</div>';
             }
         } elseif ($datos['tipo'] == "file") {
             if ($value->{$columna} == "") {
@@ -1096,7 +1113,7 @@ trait CrudModels
                 $auxcelda .= $value->{$columna};
                 if ($solo != 'simple') {
                     if ($datos['tipo'] == "html") {
-                        $htmlCell = '<div style="max-height:10em;max-width:40em;overflow-y:scroll;">' . $value->{$columna} . '</div>';
+                        $htmlCell = '<div style="max-height:10em;max-width:40em;overflow-y:auto;">' . $value->{$columna} . '</div>';
                     } else {
                         $htmlCell .= CrudGenerator::truncateText($value->{$columna});
                     }
