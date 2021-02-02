@@ -484,6 +484,7 @@ trait CrudModels
             }
         } elseif ($datos['tipo'] == "relationshipssel") {
             if (CrudGenerator::hasRelation($value, $columna)) {
+                $arrayInValue = (Arr::get($datos, 'arrayInValue', false) == true);
                 $celda = [];
                 $auxcelda3 = "";
                 $prefijo = "<ul><li>";
@@ -587,10 +588,15 @@ trait CrudModels
                                                     '</li>';
                                             }
                                             $nombreCampoCelda = str_replace(["<-", "->"], "", $infoPivote['campo']);
-                                            if (!Arr::has($celda, "{$sub->getKey()}.data.{$nombreCampoCelda}")) {
-                                                data_set($celda, "{$sub->getKey()}.data.{$nombreCampoCelda}", $datoPivoteCampo);
+                                            if ($arrayInValue){
+                                                $extraDataKey = "";
+                                            }else{
+                                                $extraDataKey = ".data";
                                             }
-                                            data_set($celda, "{$sub->getKey()}.data.pivote.{$nombreCampoCelda}", $datoPivoteCampo);
+                                            if (!Arr::has($celda, "{$sub->getKey()}{$extraDataKey}.{$nombreCampoCelda}")) {
+                                                data_set($celda, "{$sub->getKey()}{$extraDataKey}.{$nombreCampoCelda}", $datoPivoteCampo);
+                                            }
+                                            data_set($celda, "{$sub->getKey()}{$extraDataKey}.pivote.{$nombreCampoCelda}", $datoPivoteCampo);
                                         } elseif ($tipoPivote == "label" && $i == 0 && $solo != 'simple') {
                                             if (isset($infoPivote['campo'])) {
                                                 $auxcelda5 = CrudGenerator::translateDato($infoPivote['campo'], $sub, $infoPivote);
@@ -612,8 +618,8 @@ trait CrudModels
                         }
                         $auxcelda3 .= $auxcelda4 . "</li>";
                         $prefijo = "<li>";
-                        $celda[$sub->getKey()]['value'] = $auxcelda . $auxcelda4;
                         if ($solo != 'simple') {
+                            $celda[$sub->getKey()]['value'] = $auxcelda . $auxcelda4;
                             $celda[$sub->getKey()]['name'] = $auxcelda2;
                             $celda[$sub->getKey()]['label'] = $auxcelda5;
                             $htmlShow .= '</div>';
@@ -630,9 +636,17 @@ trait CrudModels
                     $celda = [
                         "data" => $celda,
                         "label" => $datos['label'],
-                        "value" => $auxcelda3,
                         "html_show" => $htmlShow,
                         "html_cell" => '<div style="max-height:10em;max-width:30em;overflow-y:auto;">' . str_replace(['<h5', 'h5>'], ['<span', 'span>'], $htmlShow) . '</div>',
+                    ];
+                    if($arrayInValue) {
+                        $celda['value'] = $celda['data'];
+                    }else{
+                        $celda['value'] = $auxcelda3;
+                    }
+                } elseif($arrayInValue) {
+                    $celda = [
+                        "value" => $celda,
                     ];
                 } else {
                     $celda = [
