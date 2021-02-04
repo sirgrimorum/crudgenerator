@@ -68,8 +68,8 @@
             "class_divbutton" => "[name of the class]", // optional class for the div containing the button default 'form-group row'
             "pre_html" => "[Html code]", // optional code to be inserted after the form tag opening
             "post_html" => "[Html code]", // optional code to be inserted before the form tag closing
-            "pre_form_html" => "[Html code]", // optional code to be inserted before the form tag opening, use :formId to include the form id attribute
-            "post_form_html" => "[Html code]", // optional code to be inserted after the form tag closing, use :formId to include the form id attribute
+            "pre_form_html" => "[Html code]" | ["create"=>"[Html code]", "edit"=>"[Html code]"], // optional code to be inserted before the form tag opening, use :formId to include the form id attribute
+            "post_form_html" => "[Html code]" | ["create"=>"[Html code]", "edit"=>"[Html code]"], // optional code to be inserted after the form tag closing, use :formId to include the form id attribute
             "formId" => "[id for the create and edit forms]", // optional, if not present it would be use a random one
             "icono" => "<i class="fa fa-home mr-1"></i>", // optional code to be inserted before the name in the admin menu
             "query" => [Callable that returns Builder or collection or array of objects], // optional a function that returns the query builder to be used as base to retreive the model fields, if empty, will use Model::whereRaw("1=1")
