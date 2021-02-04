@@ -1172,7 +1172,9 @@ trait CrudModels
         } elseif ($solo != 'simple') {
             $celda = array_merge($celda, $celdaDataPP);
         } elseif (is_string($celda)) {
-            $celda['value'] = $celda;
+            $celda = [
+                'value' => $celda
+            ];
         }
         if (isset($celdaDataPP['pre']) && is_string($celda['value'])) {
             $celda['value'] = $celdaDataPP['pre'] . $celda['value'];
