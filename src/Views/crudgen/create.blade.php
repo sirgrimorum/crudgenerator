@@ -35,7 +35,11 @@ $action = 'create';
 ?>
 @include("sirgrimorum::crudgen.partials.includes")
 <?php
-echo str_replace(":formId", $formId, $config['pre_form_html']);
+if (is_array($config['pre_form_html'])){
+    echo str_replace(":formId", $formId, \Illuminate\Support\Arr::get($config, 'pre_form_html.create', ''));
+}else{
+    echo str_replace(":formId", $formId, $config['pre_form_html']);
+}
 echo Form::open(array('url' => $url, 'class' => $config['class_form'], 'files' => $files, 'id' => $formId));
 echo $config['pre_html'];
 if (Request::has('_return')) {
@@ -101,7 +105,11 @@ if ($botones != "") {
 }
 echo $config['post_html'];
 echo Form::close();
-echo str_replace(":formId", $formId, $config['post_form_html']);
+if (is_array($config['post_form_html'])){
+    echo str_replace(":formId", $formId, \Illuminate\Support\Arr::get($config, 'post_form_html.create', ''));
+}else{
+    echo str_replace(":formId", $formId, $config['post_form_html']);
+}
 ?>
 @include("sirgrimorum::crudgen.partials.general_scripts", [
     'js_section' => $js_section,

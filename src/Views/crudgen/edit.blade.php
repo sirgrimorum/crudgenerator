@@ -35,7 +35,11 @@ $action = 'edit';
 ?>
 @include("sirgrimorum::crudgen.partials.includes")
 <?php
-echo str_replace(":formId", $formId, $config['pre_form_html']);
+if (is_array($config['pre_form_html'])){
+    echo str_replace(":formId", $formId, \Illuminate\Support\Arr::get($config, 'pre_form_html.edit', ''));
+}else{
+    echo str_replace(":formId", $formId, $config['pre_form_html']);
+}
 echo Form::open(array('url' => $url, 'class' => $config['class_form'], 'method' => 'PUT', 'files' => $files, 'id' => $formId));
 echo $config['pre_html'];
 //echo Form::model($registro, array('url' => $url, $registro->{$identificador}, array('class' => $config['class_form']), 'method' => 'PUT', 'files'=> $files))
@@ -111,7 +115,11 @@ $botones = str_replace([":modelId", ":modelName"], [$registro->{$config['id']}, 
 @endif
 {!! $config['post_html'] !!}
 {{ Form::close() }}
+@if (is_array($config['post_form_html']))
+{!! str_replace(":formId", $formId, \Illuminate\Support\Arr::get($config, 'post_form_html.edit', '')); !!}
+@else
 {!! str_replace(":formId", $formId, $config['post_form_html']); !!}
+@endif
 @include("sirgrimorum::crudgen.partials.general_scripts", [
     'js_section' => $js_section,
 ])
