@@ -653,7 +653,7 @@ trait CrudFiles
             }
             $urlFile = route('sirgrimorum_modelo::modelfile', ['registro' => $registro->{(new $modelClassName)->getKeyName()}, 'modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
         }
-        return [$filename, $urlFile];
+        return [$filename, str_replace("\\", "/", $urlFile)];
     }
 
     /**
