@@ -72,7 +72,7 @@ trait CrudConfig
         if (!Arr::has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
             $modelo = ucfirst($modelo);
             //if (!Arr::has(config("sirgrimorum.crudgenerator.admin_routes"), $modelo)) {
-                //$modelo = strtolower($modelo);
+            //$modelo = strtolower($modelo);
             //}
         }
         if (!$override) {
@@ -86,7 +86,7 @@ trait CrudConfig
                 $config = config($config);
             }
 
-            if (is_array($config) && Arr::has($config, "forceSmartMerge")){
+            if (is_array($config) && Arr::has($config, "forceSmartMerge")) {
                 $smartMerge = Arr::get($config, "forceSmartMerge", false) == true;
             }
 
@@ -135,7 +135,7 @@ trait CrudConfig
             /**
              * Auto Generate Config array
              */
-            if (!$modeloClass = CrudGenerator::getModel($modelo, $config)) {
+            if (($modeloClass = CrudGenerator::getModel($modelo, $config)) === false) {
                 if ($fail) {
                     throw new NoModelClassInConfigException($modelo);
                 } else {

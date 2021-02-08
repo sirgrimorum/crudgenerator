@@ -529,7 +529,10 @@ trait CrudStrings
                         if (strtolower($modelo) == "catchederror") {
                             $modeloClass = "Sirgrimorum\\CrudGenerator\\Models\\Catchederror";
                             if (!class_exists($modeloClass)) {
-                                return false;
+                                $modeloClass = "Sirgrimorum\\CrudGenerator\\Models\\CatchedError";
+                                if (!class_exists($modeloClass)) {
+                                    return false;
+                                }
                             }
                         } elseif (strtolower($modelo) == "article") {
                             $modeloClass = "Sirgrimorum\\TransArticles\\Models\\Article";
