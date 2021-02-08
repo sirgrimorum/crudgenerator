@@ -526,7 +526,7 @@ trait CrudStrings
                 if (!class_exists($modeloClass)) {
                     $modeloClass = "App\\" . $modelo;
                     if (!class_exists($modeloClass)) {
-                        if (strtolower($modelo) == "catchederror") {
+                        if (strtolower($modelo) == "catchederror" || stripos($modelo, "catchederror") !== false) {
                             $modeloClass = "Sirgrimorum\\CrudGenerator\\Models\\Catchederror";
                             if (!class_exists($modeloClass)) {
                                 $modeloClass = "Sirgrimorum\\CrudGenerator\\Models\\CatchedError";
