@@ -228,12 +228,13 @@ return [
         'file' => 'fa fa-file-o fa-lg', // default file button, default is 'fa fa-file-o fa-lg'
         'url' => 'fa fa-link fa-lg', // url button 'fa fa-link, default is fa-lg'
         'video' => 'fa fa-film fa-lg', // video file button, default is 'fa fa-film fa-lg'
-        'audio' => 'ffa fa-file-audio-o fa-lg', // audio file button, default is 'fa fa-file-audio-o fa-lg'
+        'audio' => 'fa fa-file-audio-o fa-lg', // audio file button, default is 'fa fa-file-audio-o fa-lg'
         'pdf' => 'fa fa-file-pdf-o fa-lg', // pdf file type button, default is 'fa fa-file-pdf-o fa-lg'
         'minus' => 'fa fa-minus', // minus icon, default is 'fa fa-minus'
         'plus' => 'fa fa-plus', // plus icon, default is 'fa fa-plus'
         'info' => 'fa fa-info-circle fa-lg', // info icon, default is 'fa fa-info-circle fa-lg'
-
+        'expandir' => 'fa fa-caret-down', // expand icon, default is 'fa fa-caret-down'
+        'contraer' => 'fa fa-caret-up', // contract icon, default is 'fa a-caret-up'
     ],
     /**
      * Routes list for the administrator

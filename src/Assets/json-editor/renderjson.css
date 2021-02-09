@@ -1,0 +1,46 @@
+.renderjson a {
+    text-decoration: none;
+    color: #ff7500;
+}
+
+.renderjson a:hover {
+    text-decoration: none;
+    color: #ffa500;
+}
+
+.renderjson .disclosure {
+    color: grey;
+}
+
+.renderjson .syntax {
+    color: grey;
+}
+
+.renderjson .string {
+    color: #31F031;
+}
+
+.renderjson .number {
+    color: #66C2FF;
+}
+
+.renderjson .boolean {
+    color: #EC4242;
+}
+
+.renderjson .key {
+    color: #23A0DB;
+}
+
+.renderjson .keyword {
+    color: #EEC97D;
+}
+
+.renderjson .object.syntax {
+    color: white;
+}
+
+.renderjson .array.syntax {
+    color: yellow;
+    /*#9494FF*/
+}

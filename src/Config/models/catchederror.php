@@ -128,10 +128,6 @@ return [
 			"description" => "__trans__crudgenerator::catchederror.descriptions.occurrences",
 			"readonly" => "readonly",
 			"valor" => "{}",
-			"show_data" => function($data){
-				dump($data['data']);
-				return "";
-			},
 			"list_data" => "<-occurrences.data.num->"
 		], 
 		"trace" => [
@@ -143,10 +139,6 @@ return [
 			"readonly" => "readonly",
 			"valor" => "{}",
 			"hide" => ["list"],
-			"show_data" => function($data){
-				dump($data['data']);
-				return "";
-			}
 		], 
 		"request" => [
 			"tipo" => "json", 
@@ -158,10 +150,6 @@ return [
 			"readonly" => "readonly",
 			"valor" => "{}",
 			"hide" => ["list"],
-			"show_data" => function($data){
-				dump($data['data']);
-				return "";
-			}
 		],
 		"created_at" => [
 			"tipo" => "datetime",
@@ -206,7 +194,8 @@ return [
         "default" => function() {
             if (auth()->check()){
                 $user = App\User::find(auth()->user()->id);
-                return $user->isSupeAdmin();
+                return true;
+				return $user->isSuperAdmin();
             }
             return false;
         }, // the default permission to validate if others not present, false send back to the 'sirgrimorum_cms::login_path' 

@@ -914,14 +914,30 @@ trait CrudModels
                 $celda['data'] = $celdaData ?? json_decode($value->{$columna}, true);
                 $celda['label'] = $datos['label'];
                 $celda['html'] = "<pre><code>" . json_encode($celda['data'], JSON_PRETTY_PRINT) . "</code></pre>";
+                $extraId = "{$columna}_" . uniqid($value->getKey());
+                $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name", "scriptLoader") . "Creator";
                 $fileHtml = '<div class="card text-left">' .
                     '<div class="card-header">' .
                     'JSON' .
                     '</div>' .
-                    '<div class="card-body w-100" style="max-height:20em;overflow-y:auto;">' .
-                    $celda['html'] .
+                    '<div id="' . $extraId . '" class="card-body w-100" style="background-color:black;">' .
                     '</div>' .
                     '</div>';
+                $fileHtml .= CrudGenerator::addLinkTagLoaderHtml(asset(config("sirgrimorum.crudgenerator.jsonedtr_path") . "/renderjson.css"));
+                $fileHtml .= CrudGenerator::addScriptLoaderHtml(asset(config("sirgrimorum.crudgenerator.jsonedtr_path") . "/renderjson.js"), false);
+                $fileHtml .= '<script>
+                    var ' . $extraId . 'Ejecutado = false;
+                    function ' . $extraId . 'Loader(){
+                        if (!' . $extraId . 'Ejecutado){
+                            document.getElementById("' . $extraId . '").appendChild(renderjson.set_max_string_length(50).set_icons("' . CrudGenerator::getIcon('expandir', true) . '", "' . CrudGenerator::getIcon('contraer', true) . '", true).set_show_to_level(1)(' . $value->{$columna} . '));
+                        }
+                        ' . $extraId . 'Ejecutado = true;
+                    }
+                    window.addEventListener(\'load\', function() {
+                        ' . $extraId . 'Loader();
+                    });
+                    ' . $nameScriptLoader . '(\'renderjson_js\',"' . $extraId . 'Loader();");
+                </script>';
                 $celda['html_show'] = $fileHtml;
                 $celda['html_cell'] = '<div style="max-height:10em;max-width:30em;overflow-y:auto;">' . $celda['html'] . '</div>';
             }
@@ -1144,7 +1160,7 @@ trait CrudModels
                     if ($datos['tipo'] == "html") {
                         $htmlCell = '<div style="max-height:10em;max-width:40em;overflow-y:auto;">' . $value->{$columna} . '</div>';
                     } else {
-                        $htmlCell .= CrudGenerator::truncateText($value->{$columna});
+                        $htmlCell .= CrudGenerator::truncateText($value->{$columna}, Arr::get($datos, 'truncate', 200));
                     }
                 }
             }

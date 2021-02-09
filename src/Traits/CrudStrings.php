@@ -1469,6 +1469,12 @@ trait CrudStrings
             case 'pdf':
                 $default = 'fa fa-file-pdf-o fa-lg';
                 break;
+            case 'expandir':
+                $default = 'fa fa-caret-down';
+                break;
+            case 'contraer':
+                $default = 'fa fa-caret-up';
+                break;
             default:
                 $default = "fa fa-$tipo fa-lg";
                 break;
@@ -1491,6 +1497,9 @@ trait CrudStrings
     {
         if (strlen($text) <= $chars) {
             return $text;
+        }
+        if (strpos($text, " ") === false){
+            return substr($text, 0, $chars) . "...";
         }
         $text = $text . " ";
         $text = substr($text, 0, $chars);

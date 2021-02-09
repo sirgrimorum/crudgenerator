@@ -87,7 +87,8 @@
                     'extraClassInput' => "extra_class_field", // for the input, use 'checkeador' for conditional fields in 'checkbox' or 'radio' types and 'selecteador' for 'select' type
                     'extraDataInput' => [ // for the input, aditional attributes
                         'data-dato1' => 'valor_dato_1' // use 'data-contenedor' => '.contenedor_field' or 'data-onRemove' => '[code]' with 'chekeador' o 'selecteador' class
-                    ]
+                    ],
+                    "truncate" => 200, // for the string types, truncate de text in list view, default 200, use 0 for not truncating
                     "valor" => "[default value of the field]", // could be a callable function($registro = null) that return something, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
                     "value" => "[value or lists of values to be taken by de field]" | [] // required for checkbox and radio types, on json types makes the json locked (only values can be changed),  could be a callable function($registro = null) that return something, use the 'trans_prefix' value if you want localization ej: "__trans__crudgenerator::article.default_values.name__",
                         'valor1',
