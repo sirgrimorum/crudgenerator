@@ -516,46 +516,49 @@ trait CrudStrings
      */
     public static function getModel($modelo, $probable = '')
     {
-        $modeloClass = $probable;
-        if (!class_exists($modeloClass)) {
-            $modeloClass = "App\\" . $modelo;
+        $modeloClass = $modelo;
+        if (!Str::startsWith(strtolower($modeloClass), 'sirgrimorum') || (Str::startsWith(strtolower($modeloClass), 'sirgrimorum') && !class_exists($modeloClass))) {
+            $modeloClass = $probable;
             if (!class_exists($modeloClass)) {
-                $modelo = strtolower($modelo);
-                $modeloM = ucfirst($modelo);
-                $modeloClass = "App\\" . $modeloM;
+                $modeloClass = "App\\" . $modelo;
                 if (!class_exists($modeloClass)) {
-                    $modeloClass = "App\\" . $modelo;
+                    $modelo = strtolower($modelo);
+                    $modeloM = ucfirst($modelo);
+                    $modeloClass = "App\\" . $modeloM;
                     if (!class_exists($modeloClass)) {
-                        if (strtolower($modelo) == "catchederror" || stripos($modelo, "catchederror") !== false) {
-                            $modeloClass = "Sirgrimorum\\CrudGenerator\\Models\\Catchederror";
-                            if (!class_exists($modeloClass)) {
-                                $modeloClass = "Sirgrimorum\\CrudGenerator\\Models\\CatchedError";
+                        $modeloClass = "App\\" . $modelo;
+                        if (!class_exists($modeloClass)) {
+                            if (strtolower($modelo) == "catchederror" || stripos($modelo, "catchederror") !== false) {
+                                $modeloClass = "Sirgrimorum\\CrudGenerator\\Models\\Catchederror";
+                                if (!class_exists($modeloClass)) {
+                                    $modeloClass = "Sirgrimorum\\CrudGenerator\\Models\\CatchedError";
+                                    if (!class_exists($modeloClass)) {
+                                        return false;
+                                    }
+                                }
+                            } elseif (strtolower($modelo) == "article" || stripos($modelo, "article") !== false) {
+                                $modeloClass = "Sirgrimorum\\TransArticles\\Models\\Article";
                                 if (!class_exists($modeloClass)) {
                                     return false;
                                 }
-                            }
-                        } elseif (strtolower($modelo) == "article") {
-                            $modeloClass = "Sirgrimorum\\TransArticles\\Models\\Article";
-                            if (!class_exists($modeloClass)) {
+                            } elseif (strtolower($modelo) == "paymentpass" || stripos($modelo, "paymentpass") !== false) {
+                                $modeloClass = "Sirgrimorum\\PaymentPass\\Models\\PaymentPass";
+                                if (!class_exists($modeloClass)) {
+                                    return false;
+                                }
+                            } elseif (strtolower($modelo) == "pagina" || stripos($modelo, "pagina") !== false) {
+                                $modeloClass = "Sirgrimorum\\Pages\\Models\\Pagina";
+                                if (!class_exists($modeloClass)) {
+                                    return false;
+                                }
+                            } elseif (strtolower($modelo) == "section" || stripos($modelo, "section") !== false) {
+                                $modeloClass = "Sirgrimorum\\Pages\\Models\\Section";
+                                if (!class_exists($modeloClass)) {
+                                    return false;
+                                }
+                            } else {
                                 return false;
                             }
-                        } elseif (strtolower($modelo) == "paymentpass") {
-                            $modeloClass = "Sirgrimorum\\PaymentPass\\Models\\PaymentPass";
-                            if (!class_exists($modeloClass)) {
-                                return false;
-                            }
-                        } elseif (strtolower($modelo) == "pagina") {
-                            $modeloClass = "Sirgrimorum\\Pages\\Models\\Pagina";
-                            if (!class_exists($modeloClass)) {
-                                return false;
-                            }
-                        } elseif (strtolower($modelo) == "section") {
-                            $modeloClass = "Sirgrimorum\\Pages\\Models\\Section";
-                            if (!class_exists($modeloClass)) {
-                                return false;
-                            }
-                        } else {
-                            return false;
                         }
                     }
                 }
