@@ -9,7 +9,7 @@ foreach($config['campos'] as $campo => $datos){
     if ($datos['tipo']=='relationship' || $datos['tipo']=='relationships' || $datos['tipo']=='relationshipssel'){
         if (!in_array($datos['modelo'], $yavan)){
             $yavan[] = $datos['modelo'];
-            $otroModelo = basename($datos['modelo']);
+            $otroModelo = class_basename($datos['modelo']);
             $otromodelo = strtolower($otroModelo);
 ?>
 use {{$datos['modelo']}};
@@ -26,7 +26,7 @@ foreach($config['campos'] as $campo => $datos){
     if ($datos['tipo']=='relationship' || $datos['tipo']=='relationships' || $datos['tipo']=='relationshipssel'){
         if (!in_array($datos['modelo'], $yavan)){
             $yavan[] = $datos['modelo'];
-            $otroModelo = basename($datos['modelo']);
+            $otroModelo = class_basename($datos['modelo']);
             $otromodelo = strtolower($otroModelo);
 ?>
     /**

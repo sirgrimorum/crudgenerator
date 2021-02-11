@@ -21,14 +21,14 @@ trait CrudFiles
      */
     public static function registerPolicy($config)
     {
-        $modeloM = ucfirst(basename($config['modelo']));
+        $modeloM = ucfirst(class_basename($config['modelo']));
         $modelo = strtolower($modeloM);
         $policyName = $modeloM . 'Policy';
         $path = Str::finish(str_replace(["/"], ["\\"], app_path('Providers/AuthServiceProvider.php')), '.php');
         $policyPath = app_path('Policies/' . Str::finish($policyName, ".php"));
         $policyPath = Str::finish(str_replace(["/"], ["\\"], $policyPath), '.php');
         if (file_exists($path) && file_exists($policyPath)) {
-            $modeloM = basename($config['modelo']);
+            $modeloM = class_basename($config['modelo']);
             $contents = file($path);
             $inicio = -1;
             $fin = -1;
@@ -111,14 +111,14 @@ trait CrudFiles
      */
     public static function registerTransRoutes($config)
     {
-        $modeloM = ucfirst(basename($config['modelo']));
+        $modeloM = ucfirst(class_basename($config['modelo']));
         $modelo = strtolower($modeloM);
         $policyName = $modeloM . 'Policy';
         foreach (config("sirgrimorum.crudgenerator.list_locales") as $locale) {
             echo "<p>copiando a-" . $locale . "-</p>";
             $path = Str::finish(str_replace(["/"], ["\\"], resource_path("lang/$locale/routes.php")), '.php');
             if (file_exists($path)) {
-                $modeloM = basename($config['modelo']);
+                $modeloM = class_basename($config['modelo']);
                 $contents = file($path);
                 $inicio = -1;
                 $fin = -1;
@@ -167,11 +167,11 @@ trait CrudFiles
             return CrudGenerator::saveResource('routes', $localized, $path, 'web.php', $config, 0764, "append");
         }
 
-        $modeloM = ucfirst(basename($config['modelo']));
+        $modeloM = ucfirst(class_basename($config['modelo']));
         $modelo = strtolower($modeloM);
         $path = Str::finish(str_replace(["/"], ["\\"], base_path('routes/web.php')), '.php');
         if (file_exists($path)) {
-            $modeloM = basename($config['modelo']);
+            $modeloM = class_basename($config['modelo']);
             $contents = file($path);
             $inicio = -1;
             $fin = -1;
@@ -349,7 +349,7 @@ trait CrudFiles
     {
         $view = Str::start($view, "sirgrimorum::templates.");
         $modeloClass = $config['modelo'];
-        $modeloM = ucfirst(basename($config['modelo']));
+        $modeloM = ucfirst(class_basename($config['modelo']));
         $modelo = strtolower($modeloM);
         $searchArr = ["{?php}", "{php?}", "[[", "]]", "[!!", "!!]", "{modelo}", "{Modelo}", "{model}", "{Model}", "*extends", "*section", "*stop", "*stack", "*push", "*if", "*else", "*foreach", "*end", "{ " . $modelo . " }"];
         $replaceArr = ["<?php", "?>", "{{", "}}", "{!!", "!!}", $modelo, $modeloM, $modelo, $modeloM, "@extends", "@section", "@stop", "@stack", "@push", "@if", "@else", "@foreach", "@end", "{" . $modelo . "}"];
@@ -402,7 +402,7 @@ trait CrudFiles
      */
     public static function generateResources($config, $localized, $bar, $type = "all")
     {
-        $modeloM = ucfirst(basename($config['modelo']));
+        $modeloM = ucfirst(class_basename($config['modelo']));
         $modelo = strtolower($modeloM);
         if ($type == "controller" || $type == "all") {
 
@@ -471,7 +471,7 @@ trait CrudFiles
             $config_path = base_path($config_path . Str::start($path, "/"));
         }
         $path = $config_path;
-        $modeloM = basename($config['modelo']);
+        $modeloM = class_basename($config['modelo']);
         return CrudGenerator::registerConfigSimple($modeloM, $inPath, $config_path);
     }
 

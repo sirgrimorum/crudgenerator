@@ -291,7 +291,7 @@ class CrudGenerator
             $js_section = "";
             $css_section = "";
         }
-        $modelo = basename($modeloM);
+        $modelo = class_basename($modeloM);
         if (isset($config['botones']) && is_array($config['botones'])) {
             foreach (Arr::only($config['botones'], ['create', 'show', 'edit', 'remove']) as $butName => $button) {
                 if (!is_string($button)) {

@@ -963,7 +963,7 @@ trait CrudStrings
     public static function getOpcionesDeCampo($modelo, $campo, $trans = true)
     {
         if ($modeloClass = CrudGenerator::getModel($modelo)) {
-            $modelo = strtolower(basename($modeloClass));
+            $modelo = strtolower(class_basename($modeloClass));
             if (is_array($campo)) {
                 $tiene = false;
                 if ($trans) {
@@ -1127,7 +1127,7 @@ trait CrudStrings
                 }
             }
             if ($modeloClass !== false) {
-                //$modeloClass = strtolower(basename($modeloClass));
+                //$modeloClass = strtolower(class_basename($modeloClass));
                 if ($crud) {
                     $modeloClass = 'crudgenerator::' . $modeloClass . '.labels';
                 }
