@@ -235,7 +235,7 @@ trait CrudStrings
                         $piece = $textPiece;
                         if (Str::contains($textPiece, "{")) {
                             $auxLeft = (stripos($textPiece, "{"));
-                            $auxRight = stripos($textPiece, "}", $left) + 1;
+                            $auxRight = stripos($textPiece, "}", $auxLeft) + 1;
                             $auxJson = substr($textPiece, $auxLeft, $auxRight - $auxLeft);
                             $textPiece = str_replace($auxJson, "*****", $textPiece);
                             $auxJson = str_replace(["'", ", }"], ['"', "}"], $auxJson);
@@ -390,7 +390,7 @@ trait CrudStrings
                     $function = $preFunction;
                 }
                 if ($sigue) {
-                    if (is_string($item) && strlen($item) <= 255) {
+                    if (is_string($item)) { //&& strlen($item) <= 255) {
                         if (strpos($item, $prefix) !== false) {
                             if ($function instanceof Closure) {
                                 $item = CrudGenerator::translateString($item, $prefix, $function);
@@ -1498,7 +1498,7 @@ trait CrudStrings
         if (strlen($text) <= $chars) {
             return $text;
         }
-        if (strpos($text, " ") === false){
+        if (strpos($text, " ") === false) {
             return substr($text, 0, $chars) . "...";
         }
         $text = $text . " ";
