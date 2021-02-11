@@ -69,7 +69,9 @@ if (is_callable($datos['opciones'])){
     $opciones = [];
 }
 if (!isset($datos['multiple'])){
-    $opciones = array_merge([""=>$placeholder], $opciones);
+    if (!isset($opciones[""])){
+        $opciones = [""=>$placeholder] + $opciones;
+    }
 }elseif(is_string($dato) && CrudGenerator::isJsonString($dato)){
     $dato = json_decode($dato);
 }

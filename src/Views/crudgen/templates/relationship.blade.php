@@ -51,7 +51,9 @@ $atributos = [
     $readonly
 ];
 array_merge($extraDataInput, $atributos);
-$opciones = array_merge([""=>$placeholder],$datos['todos']);
+if (!isset($datos['todos'][""])){
+    $opciones = [""=>$placeholder] + $datos['todos'];
+}
 ?>
 <div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>
