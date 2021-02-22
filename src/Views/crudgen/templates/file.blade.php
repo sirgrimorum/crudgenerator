@@ -12,11 +12,6 @@ try {
 } catch (Exception $ex) {
     $auxprevio = "";
 }
-if ($dato == "") {
-    if (isset($datos["valor"])) {
-        $dato = $datos["valor"];
-    }
-}
 $error_campo = false;
 $claseError = '';
 if ($errores == true) {
