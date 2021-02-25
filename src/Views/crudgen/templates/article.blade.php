@@ -11,7 +11,7 @@ if (isset($datos['extraId'])) {
     $extraId = $columna;
 }
 $dato = old($extraId);
-if ($dato == "") {
+if ($dato == "" && $registro != null) {
     try {
         $dato = [];
         $modelClass = config('sirgrimorum.transarticles.default_articles_model');
