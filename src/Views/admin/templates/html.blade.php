@@ -20,7 +20,7 @@
     <!-- Campo definido para incluir estilos especificos en las vistas que lo requieran -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <style>
-        main {
+        .main-crudgen {
             background-color: {{ config("sirgrimorum.crudgenerator.theme.main_color", "#fff") }};
         }
 
@@ -275,7 +275,7 @@
             </div>
         </nav>
         <!-- Contenido de la pagina -->
-        <main class="">
+        <div class="main-crudgen">
             <div class="container-fluid">
                 <div class="row flex-xl-nowrap">
                     <div class="col-md-2 col-xl-2 bd-sidebar {{ config("sirgrimorum.crudgenerator.theme.sidebar_class") }}" id="sidebar">
