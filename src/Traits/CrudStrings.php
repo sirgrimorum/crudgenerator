@@ -245,7 +245,12 @@ trait CrudStrings
                             } else {
                                 $auxArr[] = json_decode($auxJson, true);
                             }
-                            $piece = call_user_func_array($function, $auxArr);
+                            try {
+                                $prePiece = $piece;
+                                $piece = call_user_func_array($function, $auxArr);
+                            } catch (\Throwable $th) {
+                                $piece = call_user_func($function, $prePiece);
+                            }
                         } else {
                             $piece = call_user_func($function, $textPiece);
                         }
