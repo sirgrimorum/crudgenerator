@@ -2037,6 +2037,32 @@ trait CrudModels
                                 $objModelo->{$campo} = $detalles['valor'];
                             }
                             break;
+                        case 'file':
+                            $existFile = $objModelo->{$campo};
+                            $filename = CrudGenerator::getFileNameFromRequest($input, $campo, $detalles);
+                            if ($filename == "" && $existFile == "" && isset($detalles['valor'])) {
+                                $objModelo->{$campo} = $detalles['valor'];
+                            } elseif ($filename != "") {
+                                $objModelo->{$campo} = $filename;
+                            }
+                            break;
+                        case 'files':
+                            $existFiles = $objModelo->{$campo};
+                            if (is_string($existFiles)) {
+                                $existFiles = json_decode($existFiles, true);
+                            }
+                            if (!is_array($existFiles) || (is_array($existFiles)  && count($existFiles) == 0)) {
+                                if ($input->has($campo)) {
+                                    $objModelo->{$campo} = json_encode([]);
+                                } elseif (isset($detalles['valor'])) {
+                                    if (!is_array($detalles['valor'])) {
+                                        $objModelo->{$campo} = json_encode(["name" => $detalles['valor'], "file" => $detalles['valor']]);
+                                    } else {
+                                        $objModelo->{$campo} = json_encode($detalles['valor']);
+                                    }
+                                }
+                            }
+                            break;
                         case 'article':
                             $modelClass = config('sirgrimorum.transarticles.default_articles_model');
                             if (class_exists($modelClass)) {
@@ -2321,7 +2347,7 @@ trait CrudModels
                                     $finalFiles = $masFiles;
                                 }
 
-                                if (count($finalFiles) && isset($detalles['valor'])) {
+                                if (count($finalFiles) == 0 && isset($detalles['valor'])) {
                                     if (!is_array($detalles['valor'])) {
                                         $objModelo->{$campo} = json_encode(["name" => $detalles['valor'], "file" => $detalles['valor']]);
                                     } else {
@@ -2360,7 +2386,7 @@ trait CrudModels
      * @param string $campo The file field name
      * @param array $detalles the Field configuration array
      * @param boolean $addNewName Optional, if true, will add the new field name to the filename (assumed in $campo . "_name" in input)
-     * @return boolean|string The name of the faile to save in the bd or false if something went wrong
+     * @return boolean|string The name of the file to save in the bd or false if something went wrong
      */
     public static function saveFileFromRequest($objModelo, \Illuminate\Http\Request $input, $campo, array $detalles, $addNewName = true)
     {
@@ -2376,33 +2402,7 @@ trait CrudModels
                 } catch (Error $err) {
                     $esImagen = false;
                 }
-                $filename = "";
-                if (isset($detalles['pre'])) {
-                    if ($detalles['pre'] == '_originalName_') {
-                        $filename = $file->getClientOriginalName();
-                    } else {
-                        $filename = $detalles['pre'];
-                    }
-                }
-                if (isset($detalles['length'])) {
-                    $numRand = $detalles['length'];
-                } else {
-                    $numRand = 20;
-                }
-                if (stripos($campo, ".") > 0) {
-                    $campoName = str_replace(".", "_name.", $campo);
-                } else {
-                    $campoName = $campo . "_name";
-                }
-                $new_name = "";
-                if ($input->has($campoName) && $addNewName) {
-                    $new_name = str_replace(" ", "_", $input->input($campoName));
-                    $new_name = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $new_name);
-                    $new_name = mb_ereg_replace("([\.]{2,})", '', $new_name);
-                    $new_name = "__" . $new_name;
-                }
-                $filename .= Str::random($numRand) . $new_name;
-                $filename .= "." . $file->getClientOriginalExtension();
+                $filename = CrudGenerator::getFileNameFromRequest($input, $campo, $detalles, $addNewName);
                 $destinationPath = false;
                 if (isset($detalles['saveFunction']) && is_callable($detalles['saveFunction'])) {
                     $path = $detalles['saveFunction']($objModelo, $file, $filename, $detalles);
@@ -2466,6 +2466,52 @@ trait CrudModels
             }
         }
         return false;
+    }
+
+    /**
+     * Get the temporary fileName of an uploaded file from a configuration array
+     * @param Request $input The request
+     * @param string $campo The file field name
+     * @param array $detalles the Field configuration array
+     * @param boolean $addNewName Optional, if true, will add the new field name to the filename (assumed in $campo . "_name" in input)
+     * @return string The name of the file to save in the bd or "" if something went wrong
+     */
+    public static function getFileNameFromRequest(\Illuminate\Http\Request $input, $campo, array $detalles, $addNewName = true)
+    {
+        $filename = "";
+        if ($input->hasFile($campo)) {
+            $file = $input->file($campo);
+            if ($file) {
+                if (isset($detalles['pre'])) {
+                    if ($detalles['pre'] == '_originalName_') {
+                        $filename = $file->getClientOriginalName();
+                    } else {
+                        $filename = $detalles['pre'];
+                    }
+                }
+                if (isset($detalles['length'])) {
+                    $numRand = $detalles['length'];
+                } else {
+                    $numRand = 20;
+                }
+                if (stripos($campo, ".") > 0) {
+                    $campoName = str_replace(".", "_name.", $campo);
+                } else {
+                    $campoName = $campo . "_name";
+                }
+                $new_name = "";
+                if ($input->has($campoName) && $addNewName) {
+                    $new_name = str_replace(" ", "_", $input->input($campoName));
+                    $new_name = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $new_name);
+                    $new_name = mb_ereg_replace("([\.]{2,})", '', $new_name);
+                    $new_name = "__" . $new_name;
+                }
+                $filename .= Str::random($numRand) . $new_name;
+                $filename .= "." . $file->getClientOriginalExtension();
+                return $filename;
+            }
+        }
+        return $filename;
     }
 
     /**
