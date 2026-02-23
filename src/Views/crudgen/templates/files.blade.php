@@ -2,8 +2,8 @@
 $auxprevios = [];
 $dato = "";
 $datoImg = "";
-if (isset($datos['extraId'])) {
-    $extraId = $datos['extraId'];
+if (isset($config["extraId"])) {
+    $extraId = $config['extraId'];
 } else {
     $extraId = $columna;
 }
@@ -31,7 +31,7 @@ if ($dato == "") {
 $error_campo = false;
 $claseError = '';
 if ($errores == true) {
-    if ($errors->has($extraId . ".0") || $errors->has($extraId)) {
+    if ($errors->has($columna . ".0") || $errors->has($columna)) {
         $error_campo = true;
         $claseError = 'is-invalid';
     } else {
@@ -48,13 +48,10 @@ if (isset($datos["placeholder"])) {
 } else {
     $placeholder = "";
 }
-$extraClassDiv = \Illuminate\Support\Arr::get($datos, 'extraClassDiv', "");
-$extraClassInput = \Illuminate\Support\Arr::get($datos, 'extraClassInput', "");
-$extraDataInput = \Illuminate\Support\Arr::get($datos, 'extraDataInput', []);
-$help = \Illuminate\Support\Arr::get($datos, 'help', "");
+
 ?>
 
-<div class="form-group row {{$config['class_formgroup']}} {{ $extraClassDiv }}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
+<div class="form-group row {{$config['class_formgroup']}}" data-tipo='contenedor-campo' data-campo='{{$tabla . '_' . $extraId}}'>
     <div class='{{$config['class_labelcont']}}'>
         {{ Form::label($extraId, ucfirst($datos['label']), ['class'=>'mb-0 ' . $config['class_label']]) }}
         @if (isset($datos['description']))
@@ -67,7 +64,7 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
         @foreach($auxprevios as $datoReg)
         @if(is_object($datoReg))
         <?php
-        [$filename, $urlFile] = CrudGenerator::getFileUrl($datoReg->file, $registro, $modelo, $columna, $datos, $config);
+        $filename = Str::start($datoReg->file, Str::finish($datos['path'], '\\'));
         $tipoFile =CrudGenerator::filenameIs($datoReg->file,$datos);
         $error_campo = false;
         $claseError = '';
@@ -76,18 +73,37 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
             <div class="input-group-prepend">
                 <div class="rounded-left border border-secondary">
                     @if ($tipoFile=='image')
-                    <img class="rounded-left " style="cursor: pointer;" src="{{ $urlFile }}" onclick="toogleImagen(this);">
+                    <img class="rounded-left " style="cursor: pointer;" src="{{asset($filename)}}" onclick="toogleImagen(this);">
                     @elseif($tipoFile=='video')
-                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="toogleVideo(this);">{!! CrudGenerator::getIcon($tipoFile,true,'mt-2') !!}</div>
+                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="toogleVideo(this);"><i class="mt-2 fa fa-film fa-lg" aria-hidden="true"></i></div>
                     @elseif($tipoFile=='audio')
-                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="toogleAudio(this);">{!! CrudGenerator::getIcon($tipoFile,true,'mt-2') !!}</div>
+                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="toogleAudio(this);"><i class="mt-2 fa fa-file-audio-o fa-lg" aria-hidden="true"></i></div>
                     @elseif($tipoFile=='pdf')
-                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="tooglePdf(this);">{!! CrudGenerator::getIcon($tipoFile,true,'mt-2') !!}</div>
+                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: pointer;" onclick="tooglePdf(this);"><i class="mt-2 fa fa-file-pdf-o fa-lg" aria-hidden="true"></i></div>
                     @elseif($tipoFile=='other')
-                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: default;">{!! CrudGenerator::getIcon($tipoFile,true,'mt-2') !!}</div>
+                    <div class="pl-3 pr-3 h-100 pt-1" style="cursor: default;"><i class="mt-2 fa fa-file-o fa-lg" aria-hidden="true"></i></div>
                     @else
-                    <a class="d-block pl-3 pr-3 h-100 pt-1 text-secondary" href='{{ $urlFile }}' target="_blank" >
-                        {!! CrudGenerator::getIcon($tipoFile,true,'mt-2') !!}
+                    <a class="d-block pl-3 pr-3 h-100 pt-1 text-secondary" href='{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}' target="_blank" >
+                    @switch($tipoFile)
+                    @case('video')
+                    <i class="mt-2 fa fa-film fa-lg" aria-hidden="true"></i>
+                    @break
+                    @case('audio')
+                    <i class="mt-2 fa fa-file-audio-o fa-lg" aria-hidden="true"></i>
+                    @break
+                    @case('pdf')
+                    <i class="mt-2 fa fa-file-pdf-o fa-lg" aria-hidden="true"></i>
+                    @break
+                    @case('text')
+                    <i class="mt-2 fa fa-file-text-o fa-lg" aria-hidden="true"></i>
+                    @break
+                    @case('office')
+                    <i class="mt-2 fa fa-file-word-o fa-lg" aria-hidden="true"></i>
+                    @break
+                    @case('compressed')
+                    <i class="mt-2 fa fa-file-archive-o fa-lg" aria-hidden="true"></i>
+                    @break
+                    @endswitch
                     </a>
                     @endif
                 </div>
@@ -96,21 +112,21 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
             {{ Form::text($extraId . "_namereg[]", $datoReg->name, ['class' => 'form-control nombre_file ',  'placeholder'=>trans("crudgenerator::admin.layout.labels.name"), "required"=>"required"]) }}
             {{ Form::hidden($extraId . "_filereg[]", $datoReg->file, ['class' => 'form-control ',]) }}
             <div class="input-group-append">
-                <button type="button" class="btn btn-outline-danger" onclick="removeFile(this,'{{$tabla . "_" . $extraId}}')"  title="{{trans("crudgenerator::admin.layout.labels.remove")}}">{!! CrudGenerator::getIcon("minus",true) !!}</button>
+                <button type="button" class="btn btn-outline-danger" onclick="removeFile(this,'{{$tabla . "_" . $extraId}}')"  title="{{trans("crudgenerator::admin.layout.labels.remove")}}"><i class="fa fa-minus" aria-hidden="true"></i></button>
             </div>
         </div>
         @if($tipoFile =='image')
         <div class="collapse" data-id="collapseImageCont">
             <div class="card collapse" >
-                <img class="card-img-top" src="{{ $urlFile }}" data-id="collapseImage">
+                <img class="card-img-top" src="{{asset($filename)}}" data-id="collapseImage">
             </div>
         </div>
         @elseif($tipoFile =='video')
         <div class="collapse" data-id="collapseVideoCont">
             <div class="card collapse" >
-                <!--iframe class="card-img-top" src="{{ $urlFile }}" data-id="collapseVideo"></iframe-->
+                <!--iframe class="card-img-top" src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" data-id="collapseVideo"></iframe-->
                 <video class="card-img-top" controls preload="auto" height="300" >
-                    <source src="{{ $urlFile }}" type="video/mp4" />
+                    <source src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="video/mp4" />
                 </video>
             </div>
         </div>
@@ -118,14 +134,14 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
         <div class="collapse" data-id="collapseAudioCont">
             <div class="card collapse" >
                 <audio class="card-img-top" controls preload="auto" >
-                    <source src="{{ $urlFile }}" type="audio/mpeg" />
+                    <source src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" type="audio/mpeg" />
                 </audio>
             </div>
         </div>
         @elseif($tipoFile =='pdf')
         <div class="collapse" data-id="collapsePdfCont">
             <div class="card collapse" >
-                <iframe class="card-img-top" style="min-height: 500px;" src="{{ $urlFile }}" style="border: none;"></iframe>
+                <iframe class="card-img-top" style="min-height: 500px;" src="{{route('sirgrimorum_modelo::modelfile',['modelo'=>$modelo,'campo'=>$columna]) . "?_f=" . $filename }}" style="border: none;"></iframe>
             </div>
         </div>
         @endif
@@ -134,27 +150,25 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
         <div class="input-group mt-2 mb-0">
             <div class="input-group-prepend">
                 <div class="rounded-left border border-secondary d-none">
-                    <div class="d-none pl-3 pr-3 h-100 pt-1" style="cursor: default;">{!! CrudGenerator::getIcon('file',true,'mt-2') !!}</div>
+                    <div class="d-none pl-3 pr-3 h-100 pt-1" style="cursor: default;"><i class="mt-2 fa fa-file-text-o fa-lg" aria-hidden="true"></i></div>
                     <img class="rounded-left d-none" style="cursor: pointer;" src="" onclick="toogleImagen(this);">
                 </div>
                 <div class="input-group-text rounded-left">{{trans("crudgenerator::admin.layout.labels.file")}}</div>
             </div>
             {{ Form::text($extraId . "_name[]", $dato, ['class' => 'form-control ' . $claseError, 'placeholder'=>trans("crudgenerator::admin.layout.labels.name"),$readonly]) }}
-            <div class="custom-file {{ $claseError }}">
-                {{ Form::file($extraId . "[]", array_merge(
-                    $extraDataInput,
-                    ['class' => "custom-file-input form-control $claseError $extraClassInput", $placeholder, $readonly,"data-toggle"=>"custom-file"])) }}
+            <div class="custom-file">
+                {{ Form::file($extraId . "[]", ['class' => 'custom-file-input form-control ' . $claseError, $placeholder, $readonly,"data-toggle"=>"custom-file"]) }}
                 <label class="custom-file-label">{{trans("crudgenerator::admin.layout.labels.choose_file")}}</label>
             </div>
             <div class="input-group-append">
-                <button type="button" class="btn btn-outline-success" onclick="addFile('{{$tabla . "_" . $extraId}}','{{$extraId}}')" title="{{trans("crudgenerator::admin.layout.labels.add")}}">{!! CrudGenerator::getIcon('plus',true) !!}</button>
+                <button type="button" class="btn btn-outline-success" onclick="addFile('{{$tabla . "_" . $extraId}}','{{$extraId}}')" title="{{trans("crudgenerator::admin.layout.labels.add")}}"><i class="fa fa-plus" aria-hidden="true"></i></button>
             </div>
             @if ($error_campo)
             <div class="invalid-feedback">
-                @if($errors->has($extraId . ".0"))
-                {{ $errors->get($extraId . ".0")[0] }}
-                @elseif($errors->has($extraId))
-                {{ $errors->get($extraId)[0] }}
+                @if($errors->has($columna . ".0"))
+                {{ $errors->get($columna . ".0")[0] }}
+                @elseif($errors->has($columna))
+                {{ $errors->get($columna)[0] }}
                 @endif
             </div>
             @endif
@@ -170,7 +184,7 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
         $error_campo = false;
         $claseError = '';
         if ($errores == true) {
-            if ($errors->has($extraId . "." . ($index + 1))) {
+            if ($errors->has($columna . "." . ($index + 1))) {
                 $error_campo = true;
                 $claseError = 'is-invalid';
             } else {
@@ -181,24 +195,22 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
         <div class="input-group mt-2 mb-0">
             <div class="input-group-prepend">
                 <div class="rounded-left border border-secondary d-none">
-                    <div class="d-none pl-3 pr-3 h-100 pt-1" style="cursor: default;">{!! CrudGenerator::getIcon('file',true,'mt-2') !!}</div>
-                    <img class="rounded-left d-none" style="cursor: pointer;" src="" onclick="toogleImagen(this);">
+                    <div class="d-none pl-3 pr-3 h-100 pt-1" style="cursor: default;"><i class="mt-2 fa fa-file-text-o fa-lg" aria-hidden="true"></i></div>
+                    <img class="rounded-left d-none" style="cursor: pointer;" src="{{asset('img/car_bmw.jpg')}}" onclick="toogleImagen(this);">
                 </div>
                 <div class="input-group-text">{{trans("crudgenerator::admin.layout.labels.file")}}</div>
             </div>
             {{ Form::text($extraId . "_name[]", $dato, ['class' => 'form-control ' . $claseError, 'placeholder'=>trans("crudgenerator::admin.layout.labels.name"),"required"=>"required",$readonly]) }}
-            <div class="custom-file {{ $claseError }}">
-                {{ Form::file($extraId . "[]", array_merge(
-                    $extraDataInput,
-                    ['class' => "custom-file-input $claseError $extraClassInput", $placeholder, $readonly,"data-toggle"=>"custom-file"])) }}
+            <div class="custom-file">
+                {{ Form::file($extraId . "[]", ['class' => 'custom-file-input ' . $claseError, $placeholder, $readonly,"data-toggle"=>"custom-file"]) }}
                 <label class="custom-file-label">{{trans("crudgenerator::admin.layout.labels.choose_file")}}</label>
             </div>
             <div class="input-group-append">
-                <button type="button" class="btn btn-outline-danger" onclick="removeFile(this,'nuevo')"  title="{{trans("crudgenerator::admin.layout.labels.remove")}}">{!! CrudGenerator::getIcon('minus',true) !!}</button>
+                <button type="button" class="btn btn-outline-danger" onclick="removeFile(this,'nuevo')"  title="{{trans("crudgenerator::admin.layout.labels.remove")}}"><i class="fa fa-minus" aria-hidden="true"></i></button>
             </div>
             @if ($error_campo)
             <div class="invalid-feedback">
-                {{ $errors->get($extraId . "." . ($index+1))[0] }}
+                {{ $errors->get($columna . "." . ($index+1))[0] }}
             </div>
             @endif
         </div>
@@ -209,30 +221,23 @@ $help = \Illuminate\Support\Arr::get($datos, 'help', "");
         </div>
         @endif
         @endforeach
-        @if($help != "")
-        <small class="form-text text-muted mt-0">
-            {{ $help }}
-        </small>
-        @endif
     </div>
     <div class="d-none" id="{{$tabla . "_" . $extraId}}_clone">
         <div class="input-group mt-2 mb-0" >
             <div class="input-group-prepend">
                 <div class="rounded-left border border-secondary d-none">
-                    <div class="d-none pl-3 pr-3 h-100 pt-1" style="cursor: default;">{!! CrudGenerator::getIcon('file',true,'mt-2') !!}</div>
-                    <img class="rounded-left d-none" style="cursor: pointer;" src="" onclick="toogleImagen(this);">
+                    <div class="d-none pl-3 pr-3 h-100 pt-1" style="cursor: default;"><i class="mt-2 fa fa-file-text-o fa-lg" aria-hidden="true"></i></div>
+                    <img class="rounded-left d-none" style="cursor: pointer;" src="{{asset('img/car_bmw.jpg')}}" onclick="toogleImagen(this);">
                 </div>
                 <div class="input-group-text">{{trans("crudgenerator::admin.layout.labels.file")}}</div>
             </div>
             {{ Form::text("nombre", $dato, ['class' => 'form-control ' . $claseError, 'placeholder'=>trans("crudgenerator::admin.layout.labels.name"),$readonly]) }}
             <div class="custom-file">
-                {{ Form::file($extraId . "[]", array_merge(
-                    $extraDataInput,
-                    ['class' => "custom-file-input $claseError $extraClassInput", $placeholder, $readonly,"data-toggle"=>"custom-file"])) }}
+                {{ Form::file($extraId . "[]", ['class' => 'custom-file-input ' . $claseError, $placeholder, $readonly,"data-toggle"=>"custom-file"]) }}
                 <label class="custom-file-label">{{trans("crudgenerator::admin.layout.labels.choose_file")}}</label>
             </div>
             <div class="input-group-append">
-                <button type="button" class="btn btn-outline-danger" onclick="removeFile(this,'nuevo')"  title="{{trans("crudgenerator::admin.layout.labels.remove")}}">{!! CrudGenerator::getIcon('minus',true) !!}</button>
+                <button type="button" class="btn btn-outline-danger" onclick="removeFile(this,'nuevo')"  title="{{trans("crudgenerator::admin.layout.labels.remove")}}"><i class="fa fa-minus" aria-hidden="true"></i></button>
             </div>
         </div>
         <div class="collapse" data-id="collapseImageCont">

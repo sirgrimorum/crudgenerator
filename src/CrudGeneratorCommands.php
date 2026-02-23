@@ -1,7 +1,6 @@
 <?php
 
 namespace Sirgrimorum\CrudGenerator;
-
 use Illuminate\Support\Str;
 
 class CrudGeneratorCommands {
@@ -19,7 +18,7 @@ class CrudGeneratorCommands {
         $alertaClass = $this->console->ask("Notification Class?");
         if (class_exists($alertaClass)) {
             $email = $this->console->anticipate("User email?", ['andres.espinosa@grimorum.com']);
-            if ($toUser = \App\User::where("email", "=", $email)->first()) {
+            if ($toUser = \App\Models\User::where("email", "=", $email)->first()) {
                 $message = $this->console->ask("Message?");
                 /* $options = array(
                   'cluster' => 'us2',
@@ -116,7 +115,7 @@ class CrudGeneratorCommands {
         $this->console->info("Details loaded!");
         //$this->console->line(print_r($config, true));
         $bar->advance();
-        $confirm = $this->console->choice("Do you wish to continue and save the model to '{$path}' with the className '{$className}'?", ['yes', 'no'], 0);
+        $confirm = $this->console->choice("Do you wisth to continue and save the model to '{$path}' with the className '{$className}'?", ['yes', 'no'], 0);
         if ($confirm == 'yes') {
             $this->console->line("Saving Model for {$modelName} in {$path} with className '{$className}'");
             if (CrudGenerator::saveResource("sirgrimorum::templates.model", false, base_path($justPath), $fileName, $config)) {
@@ -137,7 +136,7 @@ class CrudGeneratorCommands {
      */
     public function createlang($model) {
         $this->console->line("Preparing model attributes");
-        $bar = $this->console->output->createProgressBar((count(config("sirgrimorum.crudgenerator.list_locales"))+3));
+        $bar = $this->console->output->createProgressBar(5);
         $options = $this->console->options('path');
         if ($options['path'] != "") {
             $path = $options['path'];
@@ -160,24 +159,17 @@ class CrudGeneratorCommands {
             $this->console->error("Something went wrong and the model lang file could not be saved");
         }
         $bar->advance();
-        foreach (config("sirgrimorum.crudgenerator.list_locales") as $local){
-            $this->console->line("for {$local}'");
-            if (is_string($local)){
-                if ($local != config("app.locale")){
-                    $confirm = $this->console->choice("Do you wish to create a Lang File for the model in {$local}?", ['yes', 'no'], 0);
-                    if ($confirm == 'yes') {
-                        $path = "lang/vendor/crudgenerator/{$local}";
-                        $filename = Str::finish(strtolower($model), ".php");
-                        $this->console->line("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
-                        if (CrudGenerator::saveResource("sirgrimorum::templates.langes", false, resource_path($path), $filename, $config)) {
-                            $this->console->info("Model Lang file saved!");
-                            $bar->advance();
-                        } else {
-                            $this->console->error("Something went wrong and the model lang file '{$filename}' could not be saved");
-                            $bar->advance();
-                        }
-                    }
-                }
+        $confirm = $this->console->choice("Do you wisth to create a Lang File for the model in es?", ['yes', 'no'], 0);
+        if ($confirm == 'yes') {
+            $path = "lang/vendor/crudgenerator/es";
+            $filename = Str::finish(strtolower($model), ".php");
+            $this->console->line("Saving Lang file for {$model} in {$path} with filename '{$filename}'");
+            if (CrudGenerator::saveResource("sirgrimorum::templates.langes", false, resource_path($path), $filename, $config)) {
+                $this->console->info("Model Lang file saved!");
+                $bar->finish();
+            } else {
+                $this->console->error("Something went wrong and the model lang file could not be saved");
+                $bar->finish();
             }
         }
         $bar->finish();
@@ -209,13 +201,13 @@ class CrudGeneratorCommands {
         $this->console->info("Config generated!");
         //$this->console->line(print_r($config, true));
         $bar->advance();
-        $confirm = $this->console->choice("Do you wish to continue and save config to '{$path}'?", ['yes', 'no'], 0);
+        $confirm = $this->console->choice("Do you wisth to continue and save config to '{$path}'?", ['yes', 'no'], 0);
         if ($confirm == 'yes') {
             $this->console->line("Saving Config for {$model} in {$path}");
             if (CrudGenerator::saveConfig($config, $path)) {
                 $this->console->info("Config file saved!");
                 $bar->advance();
-                $confirm = $this->console->choice("Do you wish to register the new config to the crudgenerator configuration file?", ['yes', 'no'], 0);
+                $confirm = $this->console->choice("Do you wisth to register the new config to the crudgenerator configuration file?", ['yes', 'no'], 0);
                 if ($confirm == 'yes') {
                     $this->console->line("Registering Config for {$model} in crudgenerator configuration file");
                     if (CrudGenerator::registerConfig($config, $path)) {
@@ -255,14 +247,14 @@ class CrudGeneratorCommands {
     public function resources($console,$model) {
         $this->console = $console;
         $bar = $this->console->output->createProgressBar(12);
-        $confirm = $this->console->choice("Do you wish to generate the files with Localized Routes?", ['yes', 'no'], 0);
+        $confirm = $this->console->choice("Do you wisth to generate the files with Localized Routes?", ['yes', 'no'], 0);
         if ($confirm == "yes") {
             $localized = true;
         } else {
             $localized = false;
         }
         $config = CrudGenerator::getConfig($model, false);
-        $confirm = $this->console->choice("Do you wish to generate Controller, Request, Policy and Repository files?", ['yes', 'no'], 0);
+        $confirm = $this->console->choice("Do you wisth to generate Controller, Request, Policy and Repository files?", ['yes', 'no'], 0);
         if ($confirm == 'yes') {
             $results = CrudGenerator::generateResources($config, $localized, $bar, "controller");
             if ($results[0]) {
@@ -286,7 +278,7 @@ class CrudGeneratorCommands {
                 $this->console->error("Something went wrong saving Repository file");
             }
         }
-        $confirm = $this->console->choice("Do you wish to generate Create, Edit, Index and Show views?", ['yes', 'no'], 0);
+        $confirm = $this->console->choice("Do you wisth to generate Create, Edit, Index and Show views?", ['yes', 'no'], 0);
         if ($confirm == 'yes') {
             $results = CrudGenerator::generateResources($config, $localized, $bar, "views");
             if ($results[0]) {
@@ -310,7 +302,7 @@ class CrudGeneratorCommands {
                 $this->console->error("Something went wrong saving Show view file");
             }
         }
-        $confirm = $this->console->choice("Do you wish to append new routes for the model (web routes)?", ['yes', 'no'], 0);
+        $confirm = $this->console->choice("Do you wisth to append new routes for the model (web routes)?", ['yes', 'no'], 0);
         if ($confirm == 'yes') {
             if (CrudGenerator::registerRoutes($config, $localized)) {
                 $this->console->info("Routes registered");
@@ -319,7 +311,7 @@ class CrudGeneratorCommands {
             }
         }
         CrudGenerator::registerTransRoutes($config);
-        $confirm = $this->console->choice("Do you wish to register the model policy?", ['yes', 'no'], 0);
+        $confirm = $this->console->choice("Do you wisth to register the model policy?", ['yes', 'no'], 0);
         if ($confirm == 'yes') {
             if (CrudGenerator::registerPolicy($config)) {
                 $this->console->info("Policy registered");
@@ -328,7 +320,7 @@ class CrudGeneratorCommands {
             }
         }
         $bar->advance();
-        $confirm = $this->console->choice("Do you wish to create a Lang File for the model?", ['yes', 'no'], 0);
+        $confirm = $this->console->choice("Do you wisth to create a Lang File for the model?", ['yes', 'no'], 0);
         if ($confirm == 'yes') {
             $path = "lang/vendor/crudgenerator/" . config("app.locale");
             $filename = Str::finish(strtolower($model), ".php");
@@ -340,7 +332,7 @@ class CrudGeneratorCommands {
             }
         }
         $bar->advance();
-        $confirm = $this->console->choice("Do you wish to create a Lang File for the model in es?", ['yes', 'no'], 0);
+        $confirm = $this->console->choice("Do you wisth to create a Lang File for the model in es?", ['yes', 'no'], 0);
         if ($confirm == 'yes') {
             $path = "lang/vendor/crudgenerator/es";
             $filename = Str::finish(strtolower($model), ".php");

@@ -5,9 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests\{Model}Request;
 use App\User;
-@if ($modelo != "user")
 use {{$config['modelo']}};
-@endif
 use App\Repositories\{Model}Repository;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
 
@@ -16,21 +14,21 @@ class {Model}Controller extends Controller {
     /**
      * The {model} repository instance.
      *
-     * @var {Model}[]
+     * @var {Model}Repository
      */
-    protected ${{\Illuminate\Support\Str::plural($modelo)}};
+    protected ${{Str::plural($modelo)}};
     
     /**
      * The {model} name.
      *
-     * @var string
+     * @var {Model}Repository
      */
     protected $modelName = '{model}';
     
     /**
      * The {model} config array.
      *
-     * @var array
+     * @var {Model}Repository
      */
     protected $config;
 
@@ -39,16 +37,15 @@ class {Model}Controller extends Controller {
      *
      * @return void
      */
-    public function __construct({Model}Repository ${{\Illuminate\Support\Str::plural($modelo)}}) {
+    public function __construct({Model}Repository ${{Str::plural($modelo)}}) {
         $this->middleware('auth');
-        $this->{{\Illuminate\Support\Str::plural($modelo)}} = ${{\Illuminate\Support\Str::plural($modelo)}};
+        $this->{{Str::plural($modelo)}} = ${{Str::plural($modelo)}};
         $this->config = CrudGenerator::getConfig($this->modelName);
     }
 
     /**
      * Display a listing of the resource.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request) {
@@ -62,7 +59,6 @@ class {Model}Controller extends Controller {
     /**
      * Show the form for creating a new resource.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function create(Request $request) {
@@ -79,7 +75,7 @@ class {Model}Controller extends Controller {
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\{Model}Request  $request
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function store({Model}Request $request) {
@@ -105,7 +101,6 @@ class {Model}Controller extends Controller {
      * Display the specified resource.
      *
      * @param  \App\{Model}  ${model}
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function show({Model} ${model}, Request $request) {
@@ -121,7 +116,6 @@ class {Model}Controller extends Controller {
      * Show the form for editing the specified resource.
      *
      * @param  \App\{Model}  ${model}
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function edit({Model} ${model}, Request $request) {
@@ -139,7 +133,7 @@ class {Model}Controller extends Controller {
      /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\{Model}Request  $request
+     * @param  \Illuminate\Http\Request  $request
      * @param  \App\{Model}  ${model}
      * @return \Illuminate\Http\Response
      */
@@ -157,7 +151,7 @@ class {Model}Controller extends Controller {
             $mensaje = str_replace([":modelName", ":modelId"], [$objeto->{$this->config['nombre']}, $objeto->{$this->config['id']}], $mensajes["update_success"]);
             return redirect(route('{model}.index'))->with(config("sirgrimorum.crudgenerator.status_messages_key"), $mensaje);
         }else{
-            $mensaje = str_replace([":modelName", ":modelId"], [${model}->{$this->config['nombre']}, ${model}->{$this->config['id']}], $mensajes["update_error"]);
+            $mensaje = str_replace([":modelName", ":modelId"], [$objeto->{$this->config['nombre']}, $objeto->{$this->config['id']}], $mensajes["update_error"]);
             return redirect(route('{model}.index'))->with(config("sirgrimorum.crudgenerator.error_messages_key"), $mensaje);
         }
     }
@@ -166,7 +160,6 @@ class {Model}Controller extends Controller {
      * Remove the specified resource from storage.
      *
      * @param  \App\{Model}  ${model}
-     * @param  \App\Http\Requests\{Model}Request  $request
      * @return \Illuminate\Http\Response
      */
     public function destroy({Model} ${model}, {Model}Request $request){

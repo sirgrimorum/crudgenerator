@@ -11,6 +11,7 @@ use Closure;
 use Exception;
 use ReflectionFunction;
 use SplFileObject;
+use Closure;
 
 class SuperClosure {
 
@@ -20,7 +21,7 @@ class SuperClosure {
     protected $used_variables = array();
 
     public function __construct($function) {
-        if (!$function instanceOf Closure)
+        if (!$function instanceof Closure)
             //throw new InvalidArgumentException();
 
         $this->closure = $function;
@@ -104,8 +105,9 @@ class SuperClosure {
     public function __wakeup() {
         extract($this->used_variables);
 
+        // @phpstan-ignore-next-line
         eval('$_function = ' . $this->code . ';');
-        if (isset($_function) AND $_function instanceOf Closure) {
+        if (isset($_function) AND $_function instanceof Closure) {
             $this->closure = $_function;
             $this->reflection = new ReflectionFunction($_function);
         } else

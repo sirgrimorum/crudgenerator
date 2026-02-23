@@ -1,34 +1,29 @@
 <?php
 
 namespace Sirgrimorum\CrudGenerator\Traits;
-
-use Illuminate\Support\Facades\Storage;
-use Sirgrimorum\CrudGenerator\CrudGenerator;
-use Sirgrimorum\CrudGenerator\SuperClosure;
 use Illuminate\Support\Str;
-use Illuminate\Support\Arr;
 
-trait CrudFiles
-{
+use Sirgrimorum\CrudGenerator\SuperClosure;
+
+trait CrudFiles {
 
     /**
      * Register a Model Policy in AuthServiceProvider using a config Array
-     *
+     * 
      * Assumed Policy Class Name is {Model}Policy, and assumed Policy path is /app/Policies/{Model}Policy.php
-     *
+     * 
      * @param array $config Array
      * @return boolean If the policy was registered or not
      */
-    public static function registerPolicy($config)
-    {
-        $modeloM = ucfirst(class_basename($config['modelo']));
+    public static function registerPolicy($config) {
+        $modeloM = ucfirst(basename($config['modelo']));
         $modelo = strtolower($modeloM);
         $policyName = $modeloM . 'Policy';
-        $path = Str::finish(str_replace(["/"], ["\\"], app_path('Providers/AuthServiceProvider.php')), '.php');
+        $path = Str::finish(str_replace([ "/"], [ "\\"], app_path('Providers/AuthServiceProvider.php')), '.php');
         $policyPath = app_path('Policies/' . Str::finish($policyName, ".php"));
-        $policyPath = Str::finish(str_replace(["/"], ["\\"], $policyPath), '.php');
+        $policyPath = Str::finish(str_replace([ "/"], [ "\\"], $policyPath), '.php');
         if (file_exists($path) && file_exists($policyPath)) {
-            $modeloM = class_basename($config['modelo']);
+            $modeloM = basename($config['modelo']);
             $contents = file($path);
             $inicio = -1;
             $fin = -1;
@@ -63,62 +58,20 @@ trait CrudFiles
     }
 
     /**
-     * Add get function in a model file
-     * 
-     * @param string $model El nombre del modelo
-     * @param string $path the directory path for the file
-     * @param string $filename the file name
-     * @return boolean If the model file was successfully modified or not
-     */
-    public static function addGetToModel($path, $filename)
-    {
-        if (substr($path, strlen($path) - 1) == "/" || substr($path, strlen($path) - 1) == "\\") {
-            $path = substr($path, 0, strlen($path) - 1);
-        }
-        $path = Str::finish(str_replace(["/"], ["\\"], $path . Str::start($filename, "/")), '.php');
-        if (file_exists($path)) {
-            $contents = file($path);
-            $ultima = 0;
-            for ($i = count($contents) - 1; $i >= 0; $i--) {
-                if (strpos($contents[$i], '}') !== false) {
-                    $ultima = $i;
-                    $i = -1;
-                }
-            }
-            if ($ultima > 0) {
-                $newContent = array_slice($contents, 0, $ultima);
-                $contenido = view("sirgrimorum::templates.getfunction")->render();
-                $newArray = explode(chr(13), $contenido);
-                foreach ($newArray as $newTexto) {
-                    $newContent[] = $newTexto;
-                }
-                foreach (array_slice($contents, $ultima) as $linea) {
-                    $newContent[] = $linea;
-                }
-                $contents = $newContent;
-                $contents = file_put_contents($path, $contents);
-                return $contents;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Register a the routes to a model in the lang/routes.php file
-     *
+     * 
      * @param array $config Array
      * @return boolean If the policy was registered or not
      */
-    public static function registerTransRoutes($config)
-    {
-        $modeloM = ucfirst(class_basename($config['modelo']));
+    public static function registerTransRoutes($config) {
+        $modeloM = ucfirst(basename($config['modelo']));
         $modelo = strtolower($modeloM);
         $policyName = $modeloM . 'Policy';
         foreach (config("sirgrimorum.crudgenerator.list_locales") as $locale) {
             echo "<p>copiando a-" . $locale . "-</p>";
-            $path = Str::finish(str_replace(["/"], ["\\"], resource_path("lang/$locale/routes.php")), '.php');
+            $path = Str::finish(str_replace([ "/"], [ "\\"], resource_path("lang/$locale/routes.php")), '.php');
             if (file_exists($path)) {
-                $modeloM = class_basename($config['modelo']);
+                $modeloM = basename($config['modelo']);
                 $contents = file($path);
                 $inicio = -1;
                 $fin = -1;
@@ -155,23 +108,22 @@ trait CrudFiles
 
     /**
      * Register the routes to a model resources in web.php routes file using a config Array
-     *
+     * 
      * @param array $config Array
      * @param bolean $localized If the routes should be localized or not
      * @return boolean If the policy was registered or not
      */
-    public static function registerRoutes($config, $localized)
-    {
+    public static function registerRoutes($config, $localized) {
         $path = base_path('routes');
         if (!$localized) {
-            return CrudGenerator::saveResource('routes', $localized, $path, 'web.php', $config, 0764, "append");
+            return \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('routes', $localized, $path, 'web.php', $config, 0764, "append");
         }
 
-        $modeloM = ucfirst(class_basename($config['modelo']));
+        $modeloM = ucfirst(basename($config['modelo']));
         $modelo = strtolower($modeloM);
-        $path = Str::finish(str_replace(["/"], ["\\"], base_path('routes/web.php')), '.php');
+        $path = Str::finish(str_replace([ "/"], [ "\\"], base_path('routes/web.php')), '.php');
         if (file_exists($path)) {
-            $modeloM = class_basename($config['modelo']);
+            $modeloM = basename($config['modelo']);
             $contents = file($path);
             $inicio = -1;
             $fin = -1;
@@ -189,7 +141,7 @@ trait CrudFiles
             }
             if ($inicio == -1) {
                 $path = base_path('routes');
-                return CrudGenerator::saveResource('routes', $localized, $path, 'web.php', $config, 0764, "append");
+                return \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('routes', $localized, $path, 'web.php', $config, 0764, "append");
             }
             if ($encontrado >= 0) {
                 return false;
@@ -197,7 +149,7 @@ trait CrudFiles
                 $newContent = array_slice($contents, 0, $fin);
                 $searchArr = ["{?php}", "{php?}", "[[", "]]", "[!!", "!!]", "{modelo}", "{Modelo}", "{model}", "{Model}", "*extends", "*section", "*stop", "*stack", "*push", "*if", "*else", "*foreach", "*end", "{ " . $modelo . " }"];
                 $replaceArr = ["<?php", "?>", "{{", "}}", "{!!", "!!}", $modelo, $modeloM, $modelo, $modeloM, "@extends", "@section", "@stop", "@stack", "@push", "@if", "@else", "@foreach", "@end", "{" . $modelo . "}"];
-                $contenido = view("sirgrimorum::templates.routes", ["config" => $config, "localized" => false, "modelo" => $modelo])->render();
+                $contenido = view("sirgrimorum::templates.routes", ["config" => $config, "localized" => false])->render();
                 $contenido = str_replace($searchArr, $replaceArr, $contenido);
                 $data = explode(chr(13) . chr(10), $contenido);
                 $newContent[] = chr(13) . chr(10);
@@ -219,14 +171,13 @@ trait CrudFiles
     }
 
     /**
-     * Register the Localization Middleware in Hrrp/Kernel.php
-     *
-     *
+     * Register the Localization Middleware in Hrrp/Kernel.php 
+     * 
+     * 
      * @return boolean If the middleware was registered or not
      */
-    public static function registerMiddleware()
-    {
-        $path = Str::finish(str_replace(["/"], ["\\"], app_path('Http/Kernel.php')), '.php');
+    public static function registerMiddleware() {
+        $path = Str::finish(str_replace([ "/"], [ "\\"], app_path('Http/Kernel.php')), '.php');
         $middlewareClass = "\\Sirgrimorum\\CrudGenerator\\Middleware\\CrudGeneratorLocaleRedirect";
         if (file_exists($path)) {
             $contents = file($path);
@@ -263,79 +214,10 @@ trait CrudFiles
     }
 
     /**
-     * Register the ErrorCatcher in app/Exceptions/Handler.php
-     *
-     *
-     * @return boolean If the middleware was registered or not
-     */
-    public static function registerErrorCatcher()
-    {
-        $path = Str::finish(str_replace(["/"], ["\\"], app_path('Exceptions/Handler.php')), '.php');
-        if (file_exists($path)) {
-            $contents = file($path);
-            $inicio = -1;
-            $fin = -1;
-            $encontradoComienzo = -1;
-            $encontradoParent = -1;
-            $throwableVar = "exc";
-            $encontrado = -1;
-            foreach ($contents as $index => $line) {
-                if (strpos($line, 'public function report') !== false) {
-                    $inicio = $index;
-                    $throwableVar =  Str::afterLast(Str::afterLast($line, 'Throwable'), '$');
-                    if (strpos($throwableVar, ",")) {
-                        $throwableVar = Str::beforeLast($throwableVar, ',');
-                    } else {
-                        $throwableVar = Str::beforeLast($throwableVar, ')');
-                    }
-                    $throwableVar = str_replace(" ", "", $throwableVar);
-                }
-                if (strpos($line, '{') !== false && $inicio >= 0 && $fin == -1 && $encontradoComienzo == -1) {
-                    $encontradoComienzo = $index;
-                }
-                if (strpos($line, "parent::report") !== false && $inicio >= 0 && $encontradoComienzo >= 0 && $fin == -1 && $encontradoParent == -1) {
-                    $encontradoParent = $index;
-                }
-                if (strpos($line, "\\Sirgrimorum\\CrudGenerator\\ErrorCatcher::catch") !== false && $inicio >= 0 && $encontradoComienzo >= 0 && $fin == -1) {
-                    $encontrado = $index;
-                }
-                if (strpos($line, "}") !== false && $inicio >= 0 && $encontradoComienzo >= 0 && $fin == -1) {
-                    $fin = $index;
-                }
-            }
-            if ($encontrado == -1) {
-                $newTexto = chr(9) . chr(9) . "\\Sirgrimorum\\CrudGenerator\\ErrorCatcher::catch(\${$throwableVar});" . chr(13) . chr(10);
-                if ($inicio >= 0 && $fin >= 0 && $encontradoComienzo >= 0) {
-                    $newContent = array_slice($contents, 0, $encontradoComienzo + 1);
-                    $newContent[] = $newTexto;
-                    if ($encontradoParent == -1) {
-                        foreach (array_slice($contents, $encontradoComienzo + 1, $fin - $encontradoComienzo - 1) as $linea) {
-                            $newContent[] = $linea;
-                        }
-                        $newContent[] = chr(9) . chr(9) . "parent::report(\${$throwableVar});" . chr(13) . chr(10);
-                    } else {
-                        foreach (array_slice($contents, $encontradoComienzo + 1, $fin - $encontradoComienzo - 1) as $linea) {
-                            $newContent[] = $linea;
-                        }
-                    }
-                    foreach (array_slice($contents, $fin) as $linea) {
-                        $newContent[] = $linea;
-                    }
-                    $contents = $newContent;
-                }
-                $contents = file_put_contents($path, $contents);
-            }
-        } else {
-            $contents = false;
-        }
-        return $contents;
-    }
-
-    /**
      * Create a new Model related file using a view as a template and a config array as directives
-     *
+     * 
      * If needed, create the path directory recursively
-     *
+     * 
      * @param string $view Blade view name
      * @param boolean $localized if the views assume a localized routes or not
      * @param string $path the directory path for the file
@@ -345,18 +227,14 @@ trait CrudFiles
      * @param string $flags optional, the type of file save, default is '' wich would overwrite the file, options 'append'
      * @return mix Same as file_put_contents return for the file
      */
-    public static function saveResource($view, $localized, $path, $filename, $config, $pathPermissions = 0764, $flags = "")
-    {
+    public static function saveResource($view, $localized, $path, $filename, $config, $pathPermissions = 0764, $flags = "") {
         $view = Str::start($view, "sirgrimorum::templates.");
         $modeloClass = $config['modelo'];
-        $modeloM = ucfirst(class_basename($config['modelo']));
+        $modeloM = ucfirst(basename($config['modelo']));
         $modelo = strtolower($modeloM);
         $searchArr = ["{?php}", "{php?}", "[[", "]]", "[!!", "!!]", "{modelo}", "{Modelo}", "{model}", "{Model}", "*extends", "*section", "*stop", "*stack", "*push", "*if", "*else", "*foreach", "*end", "{ " . $modelo . " }"];
         $replaceArr = ["<?php", "?>", "{{", "}}", "{!!", "!!}", $modelo, $modeloM, $modelo, $modeloM, "@extends", "@section", "@stop", "@stack", "@push", "@if", "@else", "@foreach", "@end", "{" . $modelo . "}"];
         $contenido = view($view, ["config" => $config, "localized" => $localized, "modelo" => $modelo])->render();
-        if ($modelo == "user" && $view == "sirgrimorum::templates.policy") {
-            $contenido = str_replace(['$user, {Model} ${model}', '${model}->getKey()'], ['$user, {Model} ${model}2', '${model}2->getKey()'], $contenido);
-        }
         $contenido = str_replace($searchArr, $replaceArr, $contenido);
 
         if (substr($path, strlen($path) - 1) == "/" || substr($path, strlen($path) - 1) == "\\") {
@@ -365,7 +243,7 @@ trait CrudFiles
         if (!file_exists($path)) {
             mkdir($path, $pathPermissions, true);
         }
-        $path = Str::finish(str_replace(["/"], ["\\"], $path . Str::start($filename, "/")), '.php');
+        $path = Str::finish(str_replace([ "/"], [ "\\"], $path . Str::start($filename, "/")), '.php');
         //echo "<pre>" . print_r([$path,$contenido], true) . "</pre>";
         if ($flags == "append") {
             return file_put_contents($path, $contenido, FILE_APPEND);
@@ -377,13 +255,17 @@ trait CrudFiles
     /**
      * Remove a file if exists
      * @param string $filename The file name relative to the base_path()
-     * @param string $disk Optional 'public', the disk to use
+     * @param boolean $public Optional True, indicates the file name is relative to public_path() else is relative to base_path()
      * @return boolean
      */
-    public static function removeFile($filename, $disk = "local")
-    {
-        if (Storage::disk($disk)->exists($filename)) {
-            Storage::disk($disk)->delete($filename);
+    public static function removeFile($filename, $public = true) {
+        if ($public) {
+            $path = public_path($filename);
+        } else {
+            $path = base_path($filename);
+        }
+        if (file_exists($path)) {
+            unlink($path);
         } else {
             return false;
         }
@@ -391,55 +273,54 @@ trait CrudFiles
 
     /**
      * Create all the Model related files using config array as directive and crudgenerator views as templates
-     *
+     * 
      * use php artisan vendor:publish --tag=templates to control templates
-     *
+     * 
      * @param array $config The configuration array
      * @param boolean $localized if want localized route groups or not
      * @param ProgressBar $bar to register advance in the process
      * @param string $type Type of Files to create, options are "controller" (Controller, Request, Policy adn Repository), "views" (CRUD views), "reoutes" (Register CRUD Routes), "all" (All the Resources)
      * @return boolean[] the results given By saveResource() for each file
      */
-    public static function generateResources($config, $localized, $bar, $type = "all")
-    {
-        $modeloM = ucfirst(class_basename($config['modelo']));
+    public static function generateResources($config, $localized, $bar, $type = "all") {
+        $modeloM = ucfirst(basename($config['modelo']));
         $modelo = strtolower($modeloM);
         if ($type == "controller" || $type == "all") {
 
             $path = app_path('Http/Controllers');
-            $resultController = CrudGenerator::saveResource('controller', $localized, $path, $modeloM . 'Controller.php', $config);
+            $resultController = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('controller', $localized, $path, $modeloM . 'Controller.php', $config);
             $bar->advance();
 
             $path = app_path('Http/Requests');
-            $resultRequest = CrudGenerator::saveResource('request', $localized, $path, $modeloM . 'Request.php', $config);
+            $resultRequest = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('request', $localized, $path, $modeloM . 'Request.php', $config);
             $bar->advance();
 
             $path = app_path('Policies');
-            $resultPolicy = CrudGenerator::saveResource('policy', $localized, $path, $modeloM . 'Policy.php', $config);
+            $resultPolicy = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('policy', $localized, $path, $modeloM . 'Policy.php', $config);
             $bar->advance();
 
             $path = app_path('Repositories');
-            $resultRepository = CrudGenerator::saveResource('repository', $localized, $path, $modeloM . 'Repository.php', $config);
+            $resultRepository = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('repository', $localized, $path, $modeloM . 'Repository.php', $config);
             $bar->advance();
         }
 
         if ($type == "views" || $type == "all") {
             $path = resource_path('views/models/' . $modelo);
-            $resultCreate = CrudGenerator::saveResource('views.create', $localized, $path, 'create.blade.php', $config);
+            $resultCreate = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('views.create', $localized, $path, 'create.blade.php', $config);
             $bar->advance();
 
-            $resultEdit = CrudGenerator::saveResource('views.edit', $localized, $path, 'edit.blade.php', $config);
+            $resultEdit = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('views.edit', $localized, $path, 'edit.blade.php', $config);
             $bar->advance();
 
-            $resultIndex = CrudGenerator::saveResource('views.index', $localized, $path, 'index.blade.php', $config);
+            $resultIndex = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('views.index', $localized, $path, 'index.blade.php', $config);
             $bar->advance();
 
-            $resultShow = CrudGenerator::saveResource('views.show', $localized, $path, 'show.blade.php', $config);
+            $resultShow = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('views.show', $localized, $path, 'show.blade.php', $config);
             $bar->advance();
         }
         if ($type == "routes" || $type == "all") {
             $path = base_path('routes');
-            $resultRoute = CrudGenerator::saveResource('routes', $localized, $path, 'web.php', $config, 0764, "append");
+            $resultRoute = \Sirgrimorum\CrudGenerator\CrudGenerator::saveResource('routes', $localized, $path, 'web.php', $config, 0764, "append");
         }
         if ($type == "controller") {
             return [$resultController, $resultRequest, $resultPolicy, $resultRepository];
@@ -455,14 +336,13 @@ trait CrudFiles
     }
 
     /**
-     * Register a configuratio array file in the CrudGenerator config file
+     * Register a configuratio array file in the \Sirgrimorum\CrudGenerator\CrudGenerator config file
      * @param array $config Configuration array
      * @param string $path Path to the configuration array file relative to a configuration directory
      * @param string $config_path Optional Configuration directory, if "" use config_path()
      * @return boolean
      */
-    public static function registerConfig($config, $path, $config_path = "")
-    {
+    public static function registerConfig($config, $path, $config_path = "") {
         $inPath = $path;
         $path = Str::finish(str_replace([".", "/"], ["\\", "\\"], $path), '.php');
         if ($config_path == "") {
@@ -471,15 +351,9 @@ trait CrudFiles
             $config_path = base_path($config_path . Str::start($path, "/"));
         }
         $path = $config_path;
-        $modeloM = class_basename($config['modelo']);
-        return CrudGenerator::registerConfigSimple($modeloM, $inPath, $config_path);
-    }
-
-    public static function registerConfigSimple($modeloM, $inPath, $config_path)
-    {
-        $path = $config_path;
         $crudgenConfig = config_path("sirgrimorum\\crudgenerator.php");
         if (file_exists($crudgenConfig) && file_exists($path)) {
+            $modeloM = basename($config['modelo']);
             $contents = file($crudgenConfig);
             $inicio = -1;
             $fin = -1;
@@ -515,14 +389,13 @@ trait CrudFiles
 
     /**
      * Create a configuration array file form a configuration array
-     *
+     * 
      * @param array $config COnfiguration Array
      * @param string $path Path to the configuration array file relative to a configuration directory
      * @param string $config_path Optional Configuration directory, if "" use config_path()
      * @return mix Same as file_put_contents return for the file
      */
-    public static function saveConfig($config, $path, $config_path = "")
-    {
+    public static function saveConfig($config, $path, $config_path = "") {
         $inPath = $path;
         if (isset($config['parametros'])) {
             $parametros = $config['parametros'];
@@ -537,33 +410,31 @@ trait CrudFiles
             $config_path = base_path($config_path . Str::start($path, "/"));
         }
         $path = $config_path;
-        $strConfig = CrudGenerator::arrayToFile($config);
+        $strConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::arrayToFile($config);
         $contents = file_put_contents($path, $strConfig);
         return $contents;
     }
 
     /**
      * Transform an array into a PHP file content string
-     *
+     * 
      * @param array $array Array to transform
      * @return string
      */
-    public static function arrayToFile($array)
-    {
+    private static function arrayToFile($array) {
         $strFile = "<?php" . chr(13) . chr(10) . chr(13) . chr(10) . "return [" . chr(13) . chr(10);
-        $strValue = CrudGenerator::arrayToFileWrite($array, 0);
+        $strValue = \Sirgrimorum\CrudGenerator\CrudGenerator::arrayToFileWrite($array, 0);
         $strFile .= $strValue . "];";
         return $strFile;
     }
 
     /**
      * Transform an array into a string using identation
-     *
+     * 
      * @param array $array Array to transform
      * @return string
      */
-    public static function arrayToFileWrite($array, $numParent)
-    {
+    private static function arrayToFileWrite($array, $numParent) {
         $tabs = "";
         for ($index = 0; $index <= $numParent; $index++) {
             $tabs .= chr(9);
@@ -571,7 +442,7 @@ trait CrudFiles
         $strArr = "";
         foreach ($array as $key => $value) {
             if (is_array($value)) {
-                $strValue = CrudGenerator::arrayToFileWrite($value, $numParent + 1);
+                $strValue = \Sirgrimorum\CrudGenerator\CrudGenerator::arrayToFileWrite($value, $numParent + 1);
                 $strArr .= $tabs . '"' . $key . '" => [' . chr(13) . chr(10) . $strValue . $tabs . '], ' . chr(13) . chr(10);
             } elseif (is_bool($value)) {
                 if ($value) {
@@ -600,12 +471,11 @@ trait CrudFiles
      * @param array $detalles Optiona, The configuration array for the field
      * @return string The type of file, options are: image, video, audio, pdf, text,office, compressed, other
      */
-    public static function filenameIs(string $filename, array $detalles = [])
-    {
+    public static function filenameIs(string $filename, array $detalles = []) {
         $allowedMimeTypes = [
             'image' => ['image/jpeg', 'image/gif', 'image/png', 'image/bmp', 'image/x-windows-bmp', 'image/svg+xml', 'image/x-icon', 'image/tiff'],
             //'video' =>['video/avi', 'video/msvideo', 'video/x-msvideo', 'video/mpeg', 'video/x-motion-jpeg','video/quicktime','video/vivo','video/webm','video/mp4','video/ogg', 'video/3gpp', 'video/x-ms-asf' 'application/octet-stream'],
-            'video' => ['video/avi', 'video/mpeg', 'video/webm', 'video/mp4', 'video/ogg', 'video/3gpp', 'application/octet-stream', 'video/quicktime'],
+            'video' => ['video/avi', 'video/mpeg', 'video/webm', 'video/mp4', 'video/ogg', 'video/3gpp', 'application/octet-stream'],
             //'audio' =>['audio/x-gsm', 'audio/mpeg', 'audio/midi', 'audio/x-midi', 'audio/mod','audio/mpeg3','audio/s3m','audio/wav'],
             'audio' => ['audio/mpeg', 'audio/midi', 'audio/mod', 'audio/mpeg3', 'audio/wav'],
             'pdf' => ['application/pdf'],
@@ -613,7 +483,7 @@ trait CrudFiles
             'office' => ['application/mspowerpoint', 'application/msword', 'application/excel', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint'],
             'compressed' => ['application/x-compressed', 'application/zip', 'multipart/x-zip', 'application/x-zip-compressed'],
         ];
-        $mimeType = CrudGenerator::fileMime(strtolower($filename), $detalles);
+        $mimeType = \Sirgrimorum\CrudGenerator\CrudGenerator::fileMime($filename, $detalles);
         foreach ($allowedMimeTypes as $type => $allowedMimeType) {
             if (in_array($mimeType, $allowedMimeType)) {
                 return $type;
@@ -623,78 +493,35 @@ trait CrudFiles
     }
 
     /**
-     * Get the file url using its configuration array
-     * @param object $registro The model
-     * @param string $filename The file name from the bd
-     * @param string $modelo The model name
-     * @param string $columna The camp name
-     * @param array $detalles Optional, The configuration array for the field
-     * @param array $config Optional, The full configuration array for the model
-     * @return array [TheFileName, The url to show or retrive the file]
-     */
-    public static function getFileUrl(string $filename, $registro, string $modelo, string $columna, array $detalles = [], array $config = [])
-    {
-        $modelClassName = CrudGenerator::getModel($modelo, "App\\" . ucfirst($modelo));
-        if (isset($detalles['showPath']) && is_callable($detalles['showPath'])) {
-            $urlFile = route('sirgrimorum_modelo::modelfile', ['registro' => $registro->{(new $modelClassName)->getKeyName()}, 'modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
-        } elseif (isset($detalles['showPath']) && is_string($detalles['showPath']) && Str::startsWith(strtolower($detalles['showPath']), ["http:", "https:"])) {
-            if (stripos($detalles['showPath'], ":") !== false) {
-                if (count($config) == 0) {
-                    $config = CrudGenerator::getConfigWithParametros($modelo);
-                }
-                $urlFile = CrudGenerator::translateDato($detalles['showPath'], $registro, $config);
-            } else {
-                $urlFile = $detalles['showPath'];
-            }
-            $urlFile = str_replace([":modelCampo"], [$registro->{$columna}], $urlFile);
-        } else {
-            if (isset($datos['path'])) {
-                $filename = Str::start($registro->{$columna}, Str::finish($detalles['path'], '\\'));
-            }
-            $urlFile = route('sirgrimorum_modelo::modelfile', ['registro' => $registro->{(new $modelClassName)->getKeyName()}, 'modelo' => $modelo, 'campo' => $columna]) . "?_f=" . $filename;
-        }
-        return [$filename, str_replace("\\", "/", $urlFile)];
-    }
-
-    /**
      * Get Mime of a filename in public with configuration array
      * @param string $filename The file name
-     * @param array $detalles Optional, The configuration array for the field
+     * @param array $detalles Optiona, The configuration array for the field
      * @return string The mime type
      */
-    public static function fileMime(string $filename, array $detalles = [])
-    {
+    public static function fileMime(string $filename, array $detalles = []) {
         if (isset($detalles['path'])) {
-            $path = CrudGenerator::getDisk($detalles)->url(Str::start(str_replace("\\", "/", $filename), Str::finish(str_replace("\\", "/", $detalles['path']), '/')));
+            $path = Str::start(str_replace("\\", "/", $filename), Str::finish(str_replace("\\", "/", $detalles['path']), '/'));
         } else {
-            $path = CrudGenerator::getDisk($detalles)->url($filename);
+            $path = $filename;
         }
         $ext = pathinfo($path, PATHINFO_EXTENSION);
-        $mimeType = "";
-        $typesArray = config("sirgrimorum.mimebyext", []);
-        if (!count($typesArray) == 0) {
-            if (isset($typesArray[$ext])) {
-                $mimeType = $typesArray[$ext];
+        if (file_exists($path)) {
+            $typesArray = config("sirgrimorum.mimebyext", []);
+            $mimeType = "";
+            if (!count($typesArray) == 0) {
+                if (isset($typesArray[$ext])) {
+                    $mimeType = $typesArray[$ext];
+                }
             }
-        }
-        if ($mimeType == "" && file_exists($path)) {
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $mimeType = finfo_file($finfo, $path);
-        } elseif ($mimeType == "") {
+            $otro = $mimeType;
+            if ($mimeType == "") {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mimeType = finfo_file($finfo, public_path($path));
+            }
+            return $mimeType;
+        } else {
             return false;
         }
-        return $mimeType;
     }
 
-    /**
-     * Get the disk to use with some field
-     * 
-     * @param array $detalles Optional, The configuration array for the field
-     * @param string $default Optional, The default disk to use, "local" as default
-     * @return \Illuminate\Filesystem\FilesystemAdapter
-     */
-    public static function getDisk($detalles = [], $default = "local")
-    {
-        return Storage::disk(Arr::get($detalles, "disk", $default));
-    }
 }

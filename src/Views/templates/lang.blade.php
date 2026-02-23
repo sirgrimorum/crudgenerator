@@ -3,8 +3,8 @@
 return [
     "labels" => [
         "{model}" => "{Model}",
-        "{{\Illuminate\Support\Str::plural($modelo)}}" => "{{ucfirst(\Illuminate\Support\Str::plural($modelo))}}",
-        "plural" => "{{ucfirst(\Illuminate\Support\Str::plural($modelo))}}",
+        "{{Str::plural($modelo)}}" => "{{ucfirst(Str::plural($modelo))}}",
+        "plural" => "{{ucfirst(Str::plural($modelo))}}",
         "singular" => "{Model}",
         @foreach($config['campos'] as $campo=>$datos)
         "{{ $campo }}" => "{{ str_replace(["_"],[" "],ucfirst($campo)) }}",
@@ -31,11 +31,10 @@ return [
         ],
     ],
     "titulos" => [
-        "index" => "{{ucfirst(\Illuminate\Support\Str::plural($modelo))}}",
+        "index" => "{{ucfirst(Str::plural($modelo))}}",
         "create" => "Create {model}",
         "edit" => "Edit {model}",
         "show" => "View {model}",
-        "remove" => "Remove {{\Illuminate\Support\Str::plural($modelo)}}"
     ],
     "messages" => [
         'confirm_destroy' => 'Are you sure to delete the {Model} ":modelName"?',
