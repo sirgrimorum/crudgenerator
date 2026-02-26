@@ -227,22 +227,28 @@ trait CrudConfig {
         }
         $schema = DB::getDoctrineSchemaManager();
 
-        $table_describes = DB::table('INFORMATION_SCHEMA.KEY_COLUMN_USAGE')
-                ->selectRaw("CONSTRAINT_NAME as 'key', TABLE_NAME as 'cliente', COLUMN_NAME as 'cliente_col', REFERENCED_TABLE_NAME as 'patron', REFERENCED_COLUMN_NAME as 'patron_col'")
-                ->where("TABLE_SCHEMA", "=", DB::getDatabaseName())
-                //->whereRaw('REFERENCED_TABLE_SCHEMA IS NOT NULL')
-                ->whereRaw("REFERENCED_TABLE_NAME = '$tabla'")
-                ->get();
+        $table_describes = [];
+        if (DB::getDriverName() == 'mysql') {
+            $table_describes = DB::table('INFORMATION_SCHEMA.KEY_COLUMN_USAGE')
+                    ->selectRaw("CONSTRAINT_NAME as 'key', TABLE_NAME as 'cliente', COLUMN_NAME as 'cliente_col', REFERENCED_TABLE_NAME as 'patron', REFERENCED_COLUMN_NAME as 'patron_col'")
+                    ->where("TABLE_SCHEMA", "=", DB::getDatabaseName())
+                    //->whereRaw('REFERENCED_TABLE_SCHEMA IS NOT NULL')
+                    ->whereRaw("REFERENCED_TABLE_NAME = '$tabla'")
+                    ->get();
+        }
         $auxArr = json_decode(json_encode($table_describes), true);
         $columns["hasmany"] = $auxArr;
         //echo "<p>hasmany para $tabla</p><pre>" . print_r($table_describes, true) . "</pre>";
 
-        $table_describes = DB::table('INFORMATION_SCHEMA.KEY_COLUMN_USAGE')
-                ->selectRaw("CONSTRAINT_NAME as 'key', TABLE_NAME as 'cliente', COLUMN_NAME as 'cliente_col', REFERENCED_TABLE_NAME as 'patron', REFERENCED_COLUMN_NAME as 'patron_col'")
-                ->where("TABLE_SCHEMA", "=", DB::getDatabaseName())
-                //->whereRaw('REFERENCED_TABLE_SCHEMA IS NOT NULL')
-                ->whereRaw("TABLE_NAME ='$tabla' AND REFERENCED_TABLE_SCHEMA IS NOT NULL")
-                ->get();
+        $table_describes = [];
+        if (DB::getDriverName() == 'mysql') {
+            $table_describes = DB::table('INFORMATION_SCHEMA.KEY_COLUMN_USAGE')
+                    ->selectRaw("CONSTRAINT_NAME as 'key', TABLE_NAME as 'cliente', COLUMN_NAME as 'cliente_col', REFERENCED_TABLE_NAME as 'patron', REFERENCED_COLUMN_NAME as 'patron_col'")
+                    ->where("TABLE_SCHEMA", "=", DB::getDatabaseName())
+                    //->whereRaw('REFERENCED_TABLE_SCHEMA IS NOT NULL')
+                    ->whereRaw("TABLE_NAME ='$tabla' AND REFERENCED_TABLE_SCHEMA IS NOT NULL")
+                    ->get();
+        }
 
         $auxArr = json_decode(json_encode($table_describes), true);
         //echo "<pre>" . print_r($columns["hasmany"], true) . "</pre>";
@@ -262,11 +268,14 @@ trait CrudConfig {
         }
         $manytomany = [];
         foreach ($columns["hasmany"] as $indice => $relacion) {
-            $table_describes = DB::table('INFORMATION_SCHEMA.KEY_COLUMN_USAGE')
-                    ->selectRaw("CONSTRAINT_NAME as 'key', TABLE_NAME as 'intermedia', COLUMN_NAME as 'intermedia_col', REFERENCED_TABLE_NAME as 'otro', REFERENCED_COLUMN_NAME as 'otro_col'")
-                    ->where("TABLE_SCHEMA", "=", DB::getDatabaseName())
-                    ->whereRaw("TABLE_NAME ='{$relacion['cliente']}' AND REFERENCED_TABLE_SCHEMA IS NOT NULL")
-                    ->get();
+            $table_describes = [];
+            if (DB::getDriverName() == 'mysql') {
+                $table_describes = DB::table('INFORMATION_SCHEMA.KEY_COLUMN_USAGE')
+                        ->selectRaw("CONSTRAINT_NAME as 'key', TABLE_NAME as 'intermedia', COLUMN_NAME as 'intermedia_col', REFERENCED_TABLE_NAME as 'otro', REFERENCED_COLUMN_NAME as 'otro_col'")
+                        ->where("TABLE_SCHEMA", "=", DB::getDatabaseName())
+                        ->whereRaw("TABLE_NAME ='{$relacion['cliente']}' AND REFERENCED_TABLE_SCHEMA IS NOT NULL")
+                        ->get();
+            }
             //echo "<p>analizando otro para $tabla y {$relacion['cliente']}</p><pre>" . print_r(['relacion'=>$relacion,'tabledescribes'=>$table_describes], true) . "</pre>";
             if (count($table_describes) == 2) {
                 if ($table_describes[0]->otro != $tabla) {
@@ -416,7 +425,7 @@ trait CrudConfig {
                         $tipoRelacion = class_basename(get_class($modeloE->{$method->name}()));
                         switch ($tipoRelacion) {
                             case 'BelongsToMany':
-                                $deTabla = array_where($columns['manytomany'], function($value, $key) use ($datosQueryAux) {
+                                $deTabla = Arr::where($columns['manytomany'], function($value, $key) use ($datosQueryAux) {
                                     return ($value['intermedia'] == $datosQueryAux[1]);
                                 });
                                 if (count($deTabla) > 0) {
@@ -439,14 +448,14 @@ trait CrudConfig {
                                         'relatedId' => $datosQueryAux[3],
                                         'intermediaModelId' => $datosQueryAux[7],
                                         'modelId' => substr($modeloE->{$method->name}()->getQualifiedParentKeyName(), stripos($modeloE->{$method->name}()->getQualifiedParentKeyName(), ".") + 1),
-                                        'foreignId' => $modeloE->{$method->name}()->getForeignKey(),
+                                        'foreignId' => $modeloE->{$method->name}()->getForeignPivotKeyName(),
                                             //'ownerId' => $modeloE->{$method->name}()->getQualifiedRelatedPivotKeyName(),
                                     ];
                                 }
                                 break;
                             case 'BelongsTo':
-                                $foreign = $modeloE->{$method->name}()->getForeignKey();
-                                $deTabla = array_where($columns['belongsto'], function($value, $key) use ($foreign, $datosQueryAux) {
+                                $foreign = $modeloE->{$method->name}()->getForeignKeyName();
+                                $deTabla = Arr::where($columns['belongsto'], function($value, $key) use ($foreign, $datosQueryAux) {
                                     return ($value['cliente_col'] == $foreign && $value['patron_col'] == $datosQueryAux[2]);
                                 });
                                 if (count($deTabla) > 0) {
@@ -465,7 +474,7 @@ trait CrudConfig {
                                 unset($columns['campos'][$datosQuery['modelRelatedId']]);
                                 break;
                             case 'HasMany':
-                                $deTabla = array_where($columns['hasmany'], function($value, $key) use ($related) {
+                                $deTabla = Arr::where($columns['hasmany'], function($value, $key) use ($related) {
                                     return $value['cliente'] == $related->getTable();
                                 });
                                 if (count($deTabla) > 0) {
@@ -1029,8 +1038,8 @@ trait CrudConfig {
      * @param string|array $tipo Type of field
      * @return boolean
      */
-    public static function hasTipo($array, $tipo) {
-        foreach ($array['campos'] as $campo => $configCampo) {
+    public static function hasTipo($config, $tipo) {
+        foreach ($config['campos'] as $campo => $configCampo) {
             if (is_array($tipo)) {
                 foreach ($tipo as $miniTipo) {
                     if (strtolower($configCampo['tipo']) == strtolower($miniTipo)) {
@@ -1042,6 +1051,94 @@ trait CrudConfig {
             }
         }
         return false;
+    }
+
+    public static function hasValor($config, $columna, $valor)
+    {
+        foreach ($config['campos'] as $campo => $configCampo) {
+            if (isset($configCampo[$columna])) {
+                if (is_array($valor)) {
+                    if (in_array(strtolower($configCampo[$columna]), $valor)) {
+                        return true;
+                    }
+                } elseif (strtolower($configCampo[$columna]) == strtolower($valor)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static function hasClave($config, $columna)
+    {
+        foreach ($config['campos'] as $campo => $configCampo) {
+            if (isset($configCampo[$columna]) && $configCampo[$columna] != "") {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static function forValor($config, $columna, $valor, $callback)
+    {
+        if (is_callable($callback)) {
+            foreach ($config['campos'] as $campo => $configCampo) {
+                if (isset($configCampo[$columna])) {
+                    if (is_array($valor)) {
+                        if (in_array(strtolower($configCampo[$columna]), $valor)) {
+                            $callback($campo, $configCampo);
+                        }
+                    } elseif (strtolower($configCampo[$columna]) == strtolower($valor)) {
+                        $callback($campo, $configCampo);
+                    }
+                }
+            }
+        }
+    }
+
+    public static function justWithValor($config, $columna, $valor)
+    {
+        $newConfig = $config;
+        $newConfig['campos'] = [];
+        foreach ($config['campos'] as $campo => $configCampo) {
+            if (isset($configCampo[$columna])) {
+                if (is_array($valor)) {
+                    if (in_array(strtolower($configCampo[$columna]), $valor)) {
+                        $newConfig['campos'][$campo] = $configCampo;
+                    }
+                } elseif (strtolower($configCampo[$columna]) == strtolower($valor)) {
+                    $newConfig['campos'][$campo] = $configCampo;
+                }
+            }
+        }
+        return $newConfig;
+    }
+
+    public static function getCamposNames($config, $nombreOriginal = false, $columna = null, $valor = null)
+    {
+        $columns = [];
+        foreach ($config['campos'] as $campo => $configCampo) {
+            $campoPoner = "";
+            if ($columna == null || $valor == null) {
+                $campoPoner = $campo;
+            } elseif (isset($configCampo[$columna])) {
+                if (is_array($valor)) {
+                    if (in_array(strtolower($configCampo[$columna]), $valor)) {
+                        $campoPoner = $campo;
+                    }
+                } elseif (strtolower($configCampo[$columna]) == strtolower($valor)) {
+                    $campoPoner = $campo;
+                }
+            }
+            if ($campoPoner != "") {
+                if ($nombreOriginal) {
+                    $columns[] = $campoPoner;
+                } else {
+                    $columns[] = Arr::get($configCampo, 'nombre', $campoPoner);
+                }
+            }
+        }
+        return $columns;
     }
 
     
@@ -1111,6 +1208,218 @@ trait CrudConfig {
             }
         }
         return $config;
+    }
+
+    public static function loadDefaultClasses($config, $sub = false)
+    {
+        if (!isset($config['class_form'])) {
+            $config['class_form'] = '';
+        }
+        if (!isset($config['class_labelcont'])) {
+            $config['class_labelcont'] = !$sub ? 'col-xs-12 col-sm-12 col-md-3' : 'col-xs-12 col-sm-12 col-md-12 col-lg-3';
+        }
+        if (!isset($config['class_label'])) {
+            $config['class_label'] = 'col-form-label font-weight-bold mb-0 pb-0';
+        }
+        if (!isset($config['class_divinput'])) {
+            $config['class_divinput'] = !$sub ? 'col-xs-12 col-sm-12 col-md-9' : 'col-xs-12 col-sm-12 col-md-12 col-lg-9';
+        }
+        if (!isset($config['class_divbutton'])) {
+            $config['class_divbutton'] = 'form-group row';
+        }
+        if (!isset($config['class_input'])) {
+            $config['class_input'] = '';
+        }
+        if (!isset($config['class_offset'])) {
+            $config['class_offset'] = !$sub ? 'offset-xs-0 offset-sm-0 offset-md-3' : 'offset-xs-0 offset-sm-0 offset-md-0 offset-lg-3';
+        }
+        if (!isset($config['class_button'])) {
+            $config['class_button'] = 'btn btn-primary';
+        }
+        if (!isset($config['class_formgroup'])) {
+            $config['class_formgroup'] = '';
+        }
+        if (!isset($config['pre_html'])) {
+            $config['pre_html'] = "";
+        }
+        if (!isset($config['post_html'])) {
+            $config['post_html'] = "";
+        }
+        if (!isset($config['pre_form_html'])) {
+            $config['pre_form_html'] = "";
+        }
+        if (!isset($config['post_form_html'])) {
+            $config['post_form_html'] = "";
+        }
+        return $config;
+    }
+
+    /**
+     * Get just the value of a field from a complete registry_array
+     *
+     * @param string $campo The field name
+     * @param array $value The array obtained from callin CrunGenerator::registry_array($config, $registro, 'complete')
+     * @param array $config The configuration array
+     * @param string $default The default value in case the field is not found, normally is '-'
+     * @param
+     */
+    public static function getJustValue($campo, $value, $config, $default = "-")
+    {
+        $result = $default;
+        if (isset($value[$config[$campo]])) {
+            if (is_array($value[$config[$campo]]) && isset($value[$config[$campo]]['value'])) {
+                $result = $value[$config[$campo]]['value'];
+            } elseif (is_array($value[$config[$campo]])) {
+                if (count($value[$config[$campo]]) > 0) {
+                    $result = $value[$config[$campo]][0];
+                }
+            } else {
+                $result = $value[$config[$campo]];
+            }
+        }
+        return $result ?? $default;
+    }
+
+    /**
+     * Generate an array of buttons mainly for list views
+     *
+     * @param string $modelo The model name
+     * @param array $config The config array
+     * @return array The array with buttons for show, edit, remove and create
+     */
+    public static function generateArrBotones($modelo, $config)
+    {
+        //$base_url = route("sirgrimorum_home", App::getLocale());
+        if (($textConfirm = trans('crudgenerator::' . strtolower($modelo) . '.messages.confirm_destroy')) == 'crudgenerator::' . strtolower($modelo) . '.mensajes.confirm_destroy') {
+            $textConfirm = trans('crudgenerator::admin.messages.confirm_destroy');
+        }
+        if (\Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.plural")) {
+            $plurales = trans("crudgenerator::" . strtolower($modelo) . ".labels.plural");
+        } else {
+            $plurales = Str::plural($modelo);
+        }
+        if (\Lang::has("crudgenerator::" . strtolower($modelo) . ".labels.singular")) {
+            $singulares = trans("crudgenerator::" . strtolower($modelo) . ".labels.singular");
+        } else {
+            $singulares = $modelo;
+        }
+        $urls = [];
+        if ($config['url'] == "Sirgrimorum_CrudAdministrator") {
+            $urls = [
+                "show" => route('sirgrimorum_modelo::show', ['modelo' => $modelo, 'registro' => ':modelId']),
+                "edit" => route('sirgrimorum_modelo::edit', ['modelo' => $modelo, 'registro' => ':modelId']),
+                "remove" => route('sirgrimorum_modelo::destroy', ['modelo' => $modelo, 'registro' => ':modelId']),
+                "create" => route('sirgrimorum_modelos::create', ['modelo' => $modelo]),
+            ];
+        } elseif (is_array($config['url'])) {
+            $urls = [
+                "show" =>  Arr::get($config['url'], 'show', route('sirgrimorum_modelo::show', ['modelo' => $modelo, 'registro' => ':modelId'])),
+                "edit" => Arr::get($config['url'], 'edit', route('sirgrimorum_modelo::edit', ['modelo' => $modelo, 'registro' => ':modelId'])),
+                "remove" => Arr::get($config['url'], 'remove', route('sirgrimorum_modelo::destroy', ['modelo' => $modelo, 'registro' => ':modelId'])),
+                "create" => Arr::get($config['url'], 'create', route('sirgrimorum_modelos::create', ['modelo' => $modelo])),
+            ];
+        }
+        $textos = [
+            "show" => trans("crudgenerator::datatables.buttons.show"),
+            "edit" => trans("crudgenerator::datatables.buttons.edit"),
+            "remove" => trans("crudgenerator::datatables.buttons.remove"),
+            "create" => trans("crudgenerator::datatables.buttons.create"),
+        ];
+        $titles = [
+            "show" => Arr::get(__("crudgenerator::$modelo.labels"), "show", trans("crudgenerator::datatables.buttons.t_show") . " $singulares"),
+            "edit" => Arr::get(__("crudgenerator::$modelo.labels"), "edit", trans("crudgenerator::datatables.buttons.t_edit") . " $singulares"),
+            "remove" => Arr::get(__("crudgenerator::$modelo.labels"), "remove", trans("crudgenerator::datatables.buttons.t_remove") . " $singulares"),
+            "create" => Arr::get(__("crudgenerator::$modelo.labels"), "create", trans("crudgenerator::datatables.buttons.t_create") . " $singulares"),
+        ];
+
+        return [
+            'show' => "<a class='btn btn-info' href='{$urls['show']}' title='{$titles['show']}'>{$textos['show']}</a>",
+            'edit' => "<a class='btn btn-success' href='{$urls['edit']}' title='{$titles['edit']}'>{$textos['edit']}</a>",
+            'remove' => "<a class='btn btn-danger' href='{$urls['remove']}' data-confirm='$textConfirm' data-yes='" . trans('crudgenerator::admin.layout.labels.yes') . "' data-no='" . trans('crudgenerator::admin.layout.labels.no') . "' data-confirmtheme='" . config('sirgrimorum.crudgenerator.confirm_theme') . "' data-confirmicon='" . config('sirgrimorum.crudgenerator.confirm_icon') . "' data-confirmtitle='' data-method='delete' rel='nofollow' title='{$titles['remove']}'>{$textos['remove']}</a>",
+            'create' => "<a class='btn btn-info' href='{$urls['create']}' title='{$titles['create']}'>{$textos['create']}</a>",
+        ];
+    }
+
+    /**
+     * Generate get the arrays for rules, messages and Custom Attributes for validation
+     * including the dynamic ones for relationshipssel fields
+     *
+     * @param array $config The config array
+     * @return array [$rules, $messages, $customAttributes]
+     */
+    public static function getRulesWithRelationShips($config, \Illuminate\Http\Request $request = null)
+    {
+        if (is_null($request)) {
+            $request = request();
+        }
+        $rules = [];
+        $error_messages = [];
+        $customAttributes = [];
+        foreach ($config["campos"] as $field => $datos) {
+            $customAttributes[$field] = Arr::get($datos, "label", $field);
+        }
+        if (isset($config['rules'])) {
+            if (is_array($config['rules'])) {
+                $rules = $config['rules'];
+            }
+        }
+        if (count($rules) == 0) {
+            $objModelo = new $config['modelo'];
+            if (isset($objModelo->rules)) {
+                if (is_array($objModelo->rules)) {
+                    $rules = $objModelo->rules;
+                }
+            }
+        }
+        $auxIdCambio = $request->get($config["id"]);
+
+        $rules = CrudGenerator::translateArray($rules, ":model", function ($string) use ($auxIdCambio) {  
+            return $auxIdCambio;
+        }, "Id");
+        if (count($rules) > 0) {
+            $error_messages = [];
+            if (isset($config['error_messages'])) {
+                if (is_array($config['error_messages'])) {
+                    $error_messages = $config['error_messages'];
+                }
+            }
+            if (count($error_messages) == 0) {
+                $objModelo = new $config['modelo'];
+                if (isset($objModelo->error_messages)) {
+                    if (is_array($objModelo->error_messages)) {
+                        $error_messages = $objModelo->error_messages;
+                    }
+                }
+            }
+            foreach (CrudGenerator::justWithValor($config, "tipo", "relationshipssel")['campos'] as $relacion => $datos) {
+                foreach ($datos['columnas'] as $detalles) {
+                    if (($campo = Arr::get($detalles, "campo", "")) != "") {
+                        $tambienMensajes = [];
+                        if (Arr::has($rules, "{$relacion}__{$campo}")) {
+                            if ($request->has($relacion)) {
+                                foreach ($request->input($relacion) as $pivot => $id) {
+                                    $rules["{$relacion}_{$campo}_$id"] = $rules["{$relacion}__{$campo}"]; 
+                                    foreach ($error_messages as $err => $mes) {
+                                        if (strpos($err, "{$relacion}__{$campo}") !== false) {
+                                            $tambienMensajes[$err] = $err;
+                                            $error_messages[str_replace("{$relacion}__{$campo}", "{$relacion}_{$campo}_$id", $err)] = str_replace(":submodel", $pivot, $mes);
+                                        }
+                                    }
+                                    $customAttributes["{$relacion}_{$campo}_$id"] = Arr::get($detalles, "label", $campo) . " " . trans("crudgenerator::admin.layout.labels.de") . " " . $pivot;
+                                }
+                            }
+                            unset($rules["{$relacion}__{$campo}"]);
+                        }
+                        if (count($tambienMensajes) > 0) {
+                            foreach ($tambienMensajes as $error)
+                                unset($error_messages[$error]);
+                        }
+                    }
+                }
+            }
+            $error_messages = array_merge(trans("crudgenerator::admin.error_messages"), $error_messages); 
+        }
+        return [$rules, $error_messages, $customAttributes];
     }
 
 }

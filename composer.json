@@ -18,12 +18,21 @@
         "intervention/image": "^3.0",
         "doctrine/dbal": "^3.0|^4.0"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "orchestra/testbench": "^8.0|^9.0"
+    },
     "autoload": {
         "classmap": [
             "src"
         ],
         "psr-4": {
             "Sirgrimorum\\CrudGenerator\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Sirgrimorum\\CrudGenerator\\Tests\\": "tests/"
         }
     },
     "extra": {

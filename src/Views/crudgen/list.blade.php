@@ -418,12 +418,12 @@ if (old("__parametros","") != ""){
 
     <?php
 }
-if (str_contains(config("sirgrimorum.crudgenerator.jquerytables_path"), ['http', '://'])) {
+if (Str::contains(config("sirgrimorum.crudgenerator.jquerytables_path"), ['http', '://'])) {
     echo '<link href="' . config("sirgrimorum.crudgenerator.jquerytables_path") . '" rel="stylesheet" type="text/css">';
 } else {
     echo '<link href="' . asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/datatables.min.css") . '" rel="stylesheet" type="text/css">';
 }
-if (str_contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
+if (Str::contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
     echo '<link href="' . config("sirgrimorum.crudgenerator.confirm_path") . '" rel="stylesheet" type="text/css">';
 } else {
     echo '<link href="' . asset(config("sirgrimorum.crudgenerator.confirm_path") . "/css/jquery-confirm.min.css") . '" rel="stylesheet" type="text/css">';
@@ -439,12 +439,12 @@ if ($js_section != "") {
 
     <?php
 }
-if (str_contains(config("sirgrimorum.crudgenerator.jquerytables_path"), ['http', '://'])) {
+if (Str::contains(config("sirgrimorum.crudgenerator.jquerytables_path"), ['http', '://'])) {
     //echo '<script src="' . config("sirgrimorum.crudgenerator.jquerytables_path") . '"></script>';
 } else {
     echo '<script src="' . asset(config("sirgrimorum.crudgenerator.jquerytables_path") . "/datatables.min.js") . '"></script>';
 }
-if (str_contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
+if (Str::contains(config("sirgrimorum.crudgenerator.confirm_path"), ['http', '://'])) {
     echo '<script src="' . config("sirgrimorum.crudgenerator.confirm_path") . '"></script>';
     echo '<script src="' . asset("vendor/sirgrimorum/confirm/js/rails.js") . '"></script>';
 } else {

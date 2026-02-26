@@ -1182,7 +1182,7 @@ trait CrudModels {
      * @param boolean $addNewName Optional, if true, will add the new field name to the filename (assumed in $campo . "_name" in input)
      * @return boolean|string The name of the faile to save in the bd or false if something went wrong
      */
-    private static function saveFileFromRequest(\Illuminate\Http\Request $input, $campo, array $detalles, $addNewName = true) {
+    public static function saveFileFromRequest(\Illuminate\Http\Request $input, $campo, array $detalles, $addNewName = true) {
         if ($input->hasFile($campo)) {
             $file = $input->file($campo);
             if ($file) {

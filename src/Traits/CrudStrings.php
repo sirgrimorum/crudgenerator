@@ -327,6 +327,9 @@ trait CrudStrings {
     private static function getModel($modelo, $probable = '') {
         $modeloClass = $probable;
         if (!class_exists($modeloClass)) {
+            if (class_exists($modelo)) {
+                return $modelo;
+            }
             $modeloClass = "App\\" . $modelo;
             if (!class_exists($modeloClass)) {
                 $modelo = strtolower($modelo);
@@ -357,6 +360,102 @@ trait CrudStrings {
         return $modeloClass;
     }
 
+    public static function getDatoToShow($datos, $action, array $detalles, $registro, $justString = true)
+    {
+        if (isset($detalles["{$action}_data"])) {
+            if (is_callable($detalles["{$action}_data"])) {
+                $return = $detalles["{$action}_data"]($datos, $registro);
+                if (is_array($return) && $justString) {
+                    return "<pre>" . print_r($return, true) . "</pre>";
+                }
+                return \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($registro, $return);
+            } elseif ($datos !== null && ($return = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($registro, $detalles["{$action}_data"])) !== null) {
+                if (is_array($return) && $justString) {
+                    return "<pre>" . print_r($return, true) . "</pre>";
+                }
+                return $return;
+            }
+        }
+        if ($datos !== null && is_array($datos)) {
+            if ($action == "list" && isset($datos['html_cell'])) {
+                return $datos['html_cell'];
+            } elseif (isset($datos['html_show'])) {
+                return $datos['html_show'];
+            } elseif (isset($datos['html'])) {
+                return $datos['html'];
+            } elseif (isset($datos['value'])) {
+                return (string) $datos['value'];
+            } elseif ($justString) {
+                return "<pre>" . print_r($datos, true) . "</pre>";
+            }
+        }
+        return $datos;
+    }
+
+    public static function getPrefixesTranslateConfig()
+    {
+        $prefixes = config("sirgrimorum.crudgenerator.data_prefixes", []);
+        if (count($prefixes) <= 0) {
+            $prefixes = [
+                config("sirgrimorum.crudgenerator.locale_key", "__getLocale__") => 'Illuminate\Support\Facades\App::getLocale',
+                config("sirgrimorum.crudgenerator.asset_prefix", '__asset__') => 'asset',
+                config("sirgrimorum.crudgenerator.route_prefix", '__route__') => 'route',
+                config("sirgrimorum.crudgenerator.url_prefix", '__url__') => 'url',
+                config("sirgrimorum.crudgenerator.trans_prefix", '__trans__') => '__',
+                config("sirgrimorum.crudgenerator.transarticle_prefix", '__transarticle__') => 'trans_article',
+                config("sirgrimorum.crudgenerator.config_prefix", '__config__') => [true, 'config'],
+            ];
+        }
+        return $prefixes;
+    }
+
+    public static function translateDato($item, $registro = null, $config = null, $close = "__")
+    {
+        if (isset($item)) {
+            if ($registro != null) {
+                $item = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($registro, $item);
+            }
+            $prefixes = \Sirgrimorum\CrudGenerator\CrudGenerator::getPrefixesTranslateConfig();
+            foreach ($prefixes as $prefix => $preFunction) {
+                $sigue = true;
+                if (is_array($preFunction)) {
+                    $function = $preFunction[1];
+                    $sigue = $preFunction[0];
+                    if ($preFunction[0]) {
+                        $sigue = $registro != null;
+                    }
+                } else {
+                    $function = $preFunction;
+                }
+                if ($sigue) {
+                    if (is_string($item)) { //&& strlen($item) <= 255) {
+                        if (strpos($item, $prefix) !== false) {
+                            if ($function instanceof \Closure) {
+                                $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, $prefix, $function);
+                            } elseif (is_string($function)) {
+                                if (function_exists($function)) {
+                                    $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateString($item, $prefix, $function);
+                                }
+                            }
+                        }
+                    } elseif (is_array($item)) {
+                        $item = \Sirgrimorum\CrudGenerator\CrudGenerator::translateArray($item, $prefix, $function, $close);
+                    }
+                }
+            }
+            if ($config != null && is_array($config) && $registro != null && is_object($registro) && is_string($item) && strlen($item) <= 255) {
+                if (isset($config['id']) && isset($registro->{$config['id']}) && (strpos($item, ":modelId") !== false || strpos($item, urlencode(":modelId")) !== false)) {
+                    $item = str_replace([":modelId", urlencode(":modelId")], $registro->{$config['id']}, $item);
+                }
+                if (isset($config['nombre']) && (strpos($item, ":modelName") !== false || strpos($item, urlencode(":modelName")) !== false)) {
+                    $nombreValor = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($registro, $config['nombre'], "-", ":modelName");
+                    $item = str_replace([":modelName", urlencode(":modelName")], $nombreValor, $item);
+                }
+            }
+        }
+        return $item;
+    }
+
     /**
      * Split a query string into names in an array
      * @param string $query The query string
@@ -364,17 +463,23 @@ trait CrudStrings {
      */
     private static function splitQueryNames($query) {
         $resultado = [];
+        $quote = "";
         if (($left = (stripos($query, "`"))) !== false) {
+            $quote = "`";
+        } elseif (($left = (stripos($query, '"'))) !== false) {
+            $quote = '"';
+        }
+        if ($quote != "") {
             while ($left !== false) {
                 //echo "<pre>" . print_r($query, true) . "</pre>";
-                if (($right = stripos($query, "`", $left + 1)) === false) {
+                if (($right = stripos($query, $quote, $left + 1)) === false) {
                     $right = strlen($query);
                 }
                 $piece = substr($query, $left + 1, $right - ($left + 1));
                 $resultado[] = $piece;
                 $query = substr($query, $right + 1);
                 //echo "<pre>" . print_r(['prefix' => config("sirgrimorum.crudgenerator.trans_prefix"), 'lenprefix' => strlen(config("sirgrimorum.crudgenerator.trans_prefix")), 'left' => $left, 'rigth' => $right, 'piece' => $piece, 'lenpiece' => strlen($piece), 'csss' => $item], true) . "</pre>";
-                $left = (stripos($query, "`"));
+                $left = (stripos($query, $quote));
             }
         }
         return $resultado;
