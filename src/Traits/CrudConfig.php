@@ -225,8 +225,6 @@ trait CrudConfig {
         if (!Schema::hasTable($tabla)) {
             return false;
         }
-        $schema = DB::getDoctrineSchemaManager();
-
         $table_describes = [];
         if (DB::getDriverName() == 'mysql') {
             $table_describes = DB::table('INFORMATION_SCHEMA.KEY_COLUMN_USAGE')
@@ -1277,7 +1275,7 @@ trait CrudConfig {
                 $result = $value[$config[$campo]];
             }
         }
-        return $result ?? $default;
+        return $result;
     }
 
     /**
