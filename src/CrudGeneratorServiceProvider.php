@@ -9,6 +9,7 @@ use Illuminate\Foundation\AliasLoader;
 use Sirgrimorum\CrudGenerator\ExtendedValidator;
 use Illuminate\Support\Facades\Blade;
 use Sirgrimorum\CrudGenerator\CrudGenerator;
+use Sirgrimorum\CrudGenerator\Helpers\FormHelper;
 use Illuminate\Support\Facades\Artisan;
 use Pusher\Pusher;
 
@@ -453,6 +454,10 @@ class CrudGeneratorServiceProvider extends ServiceProvider {
             return new CrudGenerator($app);
         });
         $loader->alias('CrudGenerator', CrudGenerator::class);
+
+        // Register internal Form helper as the 'Form' alias,
+        // replacing the abandoned laravelcollective/html dependency.
+        $loader->alias('Form', FormHelper::class);
 
 
         $this->app->alias(CrudGenerator::class, 'CrudGenerator');
