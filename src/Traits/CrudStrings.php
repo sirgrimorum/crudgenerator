@@ -201,7 +201,7 @@ trait CrudStrings {
      */
     private static function translateString($item, $prefix, $function, $close = "__") {
         $result = "";
-        if (str_contains($item, $prefix)) {
+        if ($prefix != "" && str_contains($item, $prefix)) {
             if (($left = (stripos($item, $prefix))) !== false) {
                 while ($left !== false) {
                     if (($right = stripos($item, $close, $left + strlen($prefix))) === false) {
@@ -705,7 +705,7 @@ trait CrudStrings {
         $defaultLocale = $app->config->get('app.locale');
         $modeloClass = $modelo;
         $crud = true;
-        $transroute = $app->translator->trans('routes.routes.' . $modelo, [], $currentLocale);
+        $transroute = $app->translator->get('routes.routes.' . $modelo, [], $currentLocale);
         if (stripos($transroute, ".") !== false) {
             if (!file_exists(resource_path("lang/vendor/crudgenerator/" . $currentLocale . "/" . $modeloClass . ".php"))) {
                 if (!file_exists(resource_path("lang/vendor/crudgenerator/" . $defaultLocale . "/" . $modeloClass . ".php"))) {
@@ -735,7 +735,7 @@ trait CrudStrings {
                 if ($crud) {
                     $modeloClass = 'crudgenerator::' . $modeloClass . '.labels';
                 }
-                $base = $app->translator->trans($modeloClass . '.' . $modelo, [], $currentLocale);
+                $base = $app->translator->get($modeloClass . '.' . $modelo, [], $currentLocale);
                 if (stripos($base, ".") > 0) {
                     $base = $modelo; //. $base;
                 } else {
@@ -770,14 +770,14 @@ trait CrudStrings {
             }
             $route = $routes[1];
         }
-        $transroute = $app->translator->trans('routes.actions.' . $route, [], $locale);
+        $transroute = $app->translator->get('routes.actions.' . $route, [], $locale);
         if (stripos($transroute, ".") !== false) {
-            $transroute = $app->translator->trans('crudgenerator::admin.routes.' . $route, [], $locale);
+            $transroute = $app->translator->get('crudgenerator::admin.routes.' . $route, [], $locale);
             if (stripos($transroute, ".") !== false) {
                 $transroute = $route;
             }
         }
-        //$route = $app->translator->trans('crudgenerator::admin.routes.' . $route);
+        //$route = $app->translator->get('crudgenerator::admin.routes.' . $route);
         return $base . $transroute;
     }
 
@@ -790,7 +790,7 @@ trait CrudStrings {
         $app = app();
         $locale = \Sirgrimorum\CrudGenerator\CrudGenerator::setLocale();
         //$locale = $app->getLocale();
-        $transroute = $app->translator->trans($route, [], $locale);
+        $transroute = $app->translator->get($route, [], $locale);
         return $transroute;
     }
 

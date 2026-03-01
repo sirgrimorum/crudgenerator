@@ -79,14 +79,14 @@ class ExtendedValidator extends Validator {
         $trans = $this->getTranslator();
         $i = 0;
         foreach($langs as $localeCode) {
-            $lang = $trans->trans('crudgenerator::admin.layout.labels.' . $localeCode);
+            $lang = $trans->get('crudgenerator::admin.layout.labels.' . $localeCode);
             $lang = lcfirst($lang);
             if ($i == 0) {
                 $str = $lang;
             } elseif ($i < count($langs) - 1) {
                 $str .= ", " . $lang;
             } else {
-                $str .= " " . $trans->trans('crudgenerator::admin.layout.labels.and') . " " . $lang;
+                $str .= " " . $trans->get('crudgenerator::admin.layout.labels.and') . " " . $lang;
             }
             $i++;
         }

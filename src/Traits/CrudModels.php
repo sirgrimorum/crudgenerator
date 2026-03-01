@@ -166,13 +166,19 @@ trait CrudModels {
      * @param array $config Optional The configuration array for the field
      * @return array with the values in the config format
      */
-    public static function field_array($value, $columna, $datos = "") {
+    public static function field_array($value, $columna, $datos = "", $config = "") {
+        if (is_string($datos) && ($datos == "simple" || $datos == "complete")) {
+            $solo = $datos;
+            $datos = $config;
+        } else {
+            $solo = "complete";
+        }
         if ($datos == "") {
             $modelo = strtolower(class_basename(get_class($value)));
-            $config = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfigWithParametros($modelo);
-            if (isset($config['campos'][$columna])) {
-                if (is_array($config['campos'][$columna])) {
-                    $datos = $config['campos'][$columna];
+            $auxConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfigWithParametros($modelo);
+            if (isset($auxConfig['campos'][$columna])) {
+                if (is_array($auxConfig['campos'][$columna])) {
+                    $datos = $auxConfig['campos'][$columna];
                 } else {
                     $celda = [
                         "data" => $value->{$columna},
