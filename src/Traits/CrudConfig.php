@@ -287,26 +287,31 @@ trait CrudConfig {
                 if ($otroModel = \Sirgrimorum\CrudGenerator\CrudGenerator::getModel($singular, "App\\" . ucfirst($singular))) {
                     if ($relacion['cliente'] != $otro->otro && $relacion['key'] != $otro->key) {
                         $pivotColumns = [];
-                        foreach ($schema->listTableColumns($relacion['cliente']) as $column) {
-                            if ($column->getName() != $relacion['cliente_col'] && $column->getName() != $otro->intermedia_col && $column->getName() != "created_at" && $column->getName() != "updated_at") {
-                                $pivotColumns[$column->getName()] = [
-                                    "name" => $column->getName(),
-                                    "type" => $column->getType()->getName(),
-                                    "lenght" => $column->getLength(),
-                                    "default" => $column->getDefault(),
-                                    "autoincrement" => $column->getAutoincrement(),
-                                    "type" => $column->getType()->getName(),
-                                    "notNull" => $column->getNotnull(),
+                        $tableColumns = method_exists(DB::connection(), 'getDoctrineSchemaManager') ? DB::connection()->getDoctrineSchemaManager()->listTableColumns($relacion['cliente']) : Schema::getColumns($relacion['cliente']);
+                        foreach ($tableColumns as $column) {
+                            $colName = is_array($column) ? $column['name'] : $column->getName();
+                            if ($colName != $relacion['cliente_col'] && $colName != $otro->intermedia_col && $colName != "created_at" && $colName != "updated_at") {
+                                $pivotColumns[$colName] = [
+                                    "name" => $colName,
+                                    "type" => is_array($column) ? $column['type_name'] : $column->getType()->getName(),
+                                    "lenght" => is_array($column) ? null : $column->getLength(),
+                                    "default" => is_array($column) ? $column['default'] : $column->getDefault(),
+                                    "autoincrement" => is_array($column) ? $column['auto_increment'] : $column->getAutoincrement(),
+                                    "notNull" => is_array($column) ? !$column['nullable'] : $column->getNotnull(),
                                 ];
                             }
                         }
-                        foreach ($schema->listTableIndexes($relacion['cliente']) as $index) {
-                            foreach ($index->getColumns() as $column) {
-                                if (isset($pivotColumns[$column])) {
-                                    if ($index->isPrimary()) {
-                                        unset($pivotColumns[$column]);
+                        $tableIndexes = method_exists(DB::connection(), 'getDoctrineSchemaManager') ? DB::connection()->getDoctrineSchemaManager()->listTableIndexes($relacion['cliente']) : Schema::getIndexes($relacion['cliente']);
+                        foreach ($tableIndexes as $index) {
+                            $idxColumns = is_array($index) ? $index['columns'] : $index->getColumns();
+                            $isPrimary = is_array($index) ? $index['primary'] : $index->isPrimary();
+                            $isUnique = is_array($index) ? $index['unique'] : $index->isUnique();
+                            foreach ($idxColumns as $colName) {
+                                if (isset($pivotColumns[$colName])) {
+                                    if ($isPrimary) {
+                                        unset($pivotColumns[$colName]);
                                     } else {
-                                        $pivotColumns[$column]['isUnique'] = $index->isUnique();
+                                        $pivotColumns[$colName]['isUnique'] = $isUnique;
                                     }
                                 }
                             }
@@ -354,40 +359,45 @@ trait CrudConfig {
         //echo "<p>hasmany para $tabla</p><pre>" . print_r($columns["hasmany"], true) . "</pre>";
         //$columns["foreign"] = $schema->listTableForeignKeys($tabla);
         //echo "<p>doctrine</p><pre>" . print_r($schema->listTableForeignKeys($tabla), true) . "</pre>";
-        foreach ($schema->listTableColumns($tabla) as $column) {
-            $columns['campos'][$column->getName()] = [
-                "name" => $column->getName(),
-                "type" => $column->getType()->getName(),
-                "lenght" => $column->getLength(),
-                "precision" => $column->getPrecision(),
-                "default" => $column->getDefault(),
-                "autoincrement" => $column->getAutoincrement(),
-                "type" => $column->getType()->getName(),
+        $tableColumns = method_exists(DB::connection(), 'getDoctrineSchemaManager') ? DB::connection()->getDoctrineSchemaManager()->listTableColumns($tabla) : Schema::getColumns($tabla);
+        foreach ($tableColumns as $column) {
+            $colName = is_array($column) ? $column['name'] : $column->getName();
+            $columns['campos'][$colName] = [
+                "name" => $colName,
+                "type" => is_array($column) ? $column['type_name'] : $column->getType()->getName(),
+                "lenght" => is_array($column) ? null : $column->getLength(),
+                "precision" => is_array($column) ? null : $column->getPrecision(),
+                "default" => is_array($column) ? $column['default'] : $column->getDefault(),
+                "autoincrement" => is_array($column) ? $column['auto_increment'] : $column->getAutoincrement(),
                 "isIndex" => false,
                 "isPrimary" => false,
                 "isUnique" => false,
                 "isUniqueComposite" => false,
-                "notNull" => $column->getNotnull(),
+                "notNull" => is_array($column) ? !$column['nullable'] : $column->getNotnull(),
                 "doctrineObject" => $column,
             ];
         }
         //echo "<pre>" . print_r($schema->listTableIndexes($tabla), true) . "</pre>";
-        foreach ($schema->listTableIndexes($tabla) as $index) {
-            if ($index->isUnique() && count($index->getColumns()) > 1) {
-                $auxColumns = $index->getColumns();
-                $column = array_shift($auxColumns);
-                $columns['campos'][$column]['isIndex'] = true;
-                $columns['campos'][$column]['isUnique'] = true;
-                $columns['campos'][$column]['isUniqueComposite'] = true;
-                $columns['campos'][$column]['compositeColumns'] = $auxColumns;
-                $columns['campos'][$column]['isPrimary'] = $index->isPrimary();
-                $columns['campos'][$column]['doctrineIndex'] = $index;
+        $tableIndexes = method_exists(DB::connection(), 'getDoctrineSchemaManager') ? DB::connection()->getDoctrineSchemaManager()->listTableIndexes($tabla) : Schema::getIndexes($tabla);
+        foreach ($tableIndexes as $index) {
+            $idxColumns = is_array($index) ? $index['columns'] : $index->getColumns();
+            $isPrimary = is_array($index) ? $index['primary'] : $index->isPrimary();
+            $isUnique = is_array($index) ? $index['unique'] : $index->isUnique();
+            if ($isUnique && count($idxColumns) > 1) {
+                $auxColumns = $idxColumns;
+                $colName = array_shift($auxColumns);
+                $columns['campos'][$colName]['isIndex'] = true;
+                $columns['campos'][$colName]['isUnique'] = true;
+                $columns['campos'][$colName]['isUniqueComposite'] = true;
+                $columns['campos'][$colName]['compositeColumns'] = $auxColumns;
+                $columns['campos'][$colName]['isPrimary'] = $isPrimary;
+                $columns['campos'][$colName]['doctrineIndex'] = $index;
             } else {
-                foreach ($index->getColumns() as $column) {
-                    $columns['campos'][$column]['isIndex'] = true;
-                    $columns['campos'][$column]['isUnique'] = $index->isUnique();
-                    $columns['campos'][$column]['isPrimary'] = $index->isPrimary();
-                    $columns['campos'][$column]['doctrineIndex'] = $index;
+                foreach ($idxColumns as $colName) {
+                    $columns['campos'][$colName]['isIndex'] = true;
+                    $columns['campos'][$colName]['isUnique'] = $isUnique;
+                    $columns['campos'][$colName]['isPrimary'] = $isPrimary;
+                    $columns['campos'][$colName]['doctrineIndex'] = $index;
                 }
             }
         }

@@ -2,7 +2,6 @@
     "name": "sirgrimorum/crudgenerator",
     "type": "library",
     "description": "Automatic CRUD generator for Laravel",
-    "type": "library",
     "license": "MIT",
     "authors": [
         {
@@ -46,15 +45,5 @@
                 "CrudGenerator": "Sirgrimorum\\CrudGenerator\\CrudGeneratorFacade"
             }
         }
-    },
-    "scripts": {
-        "post-package-install": [
-            "@php artisan crudgen:registermiddleware",
-            "@php artisan vendor:publish --tag=langapp"
-        ],
-        "post-package-update": [
-            "@php artisan crudgen:registermiddleware",
-            "@php artisan vendor:publish --tag=langapp"
-        ]
     }
 }

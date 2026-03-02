@@ -56,15 +56,12 @@ abstract class TestCase extends OrchestraTestCase
     {
         return [
             CrudGeneratorServiceProvider::class,
-            \Collective\Html\HtmlServiceProvider::class,
         ];
     }
 
     protected function getPackageAliases($app): array
     {
         return [
-            'Form' => \Collective\Html\FormFacade::class,
-            'Html' => \Collective\Html\HtmlFacade::class,
         ];
     }
 

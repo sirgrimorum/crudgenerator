@@ -1,6 +1,11 @@
 build:
     environment:
         php: '8.2'
+    services:
+        mysql: 5.7
+    project_setup:
+        before_commands:
+            - 'mysql -e "CREATE DATABASE IF NOT EXISTS sirgrimorum_test;" -uroot'
 
 checks:
     php:
