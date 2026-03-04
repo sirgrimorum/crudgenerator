@@ -18,20 +18,20 @@ class ExtendedValidator extends Validator {
         parent::__construct($translator, $data, $rules, $messages, $customAttributes);
 
         // Set custom validation error messages
-        if (!isset($this->messages['unique_composite'])) {
-            $this->messages['unique_composite'] = $this->translator->get(
+        if (!isset($this->customMessages['unique_composite'])) {
+            $this->customMessages['unique_composite'] = $this->translator->get(
                     "crudgenerator::admin.error_messages.unique_composite"
             );
         }
         // Set custom validation error messages
-        if (!isset($this->messages['with_articles'])) {
-            $this->messages['with_articles'] = $this->translator->get(
+        if (!isset($this->customMessages['with_articles'])) {
+            $this->customMessages['with_articles'] = $this->translator->get(
                     "crudgenerator::admin.error_messages.with_articles"
             );
         }
         // Set custom validation error messages
-        if (!isset($this->messages['unique_with'])) {
-            $this->messages['unique_with'] = $this->translator->get(
+        if (!isset($this->customMessages['unique_with'])) {
+            $this->customMessages['unique_with'] = $this->translator->get(
                     'uniquewith-validator::validation.unique_with'
             );
         }

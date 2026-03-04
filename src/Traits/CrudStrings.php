@@ -263,6 +263,7 @@ trait CrudStrings {
      * @return boolean Wheter the key attribute is a relation or not
      */
     public static function isFunctionOfType($model, $key, $tipo = "Illuminate\Database\Eloquent\Collection") {
+        if (!is_object($model) && !is_string($model)) return false;
         if (method_exists($model, $key)) {
             return is_a($model->$key(), $tipo);
         } else {
@@ -277,6 +278,7 @@ trait CrudStrings {
      * @return boolean|int if key is a callable function, return the number of arguments, if not, return false (use strict comparision)
      */
     public static function isFunction($model, $key) {
+        if (!is_object($model) && !is_string($model)) return false;
         if (is_callable([$model, $key], true) && method_exists($model, $key)) {
             $refClass = new \ReflectionClass($model);
             $refFunc = $refClass->getMethod($key);

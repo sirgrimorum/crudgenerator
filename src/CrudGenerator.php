@@ -326,4 +326,25 @@ class CrudGenerator
         ]);
         return $view->render();
     }
+
+    public static function shouldShowButton($config, $buttonName) {
+        if (!isset($config['botones']) || !is_array($config['botones'])) {
+            return true;
+        }
+        if (in_array($buttonName, $config['botones'])) {
+            return true;
+        }
+        if (isset($config['botones'][$buttonName]) && $config['botones'][$buttonName] !== false) {
+            return true;
+        }
+        return false;
+    }
+
+    public static function addScriptLoaderHtml() {
+        return '';
+    }
+
+    public static function addLinkTagLoaderHtml() {
+        return '';
+    }
 }

@@ -88,7 +88,7 @@ if (old("__parametros","") != ""){
     </thead>
     <tbody>
         @foreach($registros as $key => $value)
-        <tr id = "{{ $tablaid }}__{{ $value->{$config['id']} }}|{!! $value->{$config['nombre']} !!}">
+        <tr id = "{{ $tablaid }}__{{ data_get($value, $config['id']) }}|{!! data_get($value, $config['nombre']) !!}">
             @foreach($campos as $columna => $datos)
             @if (CrudGenerator::inside_array($datos,"hide","list")===false)
             <td>
@@ -98,10 +98,10 @@ if (old("__parametros","") != ""){
                 @if ($datos['tipo']=="relationship")
                 @if (CrudGenerator::hasRelation($value,$columna))
                 @if(array_key_exists('enlace',$datos))
-                <a href="{{ str_replace([":modelId", ":modelName"],[$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}],str_replace([urlencode(":modelId"), urlencode(":modelName")],[$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}],$datos['enlace'])) }}">
+                <a href="{{ str_replace([":modelId", ":modelName"],[data_get($value, $columna)->{$datos['id']}, data_get($value, $columna)->{$datos['nombre']}],str_replace([urlencode(":modelId"), urlencode(":modelName")],[data_get($value, $columna)->{$datos['id']}, data_get($value, $columna)->{$datos['nombre']}],$datos['enlace'])) }}">
                     @endif
-                    @if($value->{$columna})
-                    {!! CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']) !!}
+                    @if(data_get($value, $columna))
+                    {!! CrudGenerator::getNombreDeLista(data_get($value, $columna), $datos['campo']) !!}
                     @else
                     -
                     @endif
@@ -169,28 +169,28 @@ if (old("__parametros","") != ""){
                 -
                 @endif
                 @elseif ($datos['tipo']=="select")
-                @if (array_key_exists($value->{$columna},$datos['opciones']))
-                {!! $datos['opciones'][$value->{$columna}] !!}
+                @if (array_key_exists(data_get($value, $columna),$datos['opciones']))
+                {!! $datos['opciones'][data_get($value, $columna)] !!}
                 @else
                 -
                 @endif
                 @elseif ($datos['tipo']=="checkbox" || $datos['tipo']=="radio")
                 @if (is_array($datos['value']))
-                @if (array_key_exists($value->{$columna},$datos['value']))
-                {!! $datos['value'][$value->{$columna}] !!}
+                @if (array_key_exists(data_get($value, $columna),$datos['value']))
+                {!! $datos['value'][data_get($value, $columna)] !!}
                 @else
-                @if($value->{$columna}===true)
+                @if(data_get($value, $columna)===true)
                 {{trans('crudgenerator::admin.layout.labels.yes')}}
                 @else
                 {{trans('crudgenerator::admin.layout.labels.no')}}
                 @endif
                 @endif
                 @else
-                @if ($datos['value']==$value->{$columna} && $value->{$columna} ==true)
+                @if ($datos['value']==data_get($value, $columna) && data_get($value, $columna) ==true)
                 {{trans('crudgenerator::admin.layout.labels.yes')}}
-                @elseif($value->{$columna}==$datos['value'])
+                @elseif(data_get($value, $columna)==$datos['value'])
                 {!! $datos['value'] !!}
-                @elseif ($value->{$columna}==true)
+                @elseif (data_get($value, $columna)==true)
                 {!! $datos['value'] !!}
                 @else
                 {{trans('crudgenerator::admin.layout.labels.no')}}
@@ -209,7 +209,7 @@ if (old("__parametros","") != ""){
                 } elseif (isset(trans("crudgenerator::admin.formats.carbon")[$datos['tipo']])) {
                     $format = trans("crudgenerator::admin.formats.carbon." . $datos['tipo']);
                 }
-                $dato = $value->{$columna};
+                $dato = data_get($value, $columna);
 
                 if ($dato != "") {
                     if (isset($datos["timezone"])) {
@@ -239,17 +239,17 @@ if (old("__parametros","") != ""){
                 {!! $value->{$columna}() !!}
                 @endif
                 @elseif ($datos['tipo']=="article" && class_exists(config('sirgrimorum.transarticles.default_articles_model')))
-                {!!TransArticles::get($value->{$columna})!!}
+                {!!TransArticles::get(data_get($value, $columna))!!}
                 @elseif ($datos['tipo']=="json")
-                <pre>{!!print_r($value->{$columna},true)!!}</pre>
+                <pre>{!!print_r(data_get($value, $columna),true)!!}</pre>
                 @elseif ($datos['tipo']=="url")
-                <a href='{{ $value->{$columna} }}' target='_blank'><i class="mt-2 fa fa-link fa-lg" aria-hidden="true"></i></a>
+                <a href='{{ data_get($value, $columna) }}' target='_blank'><i class="mt-2 fa fa-link fa-lg" aria-hidden="true"></i></a>
                 @elseif ($datos['tipo']=="file")
-                @if ($value->{$columna} == "" )
+                @if (data_get($value, $columna) == "" )
                 -
                 @else
                 <?php
-                $auxprevio = $value->{$columna};
+                $auxprevio = data_get($value, $columna);
                 $filename = Str::start($auxprevio, Str::finish($datos['path'], '\\'));
                 $tipoFile = CrudGenerator::filenameIs($auxprevio, $datos);
                 $auxprevioName = substr($auxprevio, stripos($auxprevio, '__') + 2, stripos($auxprevio, '.', stripos($auxprevio, '__')) - (stripos($auxprevio, '__') + 2));
@@ -300,7 +300,7 @@ if (old("__parametros","") != ""){
                 @elseif ($datos['tipo']=="files")
                 <?php
                 try {
-                    $auxprevios = json_decode($value->{$columna});
+                    $auxprevios = json_decode(data_get($value, $columna));
                     if (!is_array($auxprevios)){
                         $auxprevios = [];
                     }
@@ -355,16 +355,16 @@ if (old("__parametros","") != ""){
                 @endif
                 @else
                 @if(array_key_exists('enlace',$datos))
-                <a href="{{ str_replace([":modelId",":modelName"],[$value->{$identificador},$value->{$nombre}],str_replace([urlencode (":modelId"),urlencode(":modelName")],[$value->{$identificador},$value->{$nombre}],$datos['enlace'])) }}">
+                <a href="{{ str_replace([":modelId",":modelName"],[data_get($value, $identificador),data_get($value, $nombre)],str_replace([urlencode (":modelId"),urlencode(":modelName")],[data_get($value, $identificador),data_get($value, $nombre)],$datos['enlace'])) }}">
                     @endif
                     @if ($datos['tipo']=="number" && isset($datos['format']))
                     @if (is_array($datos['format']))
-                    {{ number_format($value->{$columna},$datos['format'][0],$datos['format'][1],$datos['format'][2]) }}
+                    {{ number_format((float)(is_array(data_get($value, $columna)) ? 0 : data_get($value, $columna)),$datos['format'][0],$datos['format'][1],$datos['format'][2]) }}
                     @else
-                    {{ number_format($value->{$columna}) }}
+                    {{ number_format((float)(is_array(data_get($value, $columna)) ? 0 : data_get($value, $columna))) }}
                     @endif
-                    @else            
-                    {!! $value->{$columna} !!}
+                    @else
+                    {!! data_get($value, $columna) !!}
                     @endif
                     @if(array_key_exists('enlace',$datos))
                 </a>
