@@ -280,9 +280,9 @@ class CrudGenerator
         $serverSide = Arr::get($config, 'serverSide', false) && $usarAjax;
         if ($usarAjax == false) {
             if ($registros == null) {
-                $registros = CrudGenerator::lists_array($config, $registros, 'complete');
+                $modeloM = ucfirst($config['modelo']);
+                $registros = CrudGenerator::filterWithQuery($modeloM::all(), $config);
             }
-            //$registros = CrudGenerator::filterWithQuery($registros, $config);
         }
         if (!$simple) {
             $js_section = config("sirgrimorum.crudgenerator.js_section");
