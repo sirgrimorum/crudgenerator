@@ -37,7 +37,16 @@ class ExtendedValidator extends Validator {
         }
     }
 
-    // Laravel uses this convention to look for validation rules, this function will be triggered 
+    public function validateOlderThan($attribute, $value, $parameters) {
+        $minAge = ( ! empty($parameters)) ? (int) $parameters[0] : 18;
+        return \Carbon\Carbon::now()->diff(\Carbon\Carbon::parse($value))->y >= $minAge;
+    }
+
+    public function replaceOlderThan($message, $attribute, $rule, $parameters) {
+        return str_replace(':min_age', $parameters[0], $message);
+    }
+
+    // Laravel uses this convention to look for validation rules, this function will be triggered
     // for with_articles
     public function validateWithArticles($attribute, $value, $parameters) {
         $this->requireParameterCount(0, $parameters, 'with_articles');

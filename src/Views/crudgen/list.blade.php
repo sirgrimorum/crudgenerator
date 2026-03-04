@@ -88,7 +88,7 @@ if (old("__parametros","") != ""){
     </thead>
     <tbody>
         @foreach($registros as $key => $value)
-        <tr id = "{{ $tablaid }}__{{ data_get($value, $config['id']) }}|{!! data_get($value, $config['nombre']) !!}">
+        <tr id = "{{ $tablaid }}__{{ data_get($value, $config['id']) }}|{!! CrudGenerator::getNombreDeLista($value, $config['nombre']) !!}">
             @foreach($campos as $columna => $datos)
             @if (CrudGenerator::inside_array($datos,"hide","list")===false)
             <td>
