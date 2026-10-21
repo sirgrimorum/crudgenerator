@@ -629,10 +629,11 @@ trait CrudStrings {
      * @return boolean
      */
     public static function isJsonString($json_string) {
-        if (strpos($json_string,"{")===false){
+        if (!is_string($json_string) || strpos($json_string, "{") === false) {
             return false;
         }
-        return !preg_match('/[^,:{}\\[\\]0-9.\\-+Eaeflnr-u \\n\\r\\t]/', preg_replace('/"(\\.|[^"\\\\])*"/', '', $json_string));
+        json_decode($json_string);
+        return json_last_error() === JSON_ERROR_NONE;
     }
 
     /**
