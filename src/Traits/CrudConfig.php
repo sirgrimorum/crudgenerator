@@ -97,7 +97,7 @@ trait CrudConfig {
                             $config = \Sirgrimorum\CrudGenerator\CrudGenerator::translateConfig($config);
                         }
                         $auxConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::smartMergeConfig($config, $preConfig);
-                        if ($auxConfig === false && $$fail == true) {
+                        if ($auxConfig === false && $fail == true) {
                             $auxConfig = $config;
                         }
                         $auxConfig['parametros'] = $parametros;

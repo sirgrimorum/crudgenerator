@@ -211,11 +211,11 @@ trait CrudStrings {
                     $piece = $textPiece;
                     if (str_contains($textPiece, "{")) {
                         $auxLeft = (stripos($textPiece, "{"));
-                        $auxRight = stripos($textPiece, "}", $left) + 1;
+                        $auxRight = stripos($textPiece, "}", $auxLeft) + 1;
                         $auxJson = substr($textPiece, $auxLeft, $auxRight - $auxLeft);
                         $textPiece = str_replace($auxJson, "*****", $textPiece);
                         $auxJson = str_replace(["'", ", }"], ['"', "}"], $auxJson);
-                        $auxArr = explode(",", str_replace([" ,", " ,"], [",", ","], $textPiece));
+                        $auxArr = explode(",", str_replace([" ,", ", "], [",", ","], $textPiece));
                         if ($auxIndex = array_search("*****", $auxArr)) {
                             $auxArr[$auxIndex] = json_decode($auxJson, true);
                         } else {

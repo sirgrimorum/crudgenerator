@@ -205,13 +205,13 @@ trait CrudModels {
         if ($datos['tipo'] == "relationship") {
             if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($value, $columna)) {
                 if (array_key_exists('enlace', $datos)) {
-                    $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}], str_replace([urlencode(":modelId"), urlencode(": modelName")], [$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}], $datos['enlace'])) . '">';
+                    $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}], $datos['enlace'])) . '">';
                 }
                 $celda['data'] = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
                 $celda['label'] = $datos['label'];
-                $auxcelda = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
+                $auxcelda .= \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
                 if (array_key_exists('enlace', $datos)) {
-                    $auxcelda = '< / a>';
+                    $auxcelda .= '</a>';
                 }
                 $celda['value'] = $auxcelda;
             } else {
@@ -399,8 +399,8 @@ trait CrudModels {
                 'value' => $value->{$columna},
                 'data' => $value->{$columna},
             ];
-            if (\Sirgrimorum\CrudGenerator\CrudGenerator::urlType($registro->{$columna}) == "youtube") {
-                $youtubeId = \Sirgrimorum\CrudGenerator\CrudGenerator::getYoutubeId($registro->{$columna});
+            if (\Sirgrimorum\CrudGenerator\CrudGenerator::urlType($value->{$columna}) == "youtube") {
+                $youtubeId = \Sirgrimorum\CrudGenerator\CrudGenerator::getYoutubeId($value->{$columna});
                 $celda['embed'] = "https://www.youtube.com/embed/" . $youtubeId;
             } else {
                 $celda['embed'] = $value->{$columna};
@@ -487,6 +487,9 @@ trait CrudModels {
             }
         } else {
             if (array_key_exists('enlace', $datos)) {
+                $modelConfig = is_array($config) ? $config : \Sirgrimorum\CrudGenerator\CrudGenerator::getConfigWithParametros(strtolower(class_basename(get_class($value))));
+                $identificador = $modelConfig['id'] ?? $value->getKeyName();
+                $nombre = $modelConfig['nombre'] ?? $columna;
                 $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $datos['enlace'])) . '">';
             }
             if ($datos['tipo'] == "number" && isset($datos['format'])) {
@@ -798,9 +801,9 @@ trait CrudModels {
         $children = $model->{$campo};
         $children_items = collect($children_items);
         $deleted_ids = $children->filter(
-                        function ($child) use ($children_items) {
+                        function ($child) use ($children_items, $config, $campo) {
                     return empty(
-                            $children_items->where($config[$campo]['id'], $child->$config[$campo]['id'])->first()
+                            $children_items->where($config[$campo]['id'], $child->{$config[$campo]['id']})->first()
                     );
                 }
                 )->map(function ($child) {
@@ -971,10 +974,8 @@ trait CrudModels {
                             break;
                         case 'select':
                             if ($input->has($campo)) {
-                                if (!isset($detalles["multiple"])) {
-                                    $objModelo->{$campo} = $input->input($campo);
-                                } elseif ($detalles["multiple"] != "multiple") {
-                                    $objModelo->{$campo} = $input->input($campo);
+                                if (Arr::get($detalles, "multiple", "") == "multiple" && is_array($input->input($campo))) {
+                                    $objModelo->{$campo} = json_encode($input->input($campo));
                                 } else {
                                     $objModelo->{$campo} = $input->input($campo);
                                 }

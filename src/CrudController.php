@@ -92,7 +92,7 @@ class CrudController extends BaseController {
         return $this->devolver($request, $config, $permiso, 0, $datos);
     }
 
-    public function modelfile($modelo, $campo, Request $request) {
+    public function modelfile($modelo, $registro, $campo, Request $request) {
         $config = CrudGenerator::getConfigWithParametros($modelo);
         if (!$permiso = CrudGenerator::checkPermission($config, 0, 'show')) {
             return $this->devolver($request, $config, $permiso, 0, "", 'show');
