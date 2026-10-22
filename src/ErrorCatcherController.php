@@ -41,13 +41,13 @@ class ErrorCatcherController extends BaseController
     public function __construct()
     {
         $this->middleware('auth');
-        $this->config = CrudGenerator::getConfig($this->modelName);
         $this->routeRedirect = route('sirgrimorum_modelos::index', ['modelo' => 'errorcatcher', 'localecode' => App::getLocale()]);
         //$this->routeRedirect = route('plan.index');
     }
 
     public function NoReport(Request $request, Catchederror $catchederror)
     {
+        $this->config = CrudGenerator::getConfig($this->modelName);
         if (CrudGenerator::checkPermission($this->config, $catchederror, "default")) {
             $catchederror->reportar = false;
             $catchederror->save();
@@ -62,6 +62,7 @@ class ErrorCatcherController extends BaseController
 
     public function Report(Request $request, Catchederror $catchederror)
     {
+        $this->config = CrudGenerator::getConfig($this->modelName);
         if (CrudGenerator::checkPermission($this->config, $catchederror, "default")) {
             $catchederror->reportar = true;
             $catchederror->save();

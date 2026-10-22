@@ -344,6 +344,9 @@ trait CrudStrings {
                         if (!class_exists($modeloClass)) {
                             $modeloClass = "Sirgrimorum\\TransArticles\\Models\\" . $modelo;
                             if (!class_exists($modeloClass)) {
+                                $modeloClass = "Sirgrimorum\\CrudGenerator\\Models\\" . $modeloM;
+                            }
+                            if (!class_exists($modeloClass)) {
                                 if (strtolower($modelo) == "paymentpass") {
                                     $modeloClass = "Sirgrimorum\\PaymentPass\\Models\\PaymentPass";
                                     if (!class_exists($modeloClass)) {
