@@ -340,11 +340,42 @@ class CrudGenerator
         return false;
     }
 
-    public static function addScriptLoaderHtml() {
-        return '';
+    /**
+     * Add a script loader to a blade
+     * @param string $src The path to the script, leave empty to inline script
+     * @param bool $defer Optional if the script should be defered, default false
+     * @param string $inner Optional the innerHtml script, could be the id of a text/html script block or a large text
+     * @param bool $innerIsBlock Optional if the $inner parameter is an id of a block or not. Default false
+     * @param bool $waitForJquery Optional if should wait for Jquery to be loaded before load de script
+     * @return string The script call for the scriptLoader function
+     */
+    public static function addScriptLoaderHtml($src, $defer = false, $inner = "", $innerIsBlock = false, $waitForJquery = true)
+    {
+        $name = config("sirgrimorum.crudgenerator.scriptLoader_name", "scriptLoader");
+        $deferStr = ($defer) ? "true" : "false";
+        $waitForJqueryStr = ($waitForJquery) ? "true" : "false";
+        $html = "";
+        if ($inner != "" && !$innerIsBlock) {
+            $id = Str::random(8) . "_typeahead_block";
+            $html = "<script id=\"$id\" type=\"text/html\">$inner</script>";
+            $inner = $id;
+        }
+        $html .= "<script>$name('$src',$deferStr,\"$inner\",$waitForJqueryStr);</script>";
+        return $html;
     }
 
-    public static function addLinkTagLoaderHtml() {
-        return '';
+    /**
+     * Add a link tag loader to a blade
+     * @param string $href The path to the file
+     * @param string $tyrelpe Optional the rel attribute of the link tag, default is "stylesheet"
+     * @param string $type Optional the type attribute of the link tag, default is "text/css"
+     * @return string The script call for the scriptLoader function
+     */
+    public static function addLinkTagLoaderHtml($href, $rel = "stylesheet", $type = "text/css")
+    {
+        $name = config("sirgrimorum.crudgenerator.linkTagLoader_name", "linkTagLoader");
+        $html = "";
+        $html .= "<script>$name('$href','$rel','$type');</script>";
+        return $html;
     }
 }
