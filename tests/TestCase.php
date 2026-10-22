@@ -69,7 +69,11 @@ abstract class TestCase extends OrchestraTestCase
     {
         $app['config']->set('app.key', 'base64:yvS68vVrTk8vS68vVrTk8vS68vVrTk8vS68vVrTk8vS=');
         $app['config']->set('database.default', 'testing');
-        $app['config']->set('database.connections.testing', [
+        $app['config']->set('database.connections.testing', env('DB_CONNECTION') === 'sqlite' ? [
+            'driver'   => 'sqlite',
+            'database' => ':memory:',
+            'prefix'   => '',
+        ] : [
             'driver'   => 'mysql',
             'host'     => '127.0.0.1',
             'port'     => '3306',
