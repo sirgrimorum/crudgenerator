@@ -16,8 +16,15 @@ class ErrorCatcher
 {
 
     /**
+     * Request and session keys that are never stored
+     *
+     * @var array
+     */
+    const HIDDEN_KEYS = ['password', 'password_confirmation', 'current_password', '_token'];
+
+    /**
      * The exception to catch
-     * 
+     *
      * @var Throwable
      */
     private $exception;
@@ -244,7 +251,7 @@ class ErrorCatcher
         }
         $session = "Not set";
         if ($this->request->hasSession()) {
-            $session = $this->request->session()->all();
+            $session = Arr::except($this->request->session()->all(), self::HIDDEN_KEYS);
         }
         return [
             "url" => $this->request->url(),
@@ -259,9 +266,8 @@ class ErrorCatcher
                 "path" => $this->request->path(),
                 "query" => $this->request->query(),
                 "method" => $this->request->method(),
-                "data" => $this->request->all(),
+                "data" => $this->request->except(self::HIDDEN_KEYS),
                 "session" => $session,
-                "cookie" => $this->request->cookie(),
                 "ip" => $this->request->ip(),
                 "header" => collect($this->request->header())->only([
                     "user-agent",
@@ -282,9 +288,10 @@ class ErrorCatcher
 
     private function getArgs($arg, $depth)
     {
-        if (is_int($arg) || is_string($arg)) {
-            return $arg;
-        } elseif ($arg === true || $arg === false || $arg === null) {
+        if (is_string($arg)) {
+            // Positional strings can be credentials (PDO dsn, user, password), keep only the length
+            return 'string(' . strlen($arg) . ')';
+        } elseif (is_int($arg) || $arg === true || $arg === false || $arg === null) {
             return $arg;
         } elseif (is_array($arg) && $depth <= $this->maxDepth) {
             $args = [];
