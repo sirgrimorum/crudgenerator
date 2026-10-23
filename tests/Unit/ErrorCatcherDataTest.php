@@ -35,4 +35,17 @@ class ErrorCatcherDataTest extends TestCase
         $this->assertArrayNotHasKey('cookie', $data['request']);
         $this->assertStringNotContainsString('db-secret', json_encode($data['trace']));
     }
+
+    public function test_previous_occurrences_are_capped()
+    {
+        $exception = new \RuntimeException('boom');
+        for ($i = 0; $i < ErrorCatcher::MAX_ANTERIORES + 5; $i++) {
+            $this->app->instance('request', Request::create("/boom/$i"));
+            $error = ErrorCatcher::catch($exception);
+        }
+
+        $occurrences = json_decode($error->fresh()->occurrences, true);
+        $this->assertSame(ErrorCatcher::MAX_ANTERIORES + 5, $occurrences['num']);
+        $this->assertCount(ErrorCatcher::MAX_ANTERIORES, $occurrences['anteriores']);
+    }
 }

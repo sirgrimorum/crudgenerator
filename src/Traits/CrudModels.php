@@ -919,7 +919,8 @@ trait CrudModels {
                         case 'textarea':
                         case 'json':
                             if ($input->has($campo)) {
-                                $objModelo->{$campo} = $input->input($campo);
+                                $valor = $input->input($campo);
+                                $objModelo->{$campo} = $detalles['tipo'] == 'json' && is_array($valor) && !$objModelo->hasCast($campo) ? json_encode($valor) : $valor;
                             } elseif (isset($detalles['valor'])) {
                                 $objModelo->{$campo} = $detalles['valor'];
                             }
