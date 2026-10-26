@@ -4,7 +4,25 @@ namespace Sirgrimorum\CrudGenerator\Traits;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
 
-trait CrudModels {
+use Carbon\Carbon;
+use Error;
+use Exception;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Sirgrimorum\CrudGenerator\CrudGenerator;
+use Sirgrimorum\CrudGenerator\DynamicCompare;
+use Sirgrimorum\CrudGenerator\Exceptions\NoValueInCeldaException;
+
+trait CrudModels
+{
 
     /**
      * Evaluate the "permissions" callbacks in the configuration array
@@ -13,9 +31,14 @@ trait CrudModels {
      * @param string $action Optional The actual action
      * @return boolean if the user has or not permission
      */
-    public static function checkPermission(array $config, $registro = 0, $action = "") {
+    public static function checkPermission(array $config, $registro = 0, $action = "")
+    {
         if ($action == "") {
-            $action = substr(request()->route()->getName(), stripos(request()->route()->getName(), "::") + 2);
+            if (stripos(request()->route()->getName(), "::") !== false) {
+                $action = substr(request()->route()->getName(), stripos(request()->route()->getName(), "::") + 2);
+            } else {
+                $action = substr(request()->route()->getName(), strripos(request()->route()->getName(), ".") + 1);
+            }
         }
         $resultado = true;
         $general = false;
@@ -34,9 +57,15 @@ trait CrudModels {
             $callback = config('sirgrimorum.crudgenerator.permission');
         }
         if (is_callable($callback)) {
-            if ($registro > 0) {
-                $objModelo = $config['modelo']::find($registro);
-                $resultado = (bool) $callback($objModelo);
+            if (($numArgs = CrudGenerator::isFunction($callback)) !== false && $numArgs > 0) {
+                if (is_object($registro)) {
+                    $resultado = (bool) $callback($registro);
+                } elseif ($registro > 0) {
+                    $objModelo = $config['modelo']::find($registro);
+                    $resultado = (bool) $callback($objModelo);
+                } else {
+                    $resultado = (bool) $callback(null);
+                }
             } else {
                 $resultado = (bool) $callback();
             }
@@ -48,35 +77,163 @@ trait CrudModels {
     }
 
     /**
+     * If a button should be shown in list or not, ussing the "show_button_list" options of config
+     * 
+     * @param array $config the configuration array
+     * @param string $butName The name of thef burron
+     * @return bool
+     */
+    public static function shouldShowButton(array $config, $butName)
+    {
+        $callback = Arr::get($config, "show_button_list.$butName", true);
+        if (is_callable($callback)) {
+            $resultado = (bool) $callback();
+        } else {
+            $resultado = (bool) $callback;
+        }
+        return $resultado;
+    }
+
+    /**
+     * Get the list of models to use from a config array
+     * 
+     * @param array $config Configuration array
+     * @param Collection|Array|Builder $registros Optional Objects to show if null it will look for the 'query' field in config, if not found, will take all the records of model.
+     * 
+     * @return Collection|Builder The list of registros
+     */
+    public static function getListFromConfig($config, $registros = null)
+    {
+        if ($registros == null) {
+            if (isset($config['query'])) {
+                if (is_callable($config['query'])) {
+                    $auxQuery = $config['query']();
+                } elseif (is_array($config['query'])) {
+                    if (count(data_get($config['query'], '*.*')) == 0) {
+                        if (Arr::isAssoc($config['query'])) {
+                            $keys = array_keys($config['query']);
+                        } else {
+                            $keys = $config['query'];
+                        }
+                        $modeloM = ucfirst($config['modelo']);
+                        $auxQuery = $modeloM::whereIn(Arr::get($config, "id", "id"), $keys);
+                    } else {
+                        $auxQuery = $config['query'];
+                    }
+                } elseif (is_string($config['query'])) {
+                    try {
+                        $modeloM = ucfirst($config['modelo']);
+                        $auxQuery = $modeloM::whereRaw("({$config['query']})");
+                    } catch (Exception $e) {
+                        $auxQuery = $config['query'];
+                    }
+                } else {
+                    $auxQuery = $config['query'];
+                }
+                if ($auxQuery instanceof Builder || $auxQuery instanceof Collection) {
+                    $registros = $auxQuery;
+                } elseif (is_array($auxQuery)) {
+                    $registros = collect($auxQuery);
+                } else {
+                    $modeloM = ucfirst($config['modelo']);
+                    $registros = $modeloM::whereRaw("(1=1)");
+                }
+            } else {
+                $modeloM = ucfirst($config['modelo']);
+                $registros = $modeloM::whereRaw("(1=1)");
+            }
+        } elseif (is_array($registros)) {
+            $registros = collect($registros);
+        }
+        return $registros;
+    }
+
+    /**
      * Generate a list of objects of a model in array format
      * Could returns an array with 2 arrays in it:
      * Complete, with value, label and data for each field in position 0
      * and Simple, only with value per field at position 1
-     * 
+     *
      * @param array $config Configuration array
-     * @param Model() $registros Optional Array of objects to show
-     * @param boolean|string $solo Optional if false, will return the complete an simple array, if 'simple' only the simple one, if 'complete' only the complete one
+     * @param Collection|Array|Builder $registros Optional Objects to show if null it will look for the 'query' field in config, if not found, will take all the records of model. Use start and length of request to paginate
+     * @param boolean|string $solo Optional if false or 'todo' will return the complete and simple array, if 'todo' will also return numTotal y numFiltrados and a special camp '_id' with '$request->tableid__id|nombre', if 'simple' only the simple one, if 'complete' only the complete one
+     * @param Request $request Optional The current request
      * @return array with the objects in the config format
      */
-    public static function lists_array($config, $registros = null, $solo = 'complete') {
-        //$config = \Sirgrimorum\CrudGenerator\CrudGenerator::translateConfig($config);
-        if ($registros == null) {
-            $modeloM = ucfirst($config['modelo']);
-            $registros = $modeloM::all();
+    public static function lists_array($config, $registros = null, $solo = 'complete', Request $request = null)
+    {
+        //$config = CrudGenerator::translateConfig($config);
+        if ($request == null) {
+            $request = request();
         }
-        //if (request()->)
-        $registros = \Sirgrimorum\CrudGenerator\CrudGenerator::filterWithQuery($registros, $config);
+        $registros = CrudGenerator::getListFromConfig($config, $registros);
+        if ($registros instanceof Builder) {
+            $numTotal = DB::query()->fromSub($registros, "conteo")->count();
+            $registros = CrudGenerator::filterWithQuery($registros, $config);
+            $numFiltrados = DB::query()->fromSub($registros, "conteo")->count();
+            if (isset($request)) {
+                if ($request->has('start')) {
+                    $start = $request->input('start');
+                    $registros = $registros->offset($start);
+                }
+                if ($request->has('length')) {
+                    $limit = $request->input('length');
+                    $registros = $registros->limit($limit);
+                }
+            }
+            $registros = $registros->get();
+        } elseif ($registros instanceof Collection) {
+            $numTotal = count($registros);
+            $registros = CrudGenerator::filterWithQuery($registros, $config);
+            $numFiltrados = count($registros);
+            if (isset($request)) {
+                if ($request->has('start')) {
+                    $start = $request->input('start');
+                    if ($request->has('length')) {
+                        $limit = $request->input('length');
+                        $registros = $registros->slice($start, $limit);
+                    } else {
+                        $registros = $registros->slice($start);
+                    }
+                } elseif ($request->has('length')) {
+                    $limit = $request->input('length');
+                    $registros = $registros->slice(0, $limit);
+                }
+            }
+        } else {
+            return false;
+        }
         $return = [];
         $returnSimple = [];
+        $index = 0;
+        $_tablaId = $request->get('_tablaId', $config['tabla']);
         foreach ($registros as $registro) {
-            list($row, $rowSimple) = \Sirgrimorum\CrudGenerator\CrudGenerator::registry_array($config, $registro);
-            $return[] = $row;
-            $returnSimple[] = $rowSimple;
+            if ($solo == 'simple') {
+                $returnSimple[] = CrudGenerator::registry_array($config, $registro, $solo);
+            } elseif ($solo == 'complete') {
+                $return[] = CrudGenerator::registry_array($config, $registro, $solo);
+            } else {
+                $index++;
+                list($row, $rowSimple) = CrudGenerator::registry_array($config, $registro, $solo);
+                $return[] = $row;
+                $_id = e(CrudGenerator::getJustValue('id', $row, $config, CrudGenerator::getJustValue('id', $rowSimple, $config, $index)));
+                $_nombre = e(CrudGenerator::getJustValue('nombre', $row, $config, CrudGenerator::getJustValue('nombre', $rowSimple, $config, $index)));
+                $rowSimple['_id'] = "{$_tablaId}__{$_id}|{$_nombre}";
+                if (strtolower($request->get('_return', '')) == 'datatablesjson') {
+                    $rowSimple['_id'] = $rowSimple['id'];
+                    $rowSimple['id'] = "{$_tablaId}__{$_id}|{$_nombre}";
+                } else {
+                    $rowSimple['_id'] = "{$_tablaId}__{$_id}|{$_nombre}";
+                }
+                $returnSimple[] = $rowSimple;
+            }
         }
         if ($solo == 'simple') {
             return $returnSimple;
         } elseif ($solo == 'complete') {
             return $return;
+        } elseif ($solo == 'todo') {
+            return [$return, $returnSimple, $numTotal, $numFiltrados];
         } else {
             return [$return, $returnSimple];
         }
@@ -87,22 +244,28 @@ trait CrudModels {
      * Returns an array with 2 arrays in it:
      * Complete, with value, label and data for each field in position 0
      * and Simple, only with value per field at position 1
-     * 
+     *
      * @param array $config Configuration array
-     * @param Model() $registro Optional object to show
+     * @param Model|int $registro Optional object or id of object (will look for it in config['query'] or model) to show if null or 0, it will look for config['query] or the model and get the first record
      * @param boolean|string $solo Optional if false, will return the complete an simple array, if 'simple' only the simple one, if 'complete' only the complete one
      * @return array with the attributes in the config format
      */
-    public static function registry_array($config, $registro = null, $solo = false) {
-        $modeloM = ucfirst($config['modelo']);
-        if ($registro == null) {
-            $value = $modeloM::first();
+    public static function registry_array($config, $registro = null, $solo = false)
+    {
+        if ($registro != null && is_object($registro)) {
+            $value = $registro;
+            $registro = $value->{$config['id']};
         } else {
-            if (!is_object($registro)) {
-                $modeloM = ucfirst($config['modelo']);
-                $value = $modeloM::find($registro);
+            $query = CrudGenerator::getListFromConfig($config);
+            if ($registro == null || $registro == 0) {
+                $value = $query->first();
+                $registro = $value->{$config['id']};
             } else {
-                $value = $registro;
+                if ($query instanceof Collection) {
+                    $value = $query->firstWhere($config['id'], $registro);
+                } else {
+                    $value = $query->where($config['tabla'] . "." . $config['id'], "=", $registro)->first();
+                }
             }
         }
         $campos = $config['campos'];
@@ -115,34 +278,58 @@ trait CrudModels {
         } else {
             $botones = [];
         }
-        $tabla = $config['tabla'];
-        $tablaid = $tabla . "_" . Str::random(5);
-        if (isset($config['relaciones'])) {
-            $relaciones = $config['relaciones'];
-        }
         $identificador = $config['id'];
         $nombre = $config['nombre'];
 
-        $row = [
-            $value->getKeyName() => $value->getKey()
-        ];
-        $rowSimple = [
-            $value->getKeyName() => $value->getKey()
-        ];
-        foreach ($campos as $columna => $datos) {
-            $celda = \Sirgrimorum\CrudGenerator\CrudGenerator::field_array($value, $columna, $datos);
-            $row[$columna] = $celda;
-            $rowSimple[$columna] = $celda['value'];
-        }
-        if (is_array($botones)) {
-            $celda = "";
-            foreach ($botones as $boton) {
-                $celda .= str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $boton));
+        if ($value != null) {
+            if ($solo != 'simple') {
+                $row = [
+                    $value->getKeyName() => $value->getKey()
+                ];
             }
-            $row["botones"] = $celda;
+            $rowSimple = [
+                $value->getKeyName() => $value->getKey()
+            ];
+            foreach ($campos as $columna => $datos) {
+                $celda = CrudGenerator::field_array($value, $columna, $solo, $config, $datos);
+                if ($solo != 'simple') {
+                    $row[$columna] = $celda;
+                }
+                $rowSimple[$columna] = $celda['value'];
+            }
+            if ($solo != 'simple') {
+                if (is_array($botones)) {
+                    $celda = [];
+                    foreach ($botones as $boton) {
+                        if (is_array($boton)) {
+                            $subBoton = [];
+                            foreach ($boton as $keySubBoton => $valueSubBoton) {
+                                if (is_string($valueSubBoton)) {
+                                    $subBoton[$keySubBoton] = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $valueSubBoton));
+                                } else {
+                                    $subBoton[$keySubBoton] = $valueSubBoton;
+                                }
+                            }
+                            $celda[] = $subBoton;
+                        } elseif (is_string($boton)) {
+                            $celda[] = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $boton));
+                        } else {
+                            $celda[] = $boton;
+                        }
+                    }
+                    $row["botones"] = $celda;
+                } elseif (is_string($botones)) {
+                    $celda = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $botones));
+                    $row["botones"] = $celda;
+                } else {
+                    $row["botones"] = $botones;
+                }
+            }
         } else {
-            $celda = str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $botones));
-            $row["botones"] = $celda;
+            if ($solo != 'simple') {
+                $row = [];
+            }
+            $rowSimple = [];
         }
         if ($solo == 'simple') {
             return $rowSimple;
@@ -155,177 +342,419 @@ trait CrudModels {
 
     /**
      * Generate an array of a field using a configuration array.
-     * Returns an array with 3 elements:
+     * Returns an array with at least 3 elements:
      *      data: with the detailed value
      *      label: with the translated label of the field
      *      value: with the formated value of the field
-     * 
-     * @param array $config Configuration array
-     * @param Model() $value The object
+     *
+     * @param Model $value The object
      * @param string $columna The field to show
-     * @param array $config Optional The configuration array for the field
+     * @param boolean|string $solo Optional if 'simple' will return only ('value'), otherwise will return the all the options ('value', 'data', 'label', 'html', 'html_cell', 'html_show', 'pre', 'post')
+     * @param array $config Optional the configuration array for the model
+     * @param array $datos Optional The configuration array for the field
      * @return array with the values in the config format
      */
-    public static function field_array($value, $columna, $datos = "", $config = "") {
-        if (is_string($datos) && ($datos == "simple" || $datos == "complete")) {
-            $solo = $datos;
-            $datos = $config;
-        } else {
-            $solo = "complete";
+    public static function field_array($value, $columna, $solo = 'complete', $config = "", $datos = "")
+    {
+        $modelo = strtolower(class_basename(get_class($value)));
+        if ($config == "") {
+            $config = CrudGenerator::getConfigWithParametros($modelo);
         }
-        if ($datos == "") {
-            $modelo = strtolower(class_basename(get_class($value)));
-            $auxConfig = \Sirgrimorum\CrudGenerator\CrudGenerator::getConfigWithParametros($modelo);
-            if (isset($auxConfig['campos'][$columna])) {
-                if (is_array($auxConfig['campos'][$columna])) {
-                    $datos = $auxConfig['campos'][$columna];
+        if ($datos == "" && $config != "") {
+            if (isset($config['campos'][$columna])) {
+                if (is_array($config['campos'][$columna])) {
+                    $datos = $config['campos'][$columna];
+                } else {
+                    if ($solo == 'simple') {
+                        $celda = [
+                            "value" => CrudGenerator::translateDato($value->{$columna})
+                        ];
+                    } else {
+                        $celda = [
+                            "data" => $value->{$columna},
+                            "label" => $columna,
+                            "value" => CrudGenerator::translateDato($value->{$columna})
+                        ];
+                    }
+
+                    return $celda;
+                }
+            } else {
+                if ($solo == 'simple') {
+                    $celda = [
+                        "value" => CrudGenerator::translateDato($value->{$columna})
+                    ];
                 } else {
                     $celda = [
                         "data" => $value->{$columna},
                         "label" => $columna,
-                        "value" => $value->{$columna}
+                        "value" => CrudGenerator::translateDato($value->{$columna})
                     ];
-                    return $celda;
                 }
-            } else {
-                $celda = [
-                    "data" => $value->{$columna},
-                    "label" => $columna,
-                    "value" => $value->{$columna}
-                ];
                 return $celda;
             }
         }
         $celda = [];
-        $celdaData = [];
+        $celdaDataPP = [];
         $auxcelda = "";
         if (isset($datos["pre"])) {
-            $celdaData["pre"] = $datos["pre"];
+            $celdaDataPP["pre"] = $datos["pre"];
         }
         if ($datos['tipo'] == "relationship") {
-            if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($value, $columna)) {
-                if (array_key_exists('enlace', $datos)) {
-                    $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$columna}->{$datos['id']}, $value->{$columna}->{$datos['nombre']}], $datos['enlace'])) . '">';
+            if (CrudGenerator::hasRelation($value, $columna)) {
+                if (isset($value->{$columna})) {
+                    if (array_key_exists('enlace', $datos)) {
+                        $auxcelda = '<a href = "' . CrudGenerator::translateDato($datos['enlace'], $value->{$columna}, $datos) . '">';
+                    } else {
+                        $auxcelda = '';
+                    }
+                    $celdaData = CrudGenerator::translateDato($datos['campo'], $value->{$columna}, $datos);
+                    if ($solo != 'simple') {
+                        $celda['data'] = $celdaData;
+                        $celda['label'] = $datos['label'];
+                    }
+                    $auxcelda .= $celdaData;
+                    if (array_key_exists('enlace', $datos)) {
+                        $auxcelda .= '</a>';
+                    }
+                    $celda['value'] = $auxcelda;
+                } else {
+                    $celda = '-';
                 }
-                $celda['data'] = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
-                $celda['label'] = $datos['label'];
-                $auxcelda .= \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($value->{$columna}, $datos['campo']);
-                if (array_key_exists('enlace', $datos)) {
-                    $auxcelda .= '</a>';
-                }
-                $celda['value'] = $auxcelda;
             } else {
                 $celda = '-';
             }
         } elseif ($datos['tipo'] == "relationships") {
-            if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($value, $columna)) {
-                $celda = [];
-                $auxcelda2 = "";
-                $prefijo = "<ul><li>";
+            if (CrudGenerator::hasRelation($value, $columna)) {
+                if ($solo != 'simple') {
+                    $celda = [];
+                    $auxcelda2 = "";
+                    $prefijo = "<div class='list-group'><a href='#' class='list-group-item list-group-item-action'>";
+                }
+                $auxcelda3 = "";
+                $prefijo2 = "<ul><li>";
                 foreach ($value->{$columna}()->get() as $sub) {
                     $auxcelda = "";
                     if (array_key_exists('enlace', $datos)) {
-                        $auxcelda2 .= $prefijo . '<a href = "' . str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre'] }], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}], $datos['enlace'])) . '">';
+                        $enlace = CrudGenerator::translateDato($datos['enlace'], $sub, $datos);
+                        $auxcelda3 .= $prefijo2 . "<a href = '$enlace'>";
+                        if ($solo != 'simple') {
+                            $auxcelda2 .= str_replace("href='#'", "href='$enlace'", $prefijo);
+                        }
                     } else {
-                        $auxcelda2 .= $prefijo;
+                        $auxcelda3 .= $prefijo2;
+                        if ($solo != 'simple') {
+                            $auxcelda2 .= $prefijo;
+                        }
                     }
-                    $auxcelda = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($sub, $datos['campo']);
-                    $auxcelda2 .= $auxcelda;
+                    $auxcelda = CrudGenerator::translateDato($datos['campo'], $sub, $datos);
+                    $auxcelda3 .= $auxcelda;
                     if (array_key_exists('enlace', $datos)) {
-                        $auxcelda2 .='</a>';
+                        $auxcelda3 .= '</a>';
                     }
-                    $auxcelda2.="</li>";
-                    $prefijo = "<li>";
-                    $celda[$sub->getKey()] = $auxcelda;
+                    $auxcelda3 .= "</li>";
+                    $prefijo2 = "<li>";
+                    if ($solo != 'simple') {
+                        $auxcelda2 .= $auxcelda;
+                        $auxcelda2 .= "</a>";
+                        $prefijo = "<a href='#' class='list-group-item list-group-item-action'>";
+                        $celda[$sub->getKey()] = $auxcelda;
+                    }
                 }
-                if ($auxcelda2 != "") {
-                    $auxcelda2.="</ul>";
+                if ($auxcelda3 != "") {
+                    if ($solo != 'simple') {
+                        $auxcelda2 .= "</div>";
+                    }
+                    $auxcelda3 .= "</ul>";
                 }
-                $celda = [
-                    "data" => $celda,
-                    "label" => $datos['label'],
-                    "value" => $auxcelda2
-                ];
+                if ($solo == 'simple') {
+                    $celda = [
+                        "value" => $auxcelda3
+                    ];
+                } else {
+                    $celda = [
+                        "data" => $celda,
+                        "label" => $datos['label'],
+                        "value" => $auxcelda3,
+                        "html_cell" => $auxcelda3,
+                        "html_show" => $auxcelda2,
+                    ];
+                }
+            } else {
+                $celda = '-';
             }
         } elseif ($datos['tipo'] == "relationshipssel") {
-            if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($value, $columna)) {
+            if (CrudGenerator::hasRelation($value, $columna)) {
+                $arrayInValue = (Arr::get($datos, 'arrayInValue', false) == true);
                 $celda = [];
                 $auxcelda3 = "";
                 $prefijo = "<ul><li>";
-                foreach ($value->{$columna}()->get() as $sub) {
-                    $celda[$sub->getKey()] = [];
-                    $auxcelda = "";
-                    if (array_key_exists('enlace', $datos)) {
-                        $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$sub->{$datos['id']}, $sub->{$datos['nombre'] }], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$sub->{$datos['id']}, $sub->{$datos['nombre']}], $datos['enlace'])) . '">';
-                    }
-                    $auxcelda2 = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($sub, $datos['campo']);
-                    $auxcelda.=$auxcelda2;
-                    if (array_key_exists('enlace', $datos)) {
-                        $auxcelda .='</a>';
-                    }
-                    $auxcelda3 .= $prefijo . $auxcelda;
-                    $auxcelda4 = "";
-                    $auxcelda5 = "";
-                    $prefijo2 = "<ul><li>";
-                    if (array_key_exists('columnas', $datos)) {
-                        if (is_array($datos['columnas'])) {
-                            if (is_object($sub->pivot)) {
-                                $celda[$sub->getKey()]['data'] = [];
-                                foreach ($datos['columnas'] as $infoPivote) {
-                                    if ($infoPivote['type'] != "hidden" && $infoPivote['type'] != "label") {
-                                        $celda[$sub->getKey()]['data'][$infoPivote['campo']] = ['label' => $infoPivote['label']];
-                                        if ($infoPivote['type'] == "number" && isset($infoPivote['format'])) {
-                                            $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = number_format($sub->pivot->{$infoPivote['campo']}, $infoPivote['format'][0], $infoPivote['format'][1], $infoPivote['format'][2]);
-                                        } elseif ($infoPivote['type'] == "select" && isset($infoPivote['opciones'])) {
-                                            $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = $infoPivote['opciones'][$sub->pivot->{$infoPivote['campo']}];
+                $htmlShow = "-";
+                $extraId = "{$columna}_{$value->getKey()}";
+                if ($value->{$columna}()->count() > 0) {
+                    $htmlShow = '<div class="list-group" id="' . "{$extraId}_lgroup" . '">';
+                    foreach ($value->{$columna}()->get() as $sub) {
+                        $tablaOtroId = $sub->getKey();
+                        $celda[$sub->getKey()] = [];
+                        $auxcelda = "";
+                        $htmlShow .= '<div id="' . "{$extraId}_{$tablaOtroId}_principal" . '" class="list-group-item list-group-item-action flex-column align-items-start">' .
+                            '<div data-toggle="collapse" data-target="#' . "{$extraId}_{$tablaOtroId}_pivote" . '" aria-expanded="false" aria-controls="' . "{$extraId}_{$tablaOtroId}_pivote" . '" class="d-flex w-100 justify-content-between" style="cursor:pointer;">';
+                        if (array_key_exists('enlace', $datos)) {
+                            $auxcelda = '<a class="pr-2" href="' . CrudGenerator::translateDato($datos['enlace'], $sub, $datos) . '">';
+                            $htmlShow .= $auxcelda . CrudGenerator::getIcon('url', true) . '</a>';
+                        }
+                        $auxcelda2 = CrudGenerator::translateDato($datos['campo'], $sub, $datos);
+                        $auxcelda .= $auxcelda2;
+                        if (array_key_exists('enlace', $datos)) {
+                            $auxcelda .= '</a>';
+                        }
+                        $auxcelda3 .= $prefijo . $auxcelda;
+                        $auxcelda4 = "";
+                        if ($solo != 'simple') {
+                            $htmlShow .= '<h5 class="mb-1 mr-auto">' . $auxcelda2 .  '</h5>' .
+                                //'<small><button type="button" class="btn btn-dark" title="' . trans("crudgenerator::admin.layout.labels.info"). '">' . CrudGenerator::getIcon('info',true) . '</button></small>' .
+                                '</div>';
+                            $auxcelda5 = "";
+                        }
+                        $prefijo2 = "<ul><li>";
+                        if (Arr::has($datos, 'columnas')) {
+                            if (is_array($datos['columnas'])) {
+                                if (is_object($sub->pivot)) {
+                                    $smartMergeRelation = false;
+                                    $configRelation = "";
+                                    if (Arr::has($datos, "config")) {
+                                        $configRelation = Arr::get($datos, "config", "");
+                                        $smartMergeRelation = Arr::get($datos, "smartMerge", true);
+                                    }
+                                    $configRelation = CrudGenerator::getConfig(class_basename($datos["modelo"]), $smartMergeRelation, $configRelation);
+                                    if ($arrayInValue && $solo == 'simple') {
+                                        $celda[$sub->getKey()] = CrudGenerator::registry_array($configRelation, $sub, "simple");
+                                    } else {
+                                        $celda[$sub->getKey()]['data'] = CrudGenerator::registry_array($configRelation, $sub, "simple");
+                                    }
+                                    if ($solo != 'simple') {
+                                        $htmlShow .= "<div class='collapse' aria-labelledby='{$extraId}_{$tablaOtroId}_principal' id='{$extraId}_{$tablaOtroId}_pivote' data-parent='#{$extraId}_lgroup'>" .
+                                            '<ul class="mb-0">';
+                                    }
+                                    $i = 0;
+                                    foreach ($datos['columnas'] as $infoPivote) {
+                                        if (isset($infoPivote['tipo'])) {
+                                            $tipoPivote = $infoPivote['tipo'];
+                                        } elseif (isset($infoPivote['type'])) {
+                                            $tipoPivote = $infoPivote['type'];
                                         } else {
-                                            $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] = $sub->pivot->{$infoPivote['campo']} . ', ';
+                                            $tipoPivote = 'text';
                                         }
-                                        $auxcelda4 .= $prefijo2 . $celda[$sub->getKey()]['data'][$infoPivote['campo']]['value'] . "</li>";
-                                        $prefijo2 = "<li>";
-                                    } elseif ($infoPivote['type'] == "label") {
-                                        if (isset($infoPivote['campo'])) {
-                                            $auxcelda5 = \Sirgrimorum\CrudGenerator\CrudGenerator::getNombreDeLista($sub, $infoPivote['campo']);
-                                        } else {
-                                            $auxcelda5 = $infoPivote['label'];
+                                        if ($tipoPivote != "hidden" && ($tipoPivote != "label" || ($tipoPivote == "label" && $i > 0))) {
+                                            $datoPivoteCampo = ['label' => $infoPivote['label']];
+                                            $tablaTranslate = $sub->pivot;
+                                            $configParaTranslate = null;
+                                            if ($tipoPivote == "number" && isset($infoPivote['format'])) {
+                                                $datoPivoteCampo['data'] = $sub->pivot->{$infoPivote['campo']};
+                                                $datoPivoteCampo['value'] = number_format($sub->pivot->{$infoPivote['campo']}, $infoPivote['format'][0], $infoPivote['format'][1], $infoPivote['format'][2]);
+                                            } elseif ($tipoPivote == "select" && isset($infoPivote['opciones'])) {
+                                                if (is_callable($infoPivote['opciones'])) {
+                                                    $opciones = $infoPivote['opciones']($sub);
+                                                } elseif (is_array($infoPivote['opciones'])) {
+                                                    $opciones = $infoPivote['opciones'];
+                                                } else {
+                                                    $opciones = [];
+                                                }
+                                                $datoPivoteCampo['data'] = $sub->pivot->{$infoPivote['campo']};
+                                                $datoPivoteCampo['value'] = Arr::get($opciones, $sub->pivot->{$infoPivote['campo']}, $sub->pivot->{$infoPivote['campo']});
+                                            } elseif ($tipoPivote == "label") {
+                                                $tablaTranslate = $sub;
+                                                $configParaTranslate = $datos;
+                                                if (isset($infoPivote['campo'])) {
+                                                    $datoPivoteCampo['value'] = $infoPivote['campo'];
+                                                    $datoPivoteCampo['data'] = $infoPivote['campo'];
+                                                } else {
+                                                    $datoPivoteCampo['value'] = $infoPivote['label'];
+                                                    $datoPivoteCampo['data'] = $infoPivote['label'];
+                                                }
+                                            } elseif ($tipoPivote == "labelpivot") {
+                                                if (isset($infoPivote['campo'])) {
+                                                    $datoPivoteCampo['value'] = $infoPivote['campo'];
+                                                    $datoPivoteCampo['data'] = $infoPivote['campo'];
+                                                } else {
+                                                    $datoPivoteCampo['value'] = $infoPivote['label'];
+                                                    $datoPivoteCampo['data'] = $infoPivote['label'];
+                                                }
+                                            } else {
+                                                $datoPivoteCampo['value'] = $infoPivote['campo'];
+                                                $datoPivoteCampo['data'] = $infoPivote['campo'];
+                                            }
+                                            if (isset($infoPivote['pre'])) {
+                                                $datoPivoteCampo['value'] = $infoPivote['pre'] . " {$datoPivoteCampo['value']}";
+                                            }
+                                            if (isset($infoPivote['post'])) {
+                                                $datoPivoteCampo['value'] .= " " . $infoPivote['post'];
+                                            }
+                                            if (!$arrayInValue || $solo != 'simple') {
+                                                $datoPivoteCampo['value'] = CrudGenerator::translateDato($datoPivoteCampo['value'], $tablaTranslate, $configParaTranslate);
+                                            }
+                                            $datoPivoteCampo['data'] = CrudGenerator::translateDato($datoPivoteCampo['data'], $tablaTranslate, $configParaTranslate);
+                                            $datoCelda4 = "<strong>{$datoPivoteCampo['label']}: </strong>{$datoPivoteCampo['value']}";
+                                            $auxcelda4 .= "$prefijo2{$datoCelda4}</li>";
+                                            $prefijo2 = "<li>";
+                                            if ($solo != 'simple') {
+                                                $htmlShow .= '<li>' .
+                                                    $datoCelda4 .
+                                                    '</li>';
+                                            }
+                                            $nombreCampoCelda = str_replace(["<-", "->"], "", $infoPivote['campo']);
+                                            if ($arrayInValue && $solo == 'simple') {
+                                                $extraDataKey = "";
+                                                $datoPivoteCampo = $datoPivoteCampo['data'];
+                                            } else {
+                                                $extraDataKey = ".data";
+                                            }
+                                            if (!Arr::has($celda, "{$sub->getKey()}{$extraDataKey}.{$nombreCampoCelda}")) {
+                                                data_set($celda, "{$sub->getKey()}{$extraDataKey}.{$nombreCampoCelda}", $datoPivoteCampo);
+                                            }
+                                            data_set($celda, "{$sub->getKey()}{$extraDataKey}.pivote.{$nombreCampoCelda}", $datoPivoteCampo);
+                                        } elseif ($tipoPivote == "label" && $i == 0 && $solo != 'simple') {
+                                            if (isset($infoPivote['campo'])) {
+                                                $auxcelda5 = CrudGenerator::translateDato($infoPivote['campo'], $sub, $infoPivote);
+                                            } else {
+                                                $auxcelda5 = $infoPivote['label'];
+                                            }
                                         }
+                                        $i++;
+                                    }
+                                    if ($solo != 'simple') {
+                                        $htmlShow .= '</ul>' .
+                                            '</div>';
                                     }
                                 }
                             }
                         }
+                        if ($auxcelda4 != "") {
+                            $auxcelda4 .= "</ul>";
+                        }
+                        $auxcelda3 .= $auxcelda4 . "</li>";
+                        $prefijo = "<li>";
+                        if ($solo != 'simple') {
+                            $celda[$sub->getKey()]['value'] = $auxcelda . $auxcelda4;
+                            $celda[$sub->getKey()]['name'] = $auxcelda2;
+                            $celda[$sub->getKey()]['label'] = $auxcelda5;
+                            $htmlShow .= '</div>';
+                        }
                     }
-                    if ($auxcelda4 != "") {
-                        $auxcelda4 .="</ul>";
+                    if ($auxcelda3 != "") {
+                        $auxcelda3 .= "</ul>";
                     }
-                    $auxcelda3 .= $auxcelda4 . "</li>";
-                    $prefijo = "<li>";
-                    $celda[$sub->getKey()]['name'] = $auxcelda2;
-                    $celda[$sub->getKey()]['value'] = $auxcelda;
-                    $celda[$sub->getKey()]['label'] = $auxcelda5;
+                    if ($solo != 'simple') {
+                        $htmlShow .= '</div>';
+                    }
                 }
-                if ($auxcelda3 != "") {
-                    $auxcelda3 .="</ul>";
+                if ($solo != 'simple') {
+                    $celda = [
+                        "data" => $celda,
+                        "label" => $datos['label'],
+                        "html_show" => $htmlShow,
+                        "html_cell" => '<div style="max-height:10em;max-width:30em;overflow-y:auto;">' . str_replace(['<h5', 'h5>'], ['<span', 'span>'], $htmlShow) . '</div>',
+                    ];
+                    if ($arrayInValue) {
+                        $celda['value'] = $celda['data'];
+                    } else {
+                        $celda['value'] = $auxcelda3;
+                    }
+                } elseif ($arrayInValue) {
+                    $celda = [
+                        "value" => $celda,
+                    ];
+                } else {
+                    $celda = [
+                        "value" => $auxcelda3,
+                    ];
                 }
-                $celda = [
-                    "data" => $celda,
-                    "label" => $datos['label'],
-                    "value" => $auxcelda3
-                ];
             } else {
                 $celda = '-';
             }
         } elseif ($datos['tipo'] == "select") {
-            if (array_key_exists($value->{$columna}, $datos['opciones'])) {
-                $celda['data'] = $datos['opciones'][$value->{$columna}];
-                $celda['label'] = $datos['label'];
-                $celda['value'] = $datos['opciones'][$value->{$columna}];
+            if (Arr::get($datos, 'multiple', '') == 'multiple' && CrudGenerator::isJsonString($value->{$columna})) {
+                if ($solo != 'simple') {
+                    $celda = [];
+                }
+                $auxcelda2 = "";
+                $prefijo = "<ul><li>";
+                foreach (json_decode($value->{$columna}) as $opcion) {
+                    if (array_key_exists($opcion, $datos['opciones'])) {
+                        $auxcelda2 .= $prefijo . $datos['opciones'][$opcion];
+                        if ($solo != 'simple') {
+                            $celda[$opcion] =  $datos['opciones'][$opcion];
+                        }
+                        $auxcelda2 .= "</li>";
+                        $prefijo = "<li>";
+                    }
+                }
+                if ($auxcelda2 != "") {
+                    $auxcelda2 .= "</ul>";
+                }
+                if ($solo != 'simple') {
+                    $celda = [
+                        "data" => $celda,
+                        "label" => $datos['label'],
+                        "value" => $auxcelda2
+                    ];
+                } else {
+                    $celda = [
+                        "value" => $auxcelda2
+                    ];
+                }
             } else {
-                $celda = '-';
+                if (array_key_exists($value->{$columna}, $datos['opciones'])) {
+                    $celda['value'] = $datos['opciones'][$value->{$columna}];
+                    if ($solo != 'simple') {
+                        $celda['data'] = $celda['value'];
+                        $celda['label'] = $datos['label'];
+                    }
+                } else {
+                    $celda = '-';
+                }
             }
         } elseif ($datos['tipo'] == "checkbox" || $datos['tipo'] == "radio") {
+            $auxdata = $value->{$columna};
             if (is_array($datos['value'])) {
                 if (array_key_exists($value->{$columna}, $datos['value'])) {
                     $auxcelda = $datos['value'][$value->{$columna}];
+                    $auxcelda = $datos['value'][$value->{$columna}];
+                    if (is_array($auxcelda)) {
+                        $auxcelda = Arr::get($auxcelda, 'label', Arr::get($auxcelda, 'description', Arr::get($auxcelda, 'help', $value->{$columna})));
+                    }
+                    if ($solo != 'simple') {
+                        $celda['data_labels'][$value->{$columna}] = $datos['value'][$value->{$columna}];
+                    }
+                } elseif (strpos($value->{$columna}, Arr::get($datos, 'glue', '_')) !== false) {
+                    $auxdata = explode(Arr::get($datos, 'glue', '_'), $value->{$columna});
+                    $auxcelda = "";
+                    $precelda = "";
+                    if ($solo != 'simple') {
+                        $auxdataLabels = [];
+                        $auxhtml = "";
+                    }
+                    foreach ($auxdata as $datico) {
+                        if (array_key_exists($datico, $datos['value'])) {
+                            $auxDatico = $datos['value'][$datico];
+                            if (is_array($auxDatico)) {
+                                $auxDatico = Arr::get($auxDatico, 'label', Arr::get($auxDatico, 'description', Arr::get($auxDatico, 'help', $datico)));
+                            }
+                            $auxcelda .= $precelda . $auxDatico;
+                            $precelda = ", ";
+                            if ($solo != 'simple') {
+                                $auxdataLabels[$datico] = $auxDatico;
+                                $auxhtml .= "<li>{$auxDatico}</li>";
+                            }
+                        }
+                    }
+                    if ($solo != 'simple') {
+                        if ($auxhtml != "") {
+                            $celda['html'] = "<ul>{$auxhtml}</ul>";
+                            $celda['html_cell'] = '<div style="max-height:10em;min-width:22em;white-space:normal;overflow-y:auto;">' . $celda['html'] . '</div>';
+                        }
+                        $celda['data_labels'] = $auxdataLabels;
+                    }
                 } else {
                     if ($value->{$columna} === true) {
                         $auxcelda = trans('crudgenerator::admin.layout.labels.yes');
@@ -344,8 +773,10 @@ trait CrudModels {
                     $auxcelda = trans('crudgenerator::admin.layout.labels.no');
                 }
             }
-            $celda['data'] = $value->{$columna};
-            $celda['label'] = $datos['label'];
+            if ($solo != 'simple') {
+                $celda['data'] = $auxdata;
+                $celda['label'] = $datos['label'];
+            }
             $celda['value'] = $auxcelda;
         } elseif ($datos['tipo'] == "function") {
             if (isset($datos['format'])) {
@@ -357,8 +788,10 @@ trait CrudModels {
             } else {
                 $auxcelda = $value->{$columna}();
             }
-            $celda['data'] = $auxcelda;
-            $celda['label'] = $datos['label'];
+            if ($solo != 'simple') {
+                $celda['data'] = $auxcelda;
+                $celda['label'] = $datos['label'];
+            }
             $celda['value'] = $auxcelda;
         } elseif ($datos['tipo'] == "date" || $datos['tipo'] == "datetime" || $datos['tipo'] == "time") {
             $format = "Y-m-d H:i:s";
@@ -382,8 +815,7 @@ trait CrudModels {
                 }
                 $date = new \Carbon\Carbon($dato, $timezone);
                 if (stripos($format, "%") !== false) {
-                    setlocale(LC_TIME, \App::getLocale(), strtoupper(\App::getLocale()), \App::getLocale() . "_" . strtoupper(\App::getLocale()));
-                    \Carbon\Carbon::setUtf8(true);
+                    setlocale(LC_TIME, App::getLocale(), strtoupper(App::getLocale()), App::getLocale() . "_" . strtoupper(App::getLocale()));
                     $dato = $date->formatLocalized($format);
                 } else {
                     $dato = $date->format($format);
@@ -391,26 +823,48 @@ trait CrudModels {
             } else {
                 $date = $value->{$columna};
             }
-            $celda['data'] = $date;
-            $celda['label'] = $datos['label'];
-            $celda['value'] = $dato;
-        } elseif ($datos['tipo'] == "url") {
-            $celda = [
-                'value' => $value->{$columna},
-                'data' => $value->{$columna},
-            ];
-            if (\Sirgrimorum\CrudGenerator\CrudGenerator::urlType($value->{$columna}) == "youtube") {
-                $youtubeId = \Sirgrimorum\CrudGenerator\CrudGenerator::getYoutubeId($value->{$columna});
-                $celda['embed'] = "https://www.youtube.com/embed/" . $youtubeId;
-            } else {
-                $celda['embed'] = $value->{$columna};
+            if ($solo != 'simple') {
+                $celda['data'] = $date;
+                $celda['label'] = $datos['label'];
             }
-            $celda['label'] = $datos['label'];
+            $celda['value'] = $dato;
+        } elseif ($datos['tipo'] == "url" || ($datos['tipo'] == "file" && Str::startsWith(strtolower($value->{$columna}), ["http:", "https:"]))) {
+            if ($datos['tipo'] == "url" && !Str::startsWith(strtolower($value->{$columna}), ["http:", "https:"])) {
+                $url = Str::start($value->{$columna}, "http://");
+            } else {
+                $url = $value->{$columna};
+            }
+            if ($solo == 'simple') {
+                $celda = [
+                    'value' => $url,
+                ];
+            } else {
+                $celda = [
+                    'value' => $url,
+                    'data' => $url,
+                ];
+                if (CrudGenerator::urlType($url) == "youtube") {
+                    $youtubeId = CrudGenerator::getYoutubeId($url);
+                    $celda['embed'] = "https://www.youtube.com/embed/" . $youtubeId;
+                    $celda['html_show'] = '<div class="card text-center" >' .
+                        '<iframe class="card-img-top" height="400" src="https://www.youtube.com/embed/' . $youtubeId . '" style="border: none;"></iframe>' .
+                        '<div clas="card-body" >' .
+                        '<h5 class="card-title">' . $url . '</h5>' .
+                        '</div>' .
+                        '</div>';
+                } else {
+                    $celda['embed'] = $url;
+                    $celda['html_show'] = "<a class='btn' href='{$url}' target='_blank'><i class='mt-2 " . CrudGenerator::getIcon('url') . "' aria-hidden='true'></i></a> {$url}";
+                }
+                $celda['label'] = $datos['label'];
+                $celda['html'] = "<a href='{$url}' target='_blank'><i class='mt-2 " . CrudGenerator::getIcon('url') . "' aria-hidden='true'></i></a>";
+                $celda['html_cell'] = $celda['html'];
+            }
         } elseif ($datos['tipo'] == "article" && class_exists(config('sirgrimorum.transarticles.default_articles_model'))) {
             $modelClass = config('sirgrimorum.transarticles.default_articles_model');
             $langColumn = config('sirgrimorum.transarticles.default_lang_column');
             $findArticle = config('sirgrimorum.transarticles.default_findarticle_function_name');
-            $article = $modelClass::{$findArticle}($value->{$columna})->where($langColumn, "=", \App::getLocale())->first();
+            $article = $modelClass::{$findArticle}($value->{$columna})->where($langColumn, "=", App::getLocale())->first();
             if (isset($article)) {
                 $strArticle = $article->content;
             } else {
@@ -425,165 +879,741 @@ trait CrudModels {
                     }
                 }
             }
-            $celda = [
-                'value' => $strArticle,
-                'label' => $datos['label'],
-            ];
-            $celda['data'] = [];
-            foreach (config("sirgrimorum.crudgenerator.list_locales") as $localeCode) {
-                $articles = $modelClass::{$findArticle}($value->{$columna})->where($langColumn, "=", $localeCode)->first();
-                if (isset($articles)) {
-                    $celda['data'][$localeCode] = $articles->content;
-                } else {
-                    if (isset($datos['valor'])) {
-                        $celda['data'][$localeCode] = $datos['valor'];
+            if ($solo == 'simple') {
+                $celda = [
+                    'value' => $strArticle,
+                ];
+            } else {
+                $celda = [
+                    'value' => $strArticle,
+                    'label' => $datos['label'],
+                    'html_cell' => '<div style="max-height:10em;max-width:40em;overflow-y:auto;">' . $strArticle . '</div>',
+                ];
+                $celda['data'] = [];
+                foreach (config("sirgrimorum.crudgenerator.list_locales") as $localeCode) {
+                    $articles = $modelClass::{$findArticle}($value->{$columna})->where($langColumn, "=", $localeCode)->first();
+                    if (isset($articles)) {
+                        $celda['data'][$localeCode] = $articles->content;
                     } else {
-                        $celda['data'][$localeCode] = $value->{$columna};
+                        if (isset($datos['valor'])) {
+                            $celda['data'][$localeCode] = $datos['valor'];
+                        } else {
+                            $celda['data'][$localeCode] = $value->{$columna};
+                        }
                     }
                 }
             }
         } elseif ($datos['tipo'] == "json") {
-            $celda['data'] = json_decode($value->{$columna});
-            $celda['label'] = $datos['label'];
-            $celda['value'] = $value->{$columna};
+            $celdaData = null;
+            if (Arr::get($datos, 'arrayInValue', false) == true) {
+                $celdaData = json_decode($value->{$columna}, true);
+                $celda['value'] = $celdaData;
+            } else {
+                $celda['value'] = $value->{$columna};
+            }
+            if ($solo != 'simple') {
+                $celda['data'] = $celdaData ?? json_decode($value->{$columna}, true);
+                $celda['label'] = $datos['label'];
+                $celda['html'] = "<pre><code>" . json_encode($celda['data'], JSON_PRETTY_PRINT) . "</code></pre>";
+                $extraId = "{$columna}_" . uniqid($value->getKey());
+                $nameScriptLoader = config("sirgrimorum.crudgenerator.scriptLoader_name", "scriptLoader") . "Creator";
+                $fileHtml = '<div class="card text-left">' .
+                    '<div class="card-header">' .
+                    'JSON' .
+                    '</div>' .
+                    '<div id="' . $extraId . '" class="card-body w-100" style="background-color:black;">' .
+                    '</div>' .
+                    '</div>';
+                $fileHtml .= CrudGenerator::addLinkTagLoaderHtml(asset(config("sirgrimorum.crudgenerator.jsonedtr_path") . "/renderjson.css"));
+                $fileHtml .= CrudGenerator::addScriptLoaderHtml(asset(config("sirgrimorum.crudgenerator.jsonedtr_path") . "/renderjson.js"), false);
+                $fileHtml .= '<script>
+                    var ' . $extraId . 'Ejecutado = false;
+                    function ' . $extraId . 'Loader(){
+                        if (!' . $extraId . 'Ejecutado){
+                            document.getElementById("' . $extraId . '").appendChild(renderjson.set_max_string_length(50).set_icons("' . CrudGenerator::getIcon('expandir', true) . '", "' . CrudGenerator::getIcon('contraer', true) . '", true).set_show_to_level(1)(' . $value->{$columna} . '));
+                        }
+                        ' . $extraId . 'Ejecutado = true;
+                    }
+                    window.addEventListener(\'load\', function() {
+                        ' . $extraId . 'Loader();
+                    });
+                    ' . $nameScriptLoader . '(\'renderjson_js\',"' . $extraId . 'Loader();");
+                </script>';
+                $celda['html_show'] = $fileHtml;
+                $celda['html_cell'] = '<div style="max-height:10em;max-width:30em;overflow-y:auto;">' . $celda['html'] . '</div>';
+            }
         } elseif ($datos['tipo'] == "file") {
             if ($value->{$columna} == "") {
                 $celda = '';
             } else {
-                $filename = Str::start($value->{$columna}, Str::finish($datos['path'], '\\'));
-                $tipoFile = \Sirgrimorum\CrudGenerator\CrudGenerator::filenameIs($value->{$columna}, $datos);
-                $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
-                $celda = [
-                    "name" => $auxprevioName,
-                    "value" => $filename,
-                    "label" => $datos['label'],
-                    "type" => $tipoFile
-                ];
+                [$filename, $urlFile] = CrudGenerator::getFileUrl($value->{$columna}, $value, $modelo, $columna, $datos, $config);
+                if ($solo != 'simple') {
+                    $tipoFile = CrudGenerator::filenameIs($value->{$columna}, $datos);
+                    if (stripos($value->{$columna}, '__') !== false) {
+                        $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
+                    } else {
+                        $auxprevioName = substr($value->{$columna}, 0, stripos($value->{$columna}, '.', 0));
+                    }
+                    $tipoMime = CrudGenerator::fileMime(strtolower($filename), $datos);
+                    $fileHtml = '<div class="card text-center">';
+                    $titleFileHtml = $auxprevioName;
+                    if ($value->{$columna} == "") {
+                        $fileHtmlCell = '-';
+                        $fileHtml = '-';
+                    } elseif ($tipoFile == 'image') {
+                        $fileHtmlCell = '<figure class="figure">' .
+                            '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
+                            '<img src="' . $urlFile . '" class="figure-img img-fluid rounded" alt="' . $auxprevioName . '">' .
+                            '<figcaption class="figure-caption">' . $auxprevioName . '</figcaption>' .
+                            '</a>' .
+                            '</figure>';
+                        $fileHtml .= '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
+                            '<img class="card-img-top" style="width:auto;max-width:100%;" src="' . $urlFile . '" alt="' . $auxprevioName . '">' .
+                            '</a>';
+                    } else {
+                        $fileHtmlCell = '<ul class="fa-ul">' .
+                            '<li class="pl-2">' .
+                            CrudGenerator::getIcon($tipoFile, true, 'fa-li') .
+                            '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
+                            $auxprevioName .
+                            '</a>' .
+                            '</li>' .
+                            '</ul>';
+                        if ($tipoFile == 'video') {
+                            $fileHtml .= '<video class="card-img-top" controls preload="auto" height="300" >' .
+                                '<source src="' . $urlFile . '" type="video/mp4" />' .
+                                '</video>';
+                        } elseif ($tipoFile == 'audio') {
+                            $fileHtml .= '<audio class="card-img-top" controls preload="auto" >' .
+                                '<source src="' . $urlFile . '" type="audio/mpeg" />' .
+                                '</audio>';
+                        } elseif ($tipoFile == 'pdf') {
+                            $fileHtml .= '<iframe class="card-img-top" height="300" src="' . $urlFile . '" style="border: none;"></iframe>';
+                        } else {
+                            $fileHtml .= '<div class="card-header">' .
+                                CrudGenerator::getIcon($tipoFile, true, 'fa-3x') .
+                                '</div>';
+                            $titleFileHtml = '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
+                                "{$titleFileHtml}" .
+                                '</a>';
+                        }
+                    }
+                    $fileHtml .= '<div class="card-body" >' .
+                        '<h5 class="card-title">' . $titleFileHtml . '</h5>' .
+                        '</div>' .
+                        '</div>';
+                    $celda = [
+                        "name" => $auxprevioName,
+                        "value" => $filename,
+                        "url_public" => CrudGenerator::getDisk($datos)->url($filename),
+                        "url" => $urlFile,
+                        "label" => $datos['label'],
+                        "type" => $tipoFile,
+                        "html" => CrudGenerator::getHtmlParaFile($tipoFile, $urlFile, $auxprevioName, $tipoMime),
+                        "html_cell" => $fileHtmlCell,
+                        "html_show" => $fileHtml,
+                    ];
+                } else {
+                    $celda = [
+                        "value" => $filename,
+                    ];
+                }
             }
         } elseif ($datos['tipo'] == "files") {
             if ($value->{$columna} == "") {
                 $celda = '';
             } else {
-                try {
-                    $auxprevios = json_decode($value->{$columna});
-                    if (!is_array($auxprevios)) {
+                if (Arr::get($datos, 'arrayInValue', false) == true || $solo != 'simple') {
+                    try {
+                        $auxprevios = json_decode($value->{$columna});
+                        if (!is_array($auxprevios)) {
+                            $auxprevios = [];
+                        }
+                    } catch (Exception $ex) {
                         $auxprevios = [];
                     }
-                } catch (Exception $ex) {
-                    $auxprevios = [];
                 }
-                $celda['data'] = [];
+                if (Arr::get($datos, 'arrayInValue', false) == true) {
+                    $celda['value'] = $auxprevios;
+                } else {
+                    $celda['value'] = $value->{$columna};
+                }
+                if ($solo != 'simple') {
+                    $celda['data'] = [];
+                    $celda['label'] = $datos['label'];
+                    $fileHtml = '<div class="row">';
+                    $fileHtmlCell = '<ul class="fa-ul">';
+                    foreach ($auxprevios as $datoReg) {
+                        if (is_object($datoReg)) {
+                            [$filename, $urlFile] = CrudGenerator::getFileUrl($datoReg->file, $value, $modelo, $columna, $datos, $config);
+                            $tipoFile = CrudGenerator::filenameIs($datoReg->file, $datos);
+                            $auxprevioName = substr($value->{$columna}, stripos($value->{$columna}, '__') + 2, stripos($value->{$columna}, '.', stripos($value->{$columna}, '__')) - (stripos($value->{$columna}, '__') + 2));
+                            $tipoMime = CrudGenerator::fileMime(strtolower($filename), $datos);
+                            $fileHtml = CrudGenerator::getHtmlParaFile($tipoFile, $urlFile, $auxprevioName, $tipoMime);
+                            $celda['data'][] = [
+                                "name" => $datoReg->name,
+                                "value" => $filename,
+                                "url_public" => CrudGenerator::getDisk($datos)->url($filename),
+                                "url" => $urlFile,
+                                "type" => $tipoFile,
+                                "html" => $fileHtml,
+                            ];
+                            $fileHtmlCell .= '<li class="pl-2">';
+                            if ($tipoFile == 'image') {
+                                $fileHtmlCell .= '<i class="' . CrudGenerator::getIcon('empty') . ' fa-li" aria-hidden="true"><img class="w-75 rounded" style="cursor: pointer;" src="' . $urlFile . '"></i>';
+                            } else {
+                                $fileHtmlCell .= CrudGenerator::getIcon($tipoFile, true, 'fa-li');
+                            }
+                            $fileHtmlCell .= '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
+                                $datoReg->name .
+                                '</a>' .
+                                '</li>';
+                            $fileHtml .= '<div class="col-md-6 col-sm-12 col-xs-12">' .
+                                '<div class="card text-center">';
+                            $titleFileHtml = $datoReg->name;
+                            if ($tipoFile == 'image') {
+                                $fileHtml .= '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
+                                    '<img class="card-img-top" src="' . $urlFile . '">' .
+                                    '</a>';
+                            } elseif ($tipoFile == 'video') {
+                                $fileHtml .= '<video class="card-img-top" controls preload="auto" height="300" >' .
+                                    '<source src="' . $urlFile . '" type="video/mp4" />' .
+                                    '</video>';
+                            } elseif ($tipoFile == 'audio') {
+                                $fileHtml .= '<audio class="card-img-top" controls preload="auto" >' .
+                                    '<source src="' . $urlFile . '" type="audio/mpeg" />' .
+                                    '</audio>';
+                            } elseif ($tipoFile == 'pdf') {
+                                $fileHtml .= '<iframe class="card-img-top" height="300" src="' . $urlFile . '" style="border: none;"></iframe>';
+                            } else {
+                                $fileHtml .= '<div class="card-header">' .
+                                    CrudGenerator::getIcon($tipoFile, true, 'fa-3x') .
+                                    '</div>';
+                                $titleFileHtml = '<a class="text-secondary" href="' . $urlFile . '" target="_blank" >' .
+                                    "{$titleFileHtml}" .
+                                    '</a>';
+                            }
+                            $fileHtml .= '<div class="card-body" >' .
+                                '<h5 class="card-title">' . $titleFileHtml . '</h5>' .
+                                '</div>' .
+                                '</div>' .
+                                '</div>';
+                        }
+                    }
+                    if (count($auxprevios) == 0) {
+                        $fileHtmlCell = "-";
+                        $fileHtml = "-";
+                    } else {
+                        $fileHtmlCell .= '</ul>';
+                        $fileHtml .= '</div>';
+                    }
+                    $celda['html'] = $fileHtml;
+                    $celda['html_cell'] = $fileHtmlCell;
+                }
+            }
+        } elseif ($datos['tipo'] == "color") {
+            if ($solo == 'simple') {
+                $celda = [
+                    'value' => $value->{$columna},
+                ];
+            } else {
+                $celda = [
+                    'value' => $value->{$columna},
+                    'data' => $value->{$columna},
+                ];
                 $celda['label'] = $datos['label'];
-                $celda['value'] = $value->{$columna};
-                foreach ($auxprevios as $datoReg) {
-                    $filename = Str::start($datoReg->file, Str::finish($datos['path'], '\\'));
-                    $tipoFile = \Sirgrimorum\CrudGenerator\CrudGenerator::filenameIs($datoReg->file, $datos);
-                    $celda['data'][] = [
-                        "name" => $datoReg->name,
-                        "value" => $filename,
-                        "type" => $tipoFile
-                    ];
+                $color = false;
+                if (!isset($value->{$columna}) && isset($datos['valor'])) {
+                    $color = $datos['valor'];
+                } elseif (isset($value->{$columna})) {
+                    $color = $value->{$columna};
+                }
+                if ($color) {
+                    $celda['html'] = '<span title="' . $color . '" style="display:inline-block;width:1.5em;height:1.5em;border:1px solid #000;background-color:' . $color . ';"></span>';
+                    $celda['html_cell'] = $celda['html'];
+                    $fileHtml = '<div class="card text-center">' .
+                        '<div class="card-header">' .
+                        '<span style="display:inline-block;width:90%;height:5em;border:1px solid #000;background-color:' . $color . ';"></span>' .
+                        '</div>' .
+                        '<div class="card-body" >' .
+                        '<h5 class="card-title">' . $color . '</h5>' .
+                        '</div>' .
+                        '</div>';
+                    $celda['html_show'] = $fileHtml;
                 }
             }
         } else {
             if (array_key_exists('enlace', $datos)) {
-                $modelConfig = is_array($config) ? $config : \Sirgrimorum\CrudGenerator\CrudGenerator::getConfigWithParametros(strtolower(class_basename(get_class($value))));
-                $identificador = $modelConfig['id'] ?? $value->getKeyName();
-                $nombre = $modelConfig['nombre'] ?? $columna;
-                $auxcelda = '<a href = "' . str_replace([":modelId", ":modelName"], [$value->{$identificador}, $value->{$nombre}], str_replace([urlencode(":modelId"), urlencode(":modelName")], [$value->{$identificador}, $value->{$nombre}], $datos['enlace'])) . '">';
+                $auxcelda = '<a href = "' . $datos['enlace'] . '">';
             }
+
             if ($datos['tipo'] == "number" && isset($datos['format'])) {
                 if (is_array($datos['format'])) {
                     $auxcelda .= number_format($value->{$columna}, $datos['format'][0], $datos['format'][1], $datos['format'][2]);
                 } else {
-                    $auxcelda .=number_format($value->{$columna});
+                    $auxcelda .= number_format($value->{$columna});
                 }
+                $htmlCell = $auxcelda;
             } else {
+                $htmlCell = $auxcelda;
                 $auxcelda .= $value->{$columna};
+                if ($solo != 'simple') {
+                    if ($datos['tipo'] == "html") {
+                        $htmlCell = '<div style="max-height:10em;max-width:40em;overflow-y:auto;">' . $value->{$columna} . '</div>';
+                    } else {
+                        $htmlCell .= CrudGenerator::truncateText($value->{$columna}, Arr::get($datos, 'truncate', 200));
+                    }
+                }
             }
-            $celda['data'] = $value->{$columna};
-            $celda['label'] = $datos['label'];
-
             if (array_key_exists('enlace', $datos)) {
-                $auxcelda = '</a>';
+                $auxcelda .= '</a>';
+                if ($solo != 'simple' && $datos['tipo'] != "html") {
+                    $htmlCell .= '</a>';
+                }
             }
             $celda['value'] = $auxcelda;
+            if ($solo != 'simple') {
+                $celda['data'] = $value->{$columna};
+                $celda['label'] = Arr::get($datos, 'label', $columna);
+                $celda['html_cell'] = $htmlCell;
+            }
         }
         if (isset($datos["post"])) {
-            $celdaData['post'] = $datos["post"];
+            $celdaDataPP['post'] = $datos["post"];
         }
-        if (is_string($celda)) {
-            $celdaData['data'] = $celda;
-            $celdaData['value'] = $celda;
-            $celdaData['label'] = $datos['label'];
-            $celda = $celdaData;
-        } else {
-            $celda = array_merge($celda, $celdaData);
+        if ($solo != 'simple' && is_string($celda)) {
+            $celdaDataPP['value'] = $celda;
+            $celdaDataPP['data'] = $celda;
+            $celdaDataPP['label'] = $datos['label'];
+            $celda = $celdaDataPP;
+        } elseif ($solo != 'simple') {
+            $celda = array_merge($celda, $celdaDataPP);
+        } elseif (is_string($celda)) {
+            $celda = [
+                'value' => $celda
+            ];
         }
-        if (isset($celda['pre']) && is_string($celda['value'])) {
-            $celda['value'] = $celda['pre'] . $celda['value'];
+        if (isset($celdaDataPP['pre']) && is_string($celda['value'])) {
+            $celda['value'] = $celdaDataPP['pre'] . $celda['value'];
+            if (isset($celda['html_show'])) {
+                $celda['html_show'] = $celdaDataPP['pre'] . $celda['html_show'];
+            } elseif (isset($celda['html'])) {
+                $celda['html_show'] = $celdaDataPP['pre'] . $celda['html'];
+            }
+            if (isset($celda['html_cell'])) {
+                $celda['html_cell'] = $celdaDataPP['pre'] . $celda['html_cell'];
+            }
         }
-        if (isset($celda['post']) && is_string($celda['value'])) {
-            $celda['value'] = $celda['value'] . Str::start($celda['post'], " ");
+        if (isset($celdaDataPP['post']) && is_string($celda['value'])) {
+            $celda['value'] = $celda['value'] . Str::start($celdaDataPP['post'], " ");
+            if (isset($celda['html_show'])) {
+                $celda['html_show'] = $celda['html_show'] . Str::start($celdaDataPP['post'], " ");
+            } elseif (isset($celda['html'])) {
+                $celda['html_show'] = $celda['html'] . Str::start($celdaDataPP['post'], " ");
+            }
+            if (isset($celda['html_cell'])) {
+                $celda['html_cell'] = $celda['html_cell'] . Str::start($celdaDataPP['post'], " ");
+            }
+        }
+        if (isset($celda['value']) && $datos['tipo'] != "json" && (!is_array($celda['value']) || (is_array($celda['value']) && count(array_filter(array_keys($celda['value']), 'is_string')) == 0 && count(array_filter($celda['value'], 'is_array')) == 0))) {
+            $celda['value'] = CrudGenerator::translateDato($celda['value'], $value, $config);
+        } elseif (!Arr::has($celda, 'value')) {
+            throw (new NoValueInCeldaException($modelo, $columna));
+        }
+        if (isset($celda['html'])) {
+            $celda['html'] = CrudGenerator::translateDato($celda['html'], $value, $config);
+        }
+        if (isset($celda['html_show'])) {
+            $celda['html_show'] = CrudGenerator::translateDato($celda['html_show'], $value, $config);
+        }
+        if (isset($celda['html_cell'])) {
+            $celda['html_cell'] = CrudGenerator::translateDato($celda['html_cell'], $value, $config);
         }
         return $celda;
     }
 
     /**
-     * Filter an object of a model with a single query. It will use AND operation.
+     * Executes a filter query over a data using diferent operators
      * 
-     * If $attri is a method or function fo the object it will try to evaluate it with 
-     * $query as parametter. Use a Json string to pass more than one parametter.
-     * If the returned value is not a boolean or null, will use the $query or the las value of 
-     * the $query array to comare.
-     * 
-     * If $attri is only an attribute, it will compare against $query as it is.
-     * 
-     * if $query contains "*%" it will erase them and evaluate if $query is contained in the attribute value. 
-     * Not aplicable for function or methods returns
-     * 
-     * @param object $registro The model object
-     * @param string $query The query to evaluate
-     * @param string $attri The attribute to compare
-     * @return boolean
+     * @param mixed $dato The data to compare
+     * @param string $query The query to execute, includes >, <, =, !=, null, not null, set:, notset:, contiene:, nocontiene:
+     * @param bool $negado Optional If true, will negate all the query operators, default false
+     * @return bool If the data complies with the query or not
      */
-    private static function evaluateFilterWithSingleQuery($registro, $query, $attri) {
-        //echo "<p>evaluando {$registro->name}</p><pre>" . print_r([$query, $attri], true) . "</pre>";
+    public static function execFilterQuery($dato, $query, $negado = false)
+    {
         $contiene = false;
         if (stripos($query, "*%") !== false) {
             $contiene = true;
-            $query = str_replace("*%", "", $query);
+            $buscar = str_replace("*%", "", $query);
+        } else {
+            $buscar = $query;
         }
+        $buscarExtra = null;
+        $operador = "";
+        if ($buscar == "else") {
+            $operador = "else";
+        } elseif (str_contains($buscar, "|")) {
+            $auxDatos = explode("|", $buscar);
+            if ($auxDatos[0] == "<" && $auxDatos[1] != ">") {
+                if ($negado) {
+                    $operador = ">";
+                } else {
+                    $operador = "<=";
+                }
+                $buscar = $auxDatos[1];
+            } elseif ($auxDatos[0] != "<" && $auxDatos[1] == ">") {
+                if ($negado) {
+                    $operador = "<";
+                } else {
+                    $operador = ">=";
+                }
+                $buscar = $auxDatos[0];
+            } elseif ($auxDatos[0] != "<" && $auxDatos[1] != ">") {
+                $buscar = $auxDatos[0];
+                if ($negado) {
+                    $operador = "noentre";
+                } else {
+                    $operador = "entre";
+                }
+                $buscarExtra = $auxDatos[1];
+            }
+        } elseif ((($buscar == "null" || Str::contains($buscar, "notset:")) && !$negado) || (($buscar == "not null" || Str::contains($buscar, "set:")) && $negado)) {
+            $buscar = str_replace(["notset:", "set:"], "", $buscar);
+            $operador = "notset";
+        } elseif ((($buscar == "null" || Str::contains($buscar, "notset:")) && $negado) || (($buscar == "not null" || Str::contains($buscar, "set:")) && !$negado)) {
+            $buscar = str_replace(["notset:", "set:"], "", $buscar);
+            $operador = "set";
+        } elseif (Str::contains($buscar, ">=")) {
+            $buscar = str_replace(">=", "", $buscar);
+            if ($negado) {
+                $operador = "<";
+            } else {
+                $operador = ">=";
+            }
+        } elseif (Str::contains($buscar, "<=")) {
+            $buscar = str_replace("<=", "", $buscar);
+            if ($negado) {
+                $operador = ">";
+            } else {
+                $operador = "<=";
+            }
+        } elseif (Str::contains($buscar, ">")) {
+            $buscar = str_replace(">", "", $buscar);
+            if ($negado) {
+                $operador = "<=";
+            } else {
+                $operador = ">";
+            }
+        } elseif (Str::contains($buscar, "<")) {
+            $buscar = str_replace("<", "", $buscar);
+            if ($negado) {
+                $operador = ">=";
+            } else {
+                $operador = "<";
+            }
+        } elseif ((Str::contains($buscar, "!=") && !$negado) || (Str::contains($buscar, "=") && $negado)) {
+            $buscar = str_replace(["!=", "="], "", $buscar);
+            $operador = "!=";
+        } elseif ((Str::contains($buscar, "!=") && $negado) || (Str::contains($buscar, "=") && !$negado)) {
+            $buscar = str_replace(["!=", "="], "", $buscar);
+            $operador = "==";
+        } elseif ((Str::contains($buscar, "contiene:") && !$negado) || (Str::contains($buscar, "nocontiene:") && $negado)) {
+            $buscar = str_replace(["nocontiene:", "contiene:"], "", $buscar);
+            $operador = "contiene";
+        } elseif ((Str::contains($buscar, "contiene:") && $negado) || (Str::contains($buscar, "nocontiene:") && !$negado)) {
+            $buscar = str_replace(["nocontiene:", "contiene:"], "", $buscar);
+            $operador = "nocontiene";
+        } else {
+            if (!$contiene) {
+                if ($negado) {
+                    $operador = "!=";
+                } else {
+                    $operador = "==";
+                }
+            } else {
+                if ($negado) {
+                    $operador = "nocontiene";
+                } else {
+                    $operador = "contiene";
+                }
+            }
+        }
+        //echo "<p>ejecutando comparación</p><pre>" . print_r([$dato, $buscar, $operador, $buscarExtra], true) . "</pre>";
+        $comparador = new DynamicCompare($dato, $buscar, $operador, $buscarExtra);
+        return $comparador->es();
+    }
 
-        if (($numArgs = \Sirgrimorum\CrudGenerator\CrudGenerator::isFunction($registro, $attri)) !== false) {
+    /**
+     * Executes a filter query over a query Builder using diferent operators
+     * 
+     * @param array $config The configuration array
+     * @param string $campo The name of the field
+     * @param Builder $query The original Query Builder
+     * @param boolean $orOperation Optional (only when $registro is Builder), if use or operation, false will use and operation.
+     * @param bool $negado Optional If true, will negate all the query operators, default false
+     * @return Builder The new query Builder
+     */
+    public static function execQueryFilterQuery($config, $campo, $query, $buscar, $orOperation = true, $negado = false)
+    {
+        $columna = $config['campos'][$campo];
+        if ($columna['tipo'] == "relationship" && CrudGenerator::hasRelation($config['modelo'], $campo)) {
+            $campo = (new $config['modelo']())->{$campo}()->getForeignKeyName();
+        }
+        $contiene = false;
+        if (stripos($buscar, "*%") !== false) {
+            $contiene = true;
+            $buscar = str_replace("*%", "", $buscar);
+        } else {
+            $buscar = $buscar;
+        }
+        $operador = "";
+        if ($buscar == "else") {
+            //Pendiente
+        } elseif ($buscar != null && Str::contains($buscar, "|")) {
+            $auxDatos = explode("|", $buscar);
+            if ($columna["tipo"] == "date") {
+                $datos = [
+                    Carbon::parse($auxDatos[0])->toDateString(),
+                    Carbon::parse($auxDatos[1])->toDateString(),
+                ];
+                if ($negado) {
+                    if ($orOperation) {
+                        $query = $query->orWhereNotBetween($campo, $datos);
+                    } else {
+                        $query = $query->whereNotBetween($campo, $datos);
+                    }
+                } else {
+                    if ($orOperation) {
+                        $query = $query->orWhereBetween($campo, $datos);
+                    } else {
+                        $query = $query->whereBetween($campo, $datos);
+                    }
+                }
+            } elseif ($columna["tipo"] == "datetime") {
+                $datos = [
+                    Carbon::parse($auxDatos[0])->toDateTimeString(),
+                    Carbon::parse($auxDatos[1])->toDateTimeString(),
+                ];
+                if ($negado) {
+                    if ($orOperation) {
+                        $query = $query->orWhereNotBetween($campo, $datos);
+                    } else {
+                        $query = $query->whereNotBetween($campo, $datos);
+                    }
+                } else {
+                    if ($orOperation) {
+                        $query = $query->orWhereBetween($campo, $datos);
+                    } else {
+                        $query = $query->whereBetween($campo, $datos);
+                    }
+                }
+            } elseif ($columna["tipo"] == "time") {
+                $datos = [
+                    Carbon::parse($auxDatos[0])->toTimeString(),
+                    Carbon::parse($auxDatos[1])->toTimeString(),
+                ];
+                if ($negado) {
+                    if ($orOperation) {
+                        $query = $query->orWhereNotBetween($campo, $datos);
+                    } else {
+                        $query = $query->whereNotBetween($campo, $datos);
+                    }
+                } else {
+                    if ($orOperation) {
+                        $query = $query->orWhereBetween($campo, $datos);
+                    } else {
+                        $query = $query->whereBetween($campo, $datos);
+                    }
+                }
+            } elseif ($auxDatos[0] == "<" && $auxDatos[1] != ">") {
+                if ($negado) {
+                    $operador = ">";
+                } else {
+                    $operador = "<=";
+                }
+                $buscar = $auxDatos[1];
+                if ($orOperation) {
+                    $query = $query->orWhereRaw("($campo $operador '$buscar' or $campo is null)");
+                } else {
+                    $query = $query->whereRaw("($campo $operador '$buscar' or $campo is null)");
+                }
+                $operador = "";
+            } elseif ($auxDatos[0] != "<" && $auxDatos[1] == ">") {
+                if ($negado) {
+                    $operador = "<";
+                } else {
+                    $operador = ">=";
+                }
+                $buscar = $auxDatos[0];
+            } elseif ($auxDatos[0] != "<" && $auxDatos[1] != ">") {
+                $buscar = $auxDatos[0];
+                if ($negado) {
+                    if ($orOperation) {
+                        $query = $query->orWhereNotBetween($campo, $auxDatos);
+                    } else {
+                        $query = $query->whereNotBetween($campo, $auxDatos);
+                    }
+                } else {
+                    if ($orOperation) {
+                        $query = $query->orWhereBetween($campo, $auxDatos);
+                    } else {
+                        $query = $query->whereBetween($campo, $auxDatos);
+                    }
+                }
+            }
+        } elseif ((($buscar == "null" || Str::contains($buscar, "notset:")) && !$negado) || (($buscar == "not null" || Str::contains($buscar, "set:")) && $negado)) {
+            $buscar = str_replace(["notset:", "set:"], "", $buscar);
+            if ($orOperation) {
+                $query = $query->orWhereNull($campo);
+            } else {
+                $query = $query->whereNull($campo);
+            }
+        } elseif ((($buscar == "null" || Str::contains($buscar, "notset:")) && $negado) || (($buscar == "not null" || Str::contains($buscar, "set:")) && !$negado)) {
+            $buscar = str_replace(["notset:", "set:"], "", $buscar);
+            if ($orOperation) {
+                $query = $query->orWhereNotNull($campo);
+            } else {
+                $query = $query->whereNotNull($campo);
+            }
+        } elseif ($buscar != null && Str::contains($buscar, ">=")) {
+            $buscar = str_replace(">=", "", $buscar);
+            if ($negado) {
+                $operador = "<";
+            } else {
+                $operador = ">=";
+            }
+        } elseif ($buscar != null && Str::contains($buscar, "<=")) {
+            $buscar = str_replace("<=", "", $buscar);
+            if ($negado) {
+                $operador = ">";
+            } else {
+                $operador = "<=";
+            }
+        } elseif ($buscar != null && Str::contains($buscar, ">")) {
+            $buscar = str_replace(">", "", $buscar);
+            if ($negado) {
+                $operador = "<=";
+            } else {
+                $operador = ">";
+            }
+        } elseif ($buscar != null && Str::contains($buscar, "<")) {
+            $buscar = str_replace("<", "", $buscar);
+            if ($negado) {
+                $operador = ">=";
+            } else {
+                $operador = "<";
+            }
+        } elseif ($buscar != null && (Str::contains($buscar, "!=") && !$negado) || (Str::contains($buscar, "=") && $negado)) {
+            $buscar = str_replace(["!=", "="], "", $buscar);
+            $operador = "<>";
+        } elseif ($buscar != null && (Str::contains($buscar, "!=") && $negado) || (Str::contains($buscar, "=") && !$negado)) {
+            $buscar = str_replace(["!=", "="], "", $buscar);
+            $operador = "=";
+        } elseif ($buscar != null && (Str::contains($buscar, "contiene:") && !$negado) || (Str::contains($buscar, "nocontiene:") && $negado)) {
+            $buscar = str_replace(["nocontiene:", "contiene:"], "", $buscar);
+            if ($orOperation) {
+                $query = $query->orWhereRaw("$campo LIKE '%$buscar%'");
+            } else {
+                $query = $query->whereRaw("$campo LIKE '%$buscar%'");
+            }
+        } elseif ($buscar != null && (Str::contains($buscar, "contiene:") && $negado) || (Str::contains($buscar, "nocontiene:") && !$negado)) {
+            $buscar = str_replace(["nocontiene:", "contiene:"], "", $buscar);
+            if ($orOperation) {
+                $query = $query->orWhereRaw("$campo NOT LIKE '%$buscar%'");
+            } else {
+                $query = $query->whereRaw("$campo NOT LIKE '%$buscar%'");
+            }
+        } else {
+            if (!$contiene) {
+                if ($negado) {
+                    $operador = "<>";
+                } else {
+                    $operador = "=";
+                }
+            } else {
+                if ($negado) {
+                    if ($orOperation) {
+                        $query = $query->orWhereRaw("$campo NOT LIKE '%$buscar%'");
+                    } else {
+                        $query = $query->whereRaw("$campo NOT LIKE '%$buscar%'");
+                    }
+                } else {
+                    if ($orOperation) {
+                        $query = $query->orWhereRaw("$campo LIKE '%$buscar%'");
+                    } else {
+                        $query = $query->whereRaw("$campo LIKE '%$buscar%'");
+                    }
+                }
+            }
+        }
+        if ($operador != "") {
+            if ($orOperation) {
+                $query = $query->orWhereRaw("$campo $operador '$buscar'");
+            } else {
+                $query = $query->whereRaw("$campo $operador '$buscar'");
+            }
+        }
+        return $query;
+    }
+
+    /**
+     * Filter an object of a model with a single query. It will use AND operation.
+     *
+     * If $attri is a method or function fo the object it will try to evaluate it with
+     * $query as parametter. Use a Json string to pass more than one parametter.
+     * If the returned value is not a boolean or null, will use the $query or the las value of
+     * the $query array to comare.
+     *
+     * If $attri is only an attribute, it will compare against $query as it is.
+     *
+     * if $query contains "*%" it will erase them and evaluate if $query is contained in the attribute value.
+     * Not aplicable for function or methods returns
+     *
+     * @param object $registro The model object
+     * @param string|array $query The query to evaluate
+     * @param string $attri The attribute to compare
+     * @param boolean $orOperation Optional (only when $registro is Builder), if use or operation, false will use and operation.
+     * @return boolean
+     */
+    public static function evaluateFilterWithSingleQuery($registro, $query, $attri, $orOperation = true)
+    {
+        if (($numArgs = CrudGenerator::isFunction($registro, $attri)) !== false) {
             //echo "<p>NumArgs $numArgs</p>";
-            if (\Sirgrimorum\CrudGenerator\CrudGenerator::isJsonString($query)) {
+            if (CrudGenerator::isJsonString($query)) {
                 $queryArr = json_decode($query, true);
+            } elseif (is_array($query)) {
+                $queryArr = $query;
             } else {
                 $queryArr = [$query];
             }
-            $result = \Sirgrimorum\CrudGenerator\CrudGenerator::callFunction($registro, $attri, $queryArr, $numArgs);
-            if ($result === false || $result === null) {
+            $result = CrudGenerator::callFunction($registro, $attri, $queryArr, $numArgs);
+            //echo "<p>evaluando function {$registro->id}</p><pre>" . print_r([$query, $attri, $result], true) . "</pre>";
+            if ($result === false) {
                 return false;
+            } elseif ($result === true) {
+                return true;
             } else {
-                $queryObj = array_pop($queryArr);
-                if ($result != $queryObj) {
-                    return false;
-                }
-            }
-        } elseif (is_string($registro->{$attri})) {
-            //echo "<p> stripos es " . stripos($registro->{$attri}, $query) . " jajaj</p>";
-            if ($contiene) {
-                if (stripos($registro->{$attri}, $query) === false) {
-                    return false;
-                }
-            } else {
-                if ($registro->{$attri} != $query) {
-                    return false;
-                }
+                $query = array_pop($queryArr);
+                $dato = $result;
             }
         } else {
-            if ((string) $registro->{$attri} != $query) {
+            $dato = $registro->{$attri};
+        }
+        if (CrudGenerator::isJsonString($query)) {
+            $query = json_decode($query, true);
+        }
+        //echo "<p>comparando {$registro->id}</p><pre>" . print_r([$dato, $query, $orOperation], true) . "</pre>";
+        if (is_array($query)) {
+            foreach ($query as $queryStr) {
+                $result = CrudGenerator::execFilterQuery($dato, $queryStr);
+                if ($result === true) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            if (!CrudGenerator::execFilterQuery($dato, $query)) {
                 return false;
             }
         }
@@ -591,143 +1621,191 @@ trait CrudModels {
     }
 
     /**
+     * Filter a query Builder with a single query.
+     *
+     * @param Builder $query The original Query Builder
+     * @param string|array $query The query to evaluate
+     * @param string $attri The attribute to compare
+     * @param array $config The configuration array
+     * @param boolean $orOperation Optional (only when $registro is Builder), if use or operation, false will use and operation.
+     * @return Builder
+     */
+    public static function evaluateQueryFilterWithSingleQuery($queryBuilder, $query, $attri, $config, $orOperation = true)
+    {
+        if (CrudGenerator::isJsonString($query)) {
+            $query = json_decode($query, true);
+        }
+        if (is_array($query)) {
+            if ($orOperation) {
+                $queryBuilder = $queryBuilder->orWhere(function ($subQuery) use ($query, $attri, $config) {
+                    foreach ($query as $queryStr) {
+                        $subQuery = CrudGenerator::execQueryFilterQuery($config, $attri, $subQuery, $queryStr, true);
+                    }
+                });
+            } else {
+                $queryBuilder = $queryBuilder->where(function ($subQuery) use ($query, $attri, $config) {
+                    foreach ($query as $queryStr) {
+                        $subQuery = CrudGenerator::execQueryFilterQuery($config, $attri, $subQuery, $queryStr, true);
+                    }
+                });
+            }
+        } else {
+            $queryBuilder = CrudGenerator::execQueryFilterQuery($config, $attri, $queryBuilder, $query, $orOperation);
+        }
+        return $queryBuilder;
+    }
+
+    /**
      * Filter an object of a model with a query comparing against an attribute value.
-     * 
+     *
+     *
+     * @param object|Builder $registro The model object or a Query Builder
+     * @param string|array $query The query or querys to compare
+     * @param string|array $attri The attribute or attributes to compare with. Could evaluate methods and functions.
+     * @param array $config Optional (only when $registro is Builder) Configuration array for the Model
+     * @param boolean $orOperation Optional (only when $registro is Builder), if use or operation, false will use and operation.
+     * @return boolean|Builder if $registro is a model, will return true or false, else will return a Builder with the necessary operations
+     */
+    public static function subEvaluateFilter($registro, $query, $attri, $config = null, $orOperation = true)
+    {
+        if (is_array($attri) || is_object($attri)) {
+            $attriStr = json_encode($attri);
+        } else {
+            $attriStr = $attri;
+        }
+        if (is_object($query)) {
+            $queryStr = json_encode($query);
+        } else {
+            $queryStr = $query;
+        }
+        if ($registro instanceof Builder) {
+            return CrudGenerator::evaluateQueryFilterWithSingleQuery($registro, $queryStr, $attriStr, $config, $orOperation);
+        } else {
+            return CrudGenerator::evaluateFilterWithSingleQuery($registro, $queryStr, $attriStr, $orOperation);
+        }
+    }
+
+    /**
+     * Filter an object of a model with a query comparing against an attribute value.
+     *
      * If $query and/or $attri ar arrays. It will use AND operation.
-     * 
-     * If $query contains "*%" it will erase them and evaluate if $query is contained in the attribute value. 
+     *
+     * If $query contains "*%" it will erase them and evaluate if $query is contained in the attribute value.
      * Not aplicable for function or methods returns
-     * 
-     * @param object $registro The model object
+     *
+     * @param object|Builder $registro The model object or a Query Builder
      * @param string|array $query The query or querys to compare
      * @param string|array $attri The attribute or attributes to compare with. Could evaluate methods and functions.
      * @param boolean $orOperation Optional, if use or operation (just one query must be true), false will use and operation (all the querys must be true).
      * @param boolean $fbf Optional, default false. If the query and attributes arrays must be evaluated one by one (ej: $query[0] vs $attribute[0] AND $query[1] vs $attribute[1], ...) The size of $attri and $query must be the same
-     * @return boolean
+     * @param array $config Optional (only when $registro is Builder) Configuration array for the Model
+     * @return boolean|Builder if $registro is a model, will return true or false, else will return a Builder with the necessary operations
      */
-    private static function evaluateFilter($registro, $query, $attri, $orOperation = true, $fbf = false) {
+    public static function evaluateFilter($registro, $query, $attri, $orOperation = true, $fbf = false, $config = null)
+    {
+        if (is_array($query) && count($query) == 0) {
+            // No conditions: nothing to filter out
+            return $registro instanceof Builder ? $registro : true;
+        }
         if ($fbf && isset($attri) == isset($query)) {
-            if (!count($attri) == count($query)) {
+            if (count($attri) != count($query)) {
                 $fbf = false;
             }
         } else {
             $fbf = false;
         }
-
+        //echo "<p>Evaluando filtro</p><pre>" . print_r([$fbf, $query, $attri, $orOperation, $config], true) . "</pre>";
         if ($fbf) {
-            for ($index = 0; $index < count($query); $index++) {
-                if (is_array($attri[$index]) || is_object($attri[$index])) {
-                    $attriStr = json_encode($attri[$index]);
-                } else {
-                    $attriStr = $attri[$index];
-                }
-                if (is_array($query[$index]) || is_object($query[$index])) {
-                    $queryStr = json_encode($query[$index]);
-                } else {
-                    $queryStr = $query[$index];
-                }
-                if (!\Sirgrimorum\CrudGenerator\CrudGenerator::evaluateFilterWithSingleQuery($registro, $queryStr, $attriStr)) {
-                    //echo "<p><strong>No</strong></p>";
-                    if (!$orOperation) {
-                        return false;
+            if ($registro instanceof Builder && $orOperation) {
+                $registro = $registro->where(function ($subQuery) use ($query, $attri, $config, $orOperation) {
+                    for ($index = 0; $index < count($query); $index++) {
+                        $subQuery = CrudGenerator::subEvaluateFilter($subQuery, $query[$index], $attri[$index], $config, $orOperation);
                     }
-                } else {
-                    //echo "<p><strong>Si</strong></p>";
-                    if ($orOperation) {
+                });
+            } else {
+                for ($index = 0; $index < count($query); $index++) {
+                    $result = CrudGenerator::subEvaluateFilter($registro, $query[$index], $attri[$index], $config, $orOperation);
+                    if ($result === false && !$orOperation) {
+                        return false;
+                    } elseif ($result === true && $orOperation) {
                         return true;
+                    } elseif ($result instanceof Builder) {
+                        $registro = $result;
                     }
                 }
             }
         } elseif (is_array($attri)) {
-            foreach ($attri as $attribute) {
-                if (is_array($attribute) || is_object($attribute)) {
-                    $attriStr = json_encode($attribute);
-                } else {
-                    $attriStr = $attribute;
-                }
-                if (is_array($query)) {
-                    foreach ($query as $singleQuery) {
-                        if (is_array($singleQuery) || is_object($singleQuery)) {
-                            $queryStr = json_encode($singleQuery);
+            if ($registro instanceof Builder && $orOperation) {
+                $registro = $registro->where(function ($subQuery) use ($query, $attri, $config, $orOperation) {
+                    foreach ($attri as $attribute) {
+                        if (is_array($query)) {
+                            foreach ($query as $singleQuery) {
+                                $subQuery = CrudGenerator::subEvaluateFilter($subQuery, $singleQuery, $attribute, $config, $orOperation);
+                            }
                         } else {
-                            $queryStr = $singleQuery;
+                            $subQuery = CrudGenerator::subEvaluateFilter($subQuery, $query, $attribute, $config, $orOperation);
                         }
-                        if (!\Sirgrimorum\CrudGenerator\CrudGenerator::evaluateFilterWithSingleQuery($registro, $queryStr, $attriStr)) {
-                            //echo "<p><strong>No</strong></p>";
-                            if (!$orOperation) {
+                    }
+                });
+            } else {
+                foreach ($attri as $attribute) {
+                    if (is_array($query)) {
+                        foreach ($query as $singleQuery) {
+                            $result = CrudGenerator::subEvaluateFilter($registro, $singleQuery, $attribute, $config, $orOperation);
+                            if ($result === false && !$orOperation) {
                                 return false;
-                            }
-                        } else {
-                            //echo "<p><strong>Si</strong></p>";
-                            if ($orOperation) {
+                            } elseif ($result === true && $orOperation) {
                                 return true;
+                            } elseif ($result instanceof Builder) {
+                                $registro = $result;
                             }
                         }
-                    }
-                } else {
-                    if (is_array($query) || is_object($query)) {
-                        $queryStr = json_encode($query);
                     } else {
-                        $queryStr = $query;
-                    }
-                    if (!\Sirgrimorum\CrudGenerator\CrudGenerator::evaluateFilterWithSingleQuery($registro, $queryStr, $attriStr)) {
-                        //echo "<p><strong>No</strong></p>";
-                        if (!$orOperation) {
+                        $result = CrudGenerator::subEvaluateFilter($registro, $query, $attribute, $config, $orOperation);
+                        if ($result === false && !$orOperation) {
                             return false;
-                        }
-                    } else {
-                        //echo "<p><strong>Si</strong></p>";
-                        if ($orOperation) {
+                        } elseif ($result === true && $orOperation) {
                             return true;
+                        } elseif ($result instanceof Builder) {
+                            $registro = $result;
                         }
                     }
                 }
             }
         } else {
-            if (is_array($attri) || is_object($attri)) {
-                $attriStr = json_encode($attri);
-            } else {
-                $attriStr = $attri;
-            }
             if (is_array($query)) {
-                foreach ($query as $singleQuery) {
-                    if (is_array($singleQuery) || is_object($singleQuery)) {
-                        $queryStr = json_encode($singleQuery);
-                    } else {
-                        $queryStr = $singleQuery;
-                    }
-                    if (!\Sirgrimorum\CrudGenerator\CrudGenerator::evaluateFilterWithSingleQuery($registro, $queryStr, $attriStr)) {
-                        //echo "<p><strong>No</strong></p>";
-                        if (!$orOperation) {
-                            return false;
+                if ($registro instanceof Builder && $orOperation) {
+                    $registro = $registro->where(function ($subQuery) use ($query, $attri, $config, $orOperation) {
+                        foreach ($query as $singleQuery) {
+                            $subQuery = CrudGenerator::subEvaluateFilter($subQuery, $singleQuery, $attri, $config, $orOperation);
                         }
-                    } else {
-                        //echo "<p><strong>Si</strong></p>";
-                        if ($orOperation) {
+                    });
+                } else {
+                    foreach ($query as $singleQuery) {
+                        $result = CrudGenerator::subEvaluateFilter($registro, $singleQuery, $attri, $config, $orOperation);
+                        if ($result === false && !$orOperation) {
+                            return false;
+                        } elseif ($result === true && $orOperation) {
                             return true;
+                        } elseif ($result instanceof Builder) {
+                            $registro = $result;
                         }
                     }
                 }
             } else {
-                if (is_array($query) || is_object($query)) {
-                    $queryStr = json_encode($query);
-                } else {
-                    $queryStr = $query;
-                }
-                if (!\Sirgrimorum\CrudGenerator\CrudGenerator::evaluateFilterWithSingleQuery($registro, $queryStr, $attriStr)) {
-                    //echo "<p><strong>No</strong></p>";
-                    if (!$orOperation) {
-                        return false;
-                    }
-                } else {
-                    //echo "<p><strong>Si</strong></p>";
-                    if ($orOperation) {
-                        return true;
-                    }
+                $result = CrudGenerator::subEvaluateFilter($registro, $query, $attri, $config, $orOperation);
+                if ($result === false && !$orOperation) {
+                    return false;
+                } elseif ($result === true && $orOperation) {
+                    return true;
+                } elseif ($result instanceof Builder) {
+                    $registro = $result;
                 }
             }
         }
-        if ($orOperation) {
+        if ($registro instanceof Builder) {
+            return $registro;
+        } elseif ($orOperation) {
             return false;
         } else {
             return true;
@@ -736,28 +1814,27 @@ trait CrudModels {
 
     /**
      * Filter a collection of object models using a query an attribute sets in an array.
-     * 
+     *
      * The values in the $datos object must be strings, if using arrays, use json notation or separate the values with an |.
-     * 
-     * If not attribute is given, it will compare against the $config('nombre'] attribute
-     * 
-     * If $query contains "*%" it will erase them and evaluate if $query is contained in the attribute value. 
+     *
+     * If not attribute is given, it will compare against the $config['nombre'] attribute
+     *
+     * If $query contains "*%" it will erase them and evaluate if $query is contained in the attribute value.
      * Not aplicable for function or methods returns
-     * 
-     * @param object $registros Collection of elocuent model objects
+     *
+     * @param Collection|Builder $registros Collection of elocuent model objects or a Query Builder
      * @param array $config Configuration array for the Model
-     * @param boolean|string $orOperation Optional boolean or the key of the or value in $datos. if True: use or operation (just one query must be true), false will use and operation (all the querys must be true).
      * @param array $datos Optional the data. if empty, it will get the current request data.
+     * @param boolean|string $orOperation Optional boolean or the key of the or value in $datos. if True: use or operation (just one query must be true), false will use and operation (all the querys must be true).
      * @param string $queryStr Optional the key of the query in $datos
      * @param string $attriStr Optional the key of the attributes in $datos
      * @param string $aByAStr Optional the key of the value indicating if the $query and $attribute must be evaluated one by one (ej: $query[0] vs $attribute[0] AND $query[1] vs $attribute[1], ...)
-     * @return array Collection filtered
+     * @param string $orderStr Optional the key of the order field(s) in $datos
+     * @return Collection|Builder Collection filtered or Query Builder with the necesario operations performed
      */
-    private static function filterWithQuery($registros, $config, $datos = [], $orOperation = "_or", $queryStr = "_q", $attriStr = "_a", $aByAStr = "_aByA") {
-        if (count($datos) == 0) {
-            $datos = request()->all();
-        }
-        //echo "<pre>" . print_r($datos, true) . "</pre>";
+    public static function filterWithQuery($registros, $config, $datos = [], $orOperation = "_or", $queryStr = "_q", $attriStr = "_a", $aByAStr = "_aByA", $orderStr = '_order')
+    {
+        $datos = CrudGenerator::normalizeDataForSearch($config, $datos, $orOperation, $queryStr, $attriStr, $aByAStr);
         if (!is_bool($orOperation)) {
             if (isset($datos[$orOperation])) {
                 $orOperation = !($datos[$orOperation] === 'false');
@@ -767,25 +1844,82 @@ trait CrudModels {
         }
         if (isset($datos[$queryStr])) {
             $query = $datos[$queryStr];
-            if (\Sirgrimorum\CrudGenerator\CrudGenerator::isJsonString($query)) {
+            if (CrudGenerator::isJsonString($query)) {
                 $query = json_decode($query, true);
             } elseif (stripos($query, "|")) {
                 $query = explode("|", $query);
             }
-            if (isset($datos[$attriStr])) {
-                $attri = $datos[$attriStr];
-                if (\Sirgrimorum\CrudGenerator\CrudGenerator::isJsonString($attri)) {
-                    $attri = json_decode($attri, true);
-                } elseif (stripos($attri, "|")) {
-                    $attri = explode("|", $attri);
-                }
-            } else {
-                $attri = $config['nombre'];
-            }
             $fbf = isset($datos[$aByAStr]);
-            $registros = $registros->filter(function($registro) use($query, $attri, $fbf, $orOperation) {
-                return \Sirgrimorum\CrudGenerator\CrudGenerator::evaluateFilter($registro, $query, $attri, $orOperation, $fbf);
-            });
+            if (is_array($registros)) {
+                $registros = collect($registros);
+            }
+            if ($registros instanceof Collection) {
+                if (isset($datos[$attriStr])) {
+                    $attri = $datos[$attriStr];
+                    if (CrudGenerator::isJsonString($attri)) {
+                        $attri = json_decode($attri, true);
+                    } elseif (stripos($attri, "|")) {
+                        $attri = explode("|", $attri);
+                    }
+                } else {
+                    $attri = $config['nombre'];
+                }
+                $registros = $registros->filter(function ($registro) use ($query, $attri, $fbf, $orOperation) {
+                    return CrudGenerator::evaluateFilter($registro, $query, $attri, $orOperation, $fbf);
+                });
+            } elseif ($registros instanceof Builder) {
+                if (isset($datos[$attriStr])) {
+                    $attri = $datos[$attriStr];
+                    if (isset($datos["{$attriStr}__C"])) {
+                        $attri = $datos["{$attriStr}__C"];
+                    }
+                    if (CrudGenerator::isJsonString($attri)) {
+                        $attri = json_decode($attri, true);
+                    } elseif (stripos($attri, "|")) {
+                        $attri = explode("|", $attri);
+                    }
+                } else {
+                    $attri = $config['nombre'];
+                }
+                $registros = CrudGenerator::evaluateFilter($registros, $query, $attri, $orOperation, $fbf, $config);
+            }
+        }
+        if (isset($datos[$orderStr])) {
+            $query = $datos[$orderStr];
+            if (CrudGenerator::isJsonString($query)) {
+                $query = json_decode($query, true);
+            } elseif (stripos($query, "|")) {
+                $arrQuery = [];
+                foreach (explode("|", $query) as $campoOrden) {
+                    if (stripos($campoOrden, "__")) {
+                        $auxQuery = explode("__", $campoOrden);
+                        $arrQuery[$auxQuery[0]] = (isset($auxQuery[1]) ? $auxQuery[1] : "asc");
+                    } else {
+                        $arrQuery[$campoOrden] = "asc";
+                    }
+                }
+                $query = $arrQuery;
+            }
+            if ($registros instanceof Collection) {
+                foreach ($query as $key => $orden) {
+                    if ($registros->has($key)) {
+                        if (strtolower($orden) == "desc") {
+                            $registros = $registros->sortByDesc($key);
+                        } else {
+                            $registros = $registros->sortBy($key);
+                        }
+                        break;
+                    }
+                }
+            } elseif ($registros instanceof Builder) {
+                foreach ($query as $key => $orden) {
+                    if (strtolower($orden) == "desc") {
+                        $registros = $registros->orderBy($key, 'desc');
+                    } else {
+                        $registros = $registros->orderBy($key, 'asc');
+                    }
+                }
+            }
         }
         return $registros;
     }
@@ -797,30 +1931,46 @@ trait CrudModels {
      * @param array $children_items An array with the models to sync with
      * @param array $config The configuration array of the model
      */
-    public static function syncHasMany($model, $campo, $children_items, $config) {
-        $children = $model->{$campo};
-        $children_items = collect($children_items);
-        $deleted_ids = $children->filter(
-                        function ($child) use ($children_items, $config, $campo) {
-                    return empty(
-                            $children_items->where($config[$campo]['id'], $child->{$config[$campo]['id']})->first()
-                    );
-                }
-                )->map(function ($child) {
-            $id = $child->id;
-            $child->delete();
-            return $id;
+    public static function syncHasMany($model, $campo, $children_items, $config)
+    {
+        if (isset($config['campos']) && is_array($config['campos']) && isset($config['campos'][$campo])) {
+            $config = $config['campos'];
         }
-        );
-        $attachments = $children_items->filter(
-                        function ($children_item) {
-                    return empty($children_item->$config[$campo]['id']);
+        $children = $model->{$campo};
+        $children_itemsC = collect($children_items);
+        if ($children_itemsC->has($config[$campo]['id'])) {
+            $children_items = $children_itemsC;
+        }
+        $deleted_ids = $children->filter(
+            function ($child) use ($children_items, $config, $campo) {
+                if ($children_items instanceof Collection) {
+                    return empty($children_items->where($config[$campo]['id'], $child->{$config[$campo]['id']})->first());
+                } else {
+                    return !in_array($child->{$config[$campo]['id']}, $children_items);
                 }
-                )->map(function ($children_item) use ($deleted_ids) {
-            $children_item->$config[$campo]['id'] = $deleted_ids->pop();
-            return new $config[$campo]['modelo']($children_item);
+            }
+        )->map(
+            function ($child) {
+                return $child->id;
+            }
+        );
+        $attachments = $children_itemsC->filter(
+            function ($children_item) use ($config, $campo, $children) {
+                if (is_int($children_item) || is_string($children_item)) {
+                    return empty($children->whereIn($config[$campo]['id'], $children_item)->first());
+                }
+                return empty($children->whereIn($config[$campo]['id'], $children_item->{$config[$campo]['id']})->first());
+            }
+        )->map(function ($children_item) use ($config, $campo) {
+            if (is_int($children_item) || is_string($children_item)) {
+                return $children_item;
+            }
+            $id = $children_item->{$config[$campo]['id']};
+            $children_item->delete();
+            return $id;
         });
-        $model->{$campo}()->saveMany($attachments);
+        $model->{$campo}()->detach($deleted_ids);
+        $model->{$campo}()->attach($attachments);
     }
 
     /**
@@ -829,54 +1979,11 @@ trait CrudModels {
      * @param Request $request Optional the request. If null, it will use request() function
      * @return mix Retuns the validator or false if there are no rules
      */
-    public static function validateModel(array $config, \Illuminate\Http\Request $request = null) {
-        if (is_null($request)) {
-            $request = request();
-        }
-        $rules = [];
-        $modeloM = class_basename($config["modelo"]);
-        $modelo = strtolower($modeloM);
-        if (isset($config['rules'])) {
-            if (is_array($config['rules'])) {
-                $rules = $config['rules'];
-            }
-        }
-        if (count($rules) == 0) {
-            $objModelo = new $config['modelo'];
-            if (isset($objModelo->rules)) {
-                if (is_array($objModelo->rules)) {
-                    $rules = $objModelo->rules;
-                }
-            }
-        }
-        $auxIdCambio = $request->get($config["id"]);
-
-        $rules = \Sirgrimorum\CrudGenerator\CrudGenerator::translateArray($rules, ":model", function($string) use ($auxIdCambio) {
-                    return $auxIdCambio;
-                }, "Id");
+    public static function validateModel(array $config, \Illuminate\Http\Request $request = null)
+    {
+        [$rules, $error_messages, $customAttributes] = CrudGenerator::getRulesWithRelationShips($config, $request);
         if (count($rules) > 0) {
-            $customAttributes = [];
-            foreach ($rules as $field => $datos) {
-                if (Arr::has($config, "campos." . $field . ".label")) {
-                    $customAttributes[$field] = Arr::get($config, "campos." . $field . ".label");
-                }
-            }
-            $error_messages = [];
-            if (isset($config['error_messages'])) {
-                if (is_array($config['error_messages'])) {
-                    $error_messages = $config['error_messages'];
-                }
-            }
-            if (count($error_messages) == 0) {
-                $objModelo = new $config['modelo'];
-                if (isset($objModelo->error_messages)) {
-                    if (is_array($objModelo->error_messages)) {
-                        $error_messages = $objModelo->error_messages;
-                    }
-                }
-            }
-            $error_messages = array_merge(trans("crudgenerator::admin.error_messages"), $error_messages);
-            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), $rules, $error_messages, $customAttributes);
+            $validator = Validator::make($request->all(), $rules, $error_messages, $customAttributes);
             return $validator;
         }
         return false;
@@ -887,9 +1994,11 @@ trait CrudModels {
      * @param array $config The configuration array
      * @param Request $input Optional the request. If null, it will use request() function
      * @param type $obj Optional, the object to save or edit. If null, it would look for one using its $config['id'] value in the $input, or create a new one if not found
-     * @return boolean True or an erro response in case of error with uploaded files
+     * @param bool $returnChanges Optional if return an array with all the changes made to the object after saving, default false
+     * @return Object|array|boolean Object changed, array with changes if $returnChanges is true, or an error response in case of error with uploaded files
      */
-    public static function saveObjeto(array $config, \Illuminate\Http\Request $input = null, $obj = null) {
+    public static function saveObjeto(array $config, \Illuminate\Http\Request $input = null, $obj = null, $returnChanges = false)
+    {
         if (is_null($input)) {
             $input = request();
         }
@@ -912,6 +2021,7 @@ trait CrudModels {
                         case 'html':
                         case 'number':
                         case 'password':
+                        case 'color':
                         case 'radio':
                         case 'slider':
                         case 'text':
@@ -919,10 +2029,43 @@ trait CrudModels {
                         case 'textarea':
                         case 'json':
                             if ($input->has($campo)) {
-                                $valor = $input->input($campo);
-                                $objModelo->{$campo} = $detalles['tipo'] == 'json' && is_array($valor) && !$objModelo->hasCast($campo) ? json_encode($valor) : $valor;
+                                if (is_array($input->input($campo))) {
+                                    if ($detalles['tipo'] == 'json') {
+                                        $objModelo->{$campo} = $objModelo->hasCast($campo) ? $input->input($campo) : json_encode($input->input($campo));
+                                    } else {
+                                        $objModelo->{$campo} = implode(Arr::get($detalles, 'glue', '_'), $input->input($campo));
+                                    }
+                                } else {
+                                    $objModelo->{$campo} = $input->input($campo);
+                                }
                             } elseif (isset($detalles['valor'])) {
                                 $objModelo->{$campo} = $detalles['valor'];
+                            }
+                            break;
+                        case 'file':
+                            $existFile = $objModelo->{$campo};
+                            $filename = CrudGenerator::getFileNameFromRequest($input, $campo, $detalles);
+                            if ($filename == "" && $existFile == "" && isset($detalles['valor'])) {
+                                $objModelo->{$campo} = $detalles['valor'];
+                            } elseif ($filename != "") {
+                                $objModelo->{$campo} = $filename;
+                            }
+                            break;
+                        case 'files':
+                            $existFiles = $objModelo->{$campo};
+                            if (is_string($existFiles)) {
+                                $existFiles = json_decode($existFiles, true);
+                            }
+                            if (!is_array($existFiles) || (is_array($existFiles)  && count($existFiles) == 0)) {
+                                if ($input->has($campo)) {
+                                    $objModelo->{$campo} = json_encode([]);
+                                } elseif (isset($detalles['valor'])) {
+                                    if (!is_array($detalles['valor'])) {
+                                        $objModelo->{$campo} = json_encode(["name" => $detalles['valor'], "file" => $detalles['valor']]);
+                                    } else {
+                                        $objModelo->{$campo} = json_encode($detalles['valor']);
+                                    }
+                                }
                             }
                             break;
                         case 'article':
@@ -944,7 +2087,7 @@ trait CrudModels {
                             break;
                         case 'hidden':
                             if ($input->has($campo)) {
-                                if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($objModelo, $campo) && \Sirgrimorum\CrudGenerator\CrudGenerator::isJsonString($input->input($campo))) {
+                                if (CrudGenerator::hasRelation($objModelo, $campo) && CrudGenerator::isJsonString($input->input($campo))) {
                                     if (isset($detalles['id'])) {
                                         $idKeyName = $detalles['id'];
                                     } else {
@@ -960,13 +2103,13 @@ trait CrudModels {
                             break;
                         case 'relationship':
                             if ($input->has($campo)) {
-                                if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($objModelo, $campo)) {
+                                if (CrudGenerator::hasRelation($objModelo, $campo)) {
                                     $objModelo->{$campo}()->associate($input->input($campo));
                                 } else {
                                     $objModelo->{$campo} = $input->input($campo);
                                 }
                             } elseif (isset($detalles['valor'])) {
-                                if (\Sirgrimorum\CrudGenerator\CrudGenerator::hasRelation($objModelo, $campo)) {
+                                if (CrudGenerator::hasRelation($objModelo, $campo)) {
                                     $objModelo->{$campo}()->associate($detalles['valor']);
                                 } else {
                                     $objModelo->{$campo} = $detalles['valor'];
@@ -1005,98 +2148,17 @@ trait CrudModels {
                                 $objModelo->{$campo} = $date->format("Y-m-d H:i:s");
                             }
                             break;
-                        case 'file':
-                            $existFile = $objModelo->{$campo};
-                            $filename = "";
-                            if ($input->has($campo)) {
-                                $filename = \Sirgrimorum\CrudGenerator\CrudGenerator::saveFileFromRequest($input, $campo, $detalles);
-                                if ($filename !== false) {
-                                    $objModelo->{$campo} = $filename;
-                                    if ($existFile != "") {
-                                        \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(Str::start($existFile, Str::finish($detalles['path'], '\\')));
-                                    }
-                                } else {
-                                    $filename = "";
-                                    // Return with input????
-                                }
-                            } else {
-                                if (!$input->has($campo . "_filereg") && $existFile != "") {
-                                    \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(Str::start($existFile, Str::finish($detalles['path'], '\\')));
-                                } elseif ($input->has($campo . "_filereg") && $existFile != "") {
-                                    $filename = $existFile;
-                                }
-                            }
-                            if ($filename == "" && $existFile != "" && isset($detalles['valor'])) {
-                                $objModelo->{$campo} = $detalles['valor'];
-                            }
-                            break;
-                        case 'files':
-                            $existFiles = $objModelo->{$campo};
-                            if (is_string($existFiles)) {
-                                $existFiles = json_decode($existFiles, true);
-                            }
-                            $masFiles = [];
-                            if ($input->has($campo)) {
-                                $paraGuardar = [];
-                                for ($index = 0; $index < count($input->$campo); $index++) {
-                                    $filename = \Sirgrimorum\CrudGenerator\CrudGenerator::saveFileFromRequest($input, $campo . "." . $index, $detalles);
-                                    if ($filename !== false) {
-                                        $paraGuardar[] = [
-                                            "name" => $input->input($campo . "_name." . $index),
-                                            "file" => $filename
-                                        ];
-                                    } else {
-                                        // Return with input????
-                                    }
-                                }
-                                if (count($paraGuardar) > 0) {
-                                    $masFiles = $paraGuardar;
-                                }
-                            }
-                            $finalFiles = [];
-                            if (is_array($existFiles)) {
-                                foreach ($existFiles as $existFile) {
-                                    $esta = false;
-                                    if ($input->has($campo . "_filereg")) {
-                                        $preReg = $input->input($campo . "_filereg");
-                                        $preRegName = $input->input($campo . "_namereg");
-                                        for ($index = 0; $index < count($preReg); $index++) {
-                                            if ($existFile['file'] == $preReg[$index]) {
-                                                $finalFiles[] = [
-                                                    'name' => $preRegName[$index],
-                                                    'file' => $preReg[$index]
-                                                ];
-                                                $esta = true;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    if (!$esta) {
-                                        \Sirgrimorum\CrudGenerator\CrudGenerator::removeFile(Str::start($existFile['file'], Str::finish($detalles['path'], '\\')));
-                                    }
-                                }
-                                $finalFiles = array_merge($finalFiles, $masFiles);
-                            } else {
-                                $finalFiles = $masFiles;
-                            }
-
-                            if (count($finalFiles) && isset($detalles['valor'])) {
-                                if (!is_array($detalles['valor'])) {
-                                    $objModelo->{$campo} = json_encode(["name" => $detalles['valor'], "file" => $detalles['valor']]);
-                                } else {
-                                    $objModelo->{$campo} = json_encode($detalles['valor']);
-                                }
-                            } else {
-                                $objModelo->{$campo} = json_encode($finalFiles);
-                            }
-
-                            break;
                         default:
                             break;
                     }
                 }
             }
             $objModelo->save();
+
+            if ($returnChanges) {
+                $cambios = $objModelo->getChanges();
+            }
+
             if ($objModelo) {
                 foreach ($config['campos'] as $campo => $detalles) {
                     if (!isset($detalles["nodb"])) {
@@ -1122,7 +2184,7 @@ trait CrudModels {
                                                     $article->lang = $localeCode;
                                                     $article->activated = true;
                                                 }
-                                                $article->user_id = \Illuminate\Support\Facades\Auth::user()->id;
+                                                $article->user_id = Auth::user()->id;
                                                 $article->content = $textoArticulo;
                                                 $article->save();
                                             }
@@ -1138,28 +2200,38 @@ trait CrudModels {
                                     }
                                 }
                                 $objModelo->save();
+                                if ($returnChanges) {
+                                    $cambios = array_merge($cambios, $objModelo->getChanges());
+                                }
                                 break;
                             case 'relationships':
                                 if ($input->has($campo)) {
                                     //Cuidado porque elimina y crea objetos de tipo $campo
-                                    \Sirgrimorum\CrudGenerator\CrudGenerator::syncHasMany($objModelo, $campo, $input->input($campo), $config);
+                                    CrudGenerator::syncHasMany($objModelo, $campo, $input->input($campo), $config);
                                     //$objModelo->{$campo}()->sync($input->input($campo));
                                 } elseif (isset($detalles['valor'])) {
                                     //Cuidado porque elimina y crea objetos de tipo $campo
-                                    \Sirgrimorum\CrudGenerator\CrudGenerator::syncHasMany($objModelo, $campo, $detalles['valor'], $config);
+                                    CrudGenerator::syncHasMany($objModelo, $campo, $detalles['valor'], $config);
                                     //$objModelo->{$campo}()->sync($detalles['valor']);
                                 }
                                 break;
                             case 'relationshipssel':
                                 if ($input->has($campo)) {
                                     $datos = [];
-                                    foreach ($input->input($campo) as $id => $pivot) {
+                                    foreach ($input->input($campo) as $pivot => $id) {
                                         $datos[$id] = [];
                                         foreach ($detalles['columnas'] as $subdetalles) {
-                                            if ($subdetalles['type'] != "label" && $subdetalles['type'] != "labelpivot") {
+                                            if (isset($subdetalles['tipo'])) {
+                                                $tipoPivote = $subdetalles['tipo'];
+                                            } elseif (isset($subdetalles['type'])) {
+                                                $tipoPivote = $subdetalles['type'];
+                                            } else {
+                                                $tipoPivote = 'text';
+                                            }
+                                            if ($tipoPivote != "label" && $tipoPivote != "labelpivot") {
                                                 if ($input->has($campo . "_" . $subdetalles['campo'] . "_" . $id)) {
                                                     $datos[$id][$subdetalles['campo']] = $input->input($campo . "_" . $subdetalles['campo'] . "_" . $id);
-                                                } else {
+                                                } elseif (isset($subdetalles['valor'])) {
                                                     $datos[$id][$subdetalles['campo']] = $subdetalles['valor'];
                                                 }
                                             }
@@ -1170,11 +2242,141 @@ trait CrudModels {
                                     $objModelo->{$campo}()->sync([]);
                                 }
                                 break;
+                            case 'file':
+                                $existFile = $objModelo->{$campo};
+                                $filename = "";
+                                if ($input->has($campo)) {
+                                    $filename = CrudGenerator::saveFileFromRequest($objModelo, $input, $campo, $detalles);
+                                    if ($filename !== false) {
+                                        $objModelo->{$campo} = $filename;
+                                        if ($existFile != "") {
+                                            if (isset($detalles['removeFunction']) && is_callable($detalles['removeFunction'])) {
+                                                $detalles['removeFunction']($objModelo, $existFile, $detalles);
+                                            } else {
+                                                if (isset($detalles['path'])) {
+                                                    $path = Str::finish($detalles['path'], '\\');
+                                                } else {
+                                                    $path = "";
+                                                }
+                                                CrudGenerator::removeFile(Str::start($existFile, $path), Arr::get($detalles, "disk", "local"));
+                                            }
+                                        }
+                                    } else {
+                                        $filename = "";
+                                        // Return with input????
+                                    }
+                                } else {
+                                    if (!$input->has($campo . "_filereg") && $existFile != "") {
+                                        if (isset($detalles['removeFunction']) && is_callable($detalles['removeFunction'])) {
+                                            $detalles['removeFunction']($objModelo, $existFile, $detalles);
+                                        } else {
+                                            if (isset($detalles['path'])) {
+                                                $path = Str::finish($detalles['path'], '\\');
+                                            } else {
+                                                $path = "";
+                                            }
+                                            CrudGenerator::removeFile(Str::start($existFile, $path), Arr::get($detalles, "disk", "local"));
+                                        }
+                                        $filename = "";
+                                        $existFile = "";
+                                    } elseif ($input->has($campo . "_filereg") && $existFile != "") {
+                                        $filename = $existFile;
+                                    }
+                                }
+                                if ($filename == "" && $existFile == "" && isset($detalles['valor'])) {
+                                    $objModelo->{$campo} = $detalles['valor'];
+                                } elseif ($filename == "") {
+                                    $objModelo->{$campo} = null;
+                                }
+                                $objModelo->save();
+                                if ($returnChanges) {
+                                    $cambios = array_merge($cambios, $objModelo->getChanges());
+                                }
+                                break;
+                            case 'files':
+                                $existFiles = $objModelo->{$campo};
+                                if (is_string($existFiles)) {
+                                    $existFiles = json_decode($existFiles, true);
+                                }
+                                $masFiles = [];
+                                if ($input->has($campo)) {
+                                    $paraGuardar = [];
+                                    for ($index = 0; $index < count($input->$campo); $index++) {
+                                        $filename = CrudGenerator::saveFileFromRequest($objModelo, $input, $campo . "." . $index, $detalles);
+                                        if ($filename !== false) {
+                                            $paraGuardar[] = [
+                                                "name" => $input->input($campo . "_name." . $index),
+                                                "file" => $filename
+                                            ];
+                                        } else {
+                                            // Return with input????
+                                        }
+                                    }
+                                    if (count($paraGuardar) > 0) {
+                                        $masFiles = $paraGuardar;
+                                    }
+                                }
+                                $finalFiles = [];
+                                if (is_array($existFiles)) {
+                                    foreach ($existFiles as $existFile) {
+                                        $esta = false;
+                                        if ($input->has($campo . "_filereg")) {
+                                            $preReg = $input->input($campo . "_filereg");
+                                            $preRegName = $input->input($campo . "_namereg");
+                                            for ($index = 0; $index < count($preReg); $index++) {
+                                                if ($existFile['file'] == $preReg[$index]) {
+                                                    $finalFiles[] = [
+                                                        'name' => $preRegName[$index],
+                                                        'file' => $preReg[$index]
+                                                    ];
+                                                    $esta = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        if (!$esta) {
+                                            if (isset($detalles['removeFunction']) && is_callable($detalles['removeFunction'])) {
+                                                $detalles['removeFunction']($objModelo, $existFile['file'], $detalles);
+                                            } else {
+                                                if (isset($detalles['path'])) {
+                                                    $path = Str::finish($detalles['path'], '\\');
+                                                } else {
+                                                    $path = "";
+                                                }
+                                                CrudGenerator::removeFile(Str::start($existFile['file'], $path), Arr::get($detalles, "disk", "local"));
+                                            }
+                                        }
+                                    }
+                                    $finalFiles = array_merge($finalFiles, $masFiles);
+                                } else {
+                                    $finalFiles = $masFiles;
+                                }
+
+                                if (count($finalFiles) == 0 && isset($detalles['valor'])) {
+                                    if (!is_array($detalles['valor'])) {
+                                        $objModelo->{$campo} = json_encode(["name" => $detalles['valor'], "file" => $detalles['valor']]);
+                                    } else {
+                                        $objModelo->{$campo} = json_encode($detalles['valor']);
+                                    }
+                                } else {
+                                    $objModelo->{$campo} = json_encode($finalFiles);
+                                }
+                                $objModelo->save();
+                                if ($returnChanges) {
+                                    $cambios = array_merge($cambios, $objModelo->getChanges());
+                                }
+                                break;
                             default:
                                 break;
                         }
                     }
                 }
+            }
+            if (Arr::get($config, 'tabla') == "articles") {
+                Artisan::call('view:clear');
+            }
+            if ($returnChanges) {
+                return $cambios;
             }
             return $objModelo;
         } else {
@@ -1184,14 +2386,15 @@ trait CrudModels {
 
     /**
      * Save an uploaded file from a configuration array
+     * @param object $objModelo The model
      * @param Request $input The request
-     * @param strinf $campo The file field name
+     * @param string $campo The file field name
      * @param array $detalles the Field configuration array
      * @param boolean $addNewName Optional, if true, will add the new field name to the filename (assumed in $campo . "_name" in input)
-     * @return boolean|string The name of the faile to save in the bd or false if something went wrong
-     * @internal
+     * @return boolean|string The name of the file to save in the bd or false if something went wrong
      */
-    public static function saveFileFromRequest(\Illuminate\Http\Request $input, $campo, array $detalles, $addNewName = true) {
+    public static function saveFileFromRequest($objModelo, \Illuminate\Http\Request $input, $campo, array $detalles, $addNewName = true)
+    {
         if ($input->hasFile($campo)) {
             $file = $input->file($campo);
             if ($file) {
@@ -1204,8 +2407,86 @@ trait CrudModels {
                 } catch (Error $err) {
                     $esImagen = false;
                 }
-                $destinationPath = Str::finish(public_path($detalles['path']), '/');
-                $filename = "";
+                $filename = CrudGenerator::getFileNameFromRequest($input, $campo, $detalles, $addNewName);
+                $destinationPath = false;
+                if (isset($detalles['saveFunction']) && is_callable($detalles['saveFunction'])) {
+                    $path = $detalles['saveFunction']($objModelo, $file, $filename, $detalles);
+                    $esImagen = false;
+                } else {
+                    if (isset($detalles['path'])) {
+                        $destinationPath = Str::finish($detalles['path'], '/');
+                    } else {
+                        $destinationPath = '';
+                    }
+                    $disk = Arr::get($detalles, "disk", "local");
+                    $path = $file->storeAs($destinationPath, $filename, $disk);
+                }
+                $upload_success = $path !== false;
+                if ($upload_success) {
+                    $newFilename = $filename;
+                    if (isset($detalles['saveCompletePath'])) {
+                        if ($detalles['saveCompletePath']) {
+                            $newFilename = $path;
+                            //$newFilename = Str::finish(str_replace("/", "\\", $detalles['path']), "\\") . $filename;
+                        }
+                    }
+                    if ($esImagen && isset($detalles['resize']) && class_exists('Intervention\Image\Image')) {
+                        foreach ($detalles['resize'] as $resize) {
+                            $imageManager = new \Intervention\Image\ImageManager(['driver' => 'imagick']);
+                            $modelo = strtolower(class_basename($objModelo));
+                            $image_resize = $imageManager->make(CrudGenerator::getFileUrl($newFilename, $objModelo, $modelo, $campo, $detalles));
+                            $width = 0;
+                            if (isset($resize['width'])) {
+                                $width = $resize['width'];
+                            }
+                            $height = 0;
+                            if (isset($resize['height'])) {
+                                $height = $resize['height'];
+                            }
+                            if ($width > 0 || $height > 0) {
+                                if ($width == 0 || $height == 0) {
+                                    $image_resize->resize($width, $height, function ($constraint) {
+                                        $constraint->aspectRatio();
+                                    });
+                                } else {
+                                    $image_resize->resize($width, $height);
+                                }
+                            }
+                            $destinationPath = Str::finish(public_path($resize['path']), '/');
+                            $quality = 90;
+                            if (isset($resize['quality'])) {
+                                $quality = $resize['quality'];
+                            }
+                            $content = (string) $image_resize->encode(null, $quality);
+                            CrudGenerator::getDisk($detalles)->put($destinationPath . $filename, $content);
+                        }
+                        // resizing an uploaded file
+                        //return Response::json('success', 200);
+                    }
+                    return $newFilename;
+                } else {
+                    return false;
+                    return Response::json('error', 400);
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get the temporary fileName of an uploaded file from a configuration array
+     * @param Request $input The request
+     * @param string $campo The file field name
+     * @param array $detalles the Field configuration array
+     * @param boolean $addNewName Optional, if true, will add the new field name to the filename (assumed in $campo . "_name" in input)
+     * @return string The name of the file to save in the bd or "" if something went wrong
+     */
+    public static function getFileNameFromRequest(\Illuminate\Http\Request $input, $campo, array $detalles, $addNewName = true)
+    {
+        $filename = "";
+        if ($input->hasFile($campo)) {
+            $file = $input->file($campo);
+            if ($file) {
                 if (isset($detalles['pre'])) {
                     if ($detalles['pre'] == '_originalName_') {
                         $filename = $file->getClientOriginalName();
@@ -1230,63 +2511,21 @@ trait CrudModels {
                     $new_name = mb_ereg_replace("([\.]{2,})", '', $new_name);
                     $new_name = "__" . $new_name;
                 }
-
-                $filename .= Str::random($numRand) . $new_name . "." . $file->getClientOriginalExtension();
-                $upload_success = $file->move($destinationPath, $filename);
-                if ($upload_success) {
-                    if ($esImagen && isset($detalles['resize'])) {
-                        foreach ($detalles['resize'] as $resize) {
-                            $image_resize = Image::make($destinationPath . $filename);
-                            $width = 0;
-                            if (isset($resize['width'])) {
-                                $width = $resize['width'];
-                            }
-                            $height = 0;
-                            if (isset($resize['height'])) {
-                                $height = $resize['height'];
-                            }
-                            if ($width > 0 || $height > 0) {
-                                if ($width == 0 || $height == 0) {
-                                    $image_resize->resize($width, $height, function ($constraint) {
-                                        $constraint->aspectRatio();
-                                    });
-                                } else {
-                                    $image_resize->resize($width, $height);
-                                }
-                            }
-                            $destinationPath = Str::finish(public_path($resize['path']), '/');
-                            $quality = 100;
-                            if (isset($resize['quality'])) {
-                                $quality = $resize['quality'];
-                            }
-                            $image_resize->save($destinationPath . $filename, $quality);
-                        }
-                        // resizing an uploaded file
-                        //return Response::json('success', 200);
-                    }
-                    $newFilename = $filename;
-                    if (isset($detalles['saveCompletePath'])) {
-                        if ($detalles['saveCompletePath']) {
-                            $newFilename = Str::finish(str_replace("/", "\\", $detalles['path']), "\\") . $filename;
-                            //$newFilename = str_replace("\\","/",$detalles['path']) . $filename;
-                        }
-                    }
-                    return $newFilename;
-                } else {
-                    return false;
-                    return Response::json('error', 400);
-                }
+                $filename .= Str::random($numRand) . $new_name;
+                $filename .= "." . $file->getClientOriginalExtension();
+                return $filename;
             }
         }
-        return false;
+        return $filename;
     }
 
     /**
      * Build the array for conditional fields using a configuration array
-     * @param array $config The ocnfiguration array
+     * @param array $config The configuration array
      * @param string $action Optional the action (create, edit, etc) where the conditionals are needed
      */
-    public static function buildConditionalArray(array $config, string $action = "-") {
+    public static function buildConditionalArray(array $config, string $action = "-")
+    {
         if ($action == "") {
             $action = substr(request()->route()->getName(), stripos(request()->route()->getName(), "::") + 2);
         }
@@ -1294,7 +2533,7 @@ trait CrudModels {
         $validadores = [];
         $tabla = $config['tabla'];
         foreach ($config['campos'] as $campo => $datos) {
-            if (\Sirgrimorum\CrudGenerator\CrudGenerator::inside_array($datos, "hide", $action) === false) {
+            if (CrudGenerator::inside_array($datos, "hide", $action) === false) {
                 if (isset($datos['conditional'])) {
                     if (is_array($datos['conditional'])) {
                         $validadores["{$tabla}_{$campo}"] = [];
@@ -1311,5 +2550,4 @@ trait CrudModels {
         }
         return [$condiciones, $validadores];
     }
-
 }

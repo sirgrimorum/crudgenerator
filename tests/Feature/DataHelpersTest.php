@@ -60,7 +60,7 @@ class DataHelpersTest extends TestCase
         $this->assertEquals('Yes', $result['active']['value']);
         
         $this->assertArrayHasKey('botones', $result);
-        $this->assertStringContainsString('/edit/' . $model->id, $result['botones']);
+        $this->assertStringContainsString('/edit/' . $model->id, $result['botones'][0]);
     }
 
     public function test_registry_array_simple_format()

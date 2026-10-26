@@ -11,7 +11,6 @@ use Closure;
 use Exception;
 use ReflectionFunction;
 use SplFileObject;
-use Closure;
 
 class SuperClosure {
 

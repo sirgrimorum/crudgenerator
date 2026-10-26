@@ -32,6 +32,25 @@ class GetConfigTest extends TestCase
         $this->assertArrayHasKey('parametros', $result);
     }
 
+    public function test_get_config_translates_data_prefixes()
+    {
+        $config = [
+            'modelo' => StubModel::class,
+            'campos' => [
+                'status' => [
+                    'tipo' => 'select',
+                    'label' => '__trans__crudgenerator::catchederror.labels.type',
+                    'opciones' => '__trans__crudgenerator::catchederror.selects.reportar',
+                ],
+            ],
+        ];
+
+        $result = CrudGenerator::getConfig(StubModel::class, false, $config);
+
+        $this->assertStringNotContainsString('__trans__', $result['campos']['status']['label']);
+        $this->assertSame(trans('crudgenerator::catchederror.selects.reportar'), $result['campos']['status']['opciones']);
+    }
+
     public function test_get_config_from_config_key()
     {
         $configArray = [

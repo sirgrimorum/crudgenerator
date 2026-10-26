@@ -35,6 +35,7 @@ return [
         "create" => "Create {model}",
         "edit" => "Edit {model}",
         "show" => "View {model}",
+        "remove" => "Remove {{\Illuminate\Support\Str::plural($modelo)}}"
     ],
     "messages" => [
         'confirm_destroy' => 'Are you sure to delete the {Model} ":modelName"?',

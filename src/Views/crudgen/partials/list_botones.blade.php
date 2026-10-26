@@ -63,8 +63,8 @@ if (is_string($butName) && CrudGenerator::shouldShowButton($config, $butName)) {
             if (Lang::has("crudgenerator::datatables.buttons." . $butName)) {
                 $textBoton = trans("crudgenerator::datatables.buttons." . $butName);
             }
-            if (Lang::has("crudgenerator::" . strtower(class_basename($config["modelo"])) . ".labels." . $butName)) {
-                $titleBoton = trans("crudgenerator::" . strtower(class_basename($config["modelo"])) . ".labels." . $butName);
+            if (Lang::has("crudgenerator::" . strtolower(class_basename($config["modelo"])) . ".labels." . $butName)) {
+                $titleBoton = trans("crudgenerator::" . strtolower(class_basename($config["modelo"])) . ".labels." . $butName);
             } elseif (Lang::has("crudgenerator::datatables.buttons.t_" . $butName)) {
                 $titleBoton = trans("crudgenerator::datatables.buttons.t_" . $butName) . " $plurales";
             } else {

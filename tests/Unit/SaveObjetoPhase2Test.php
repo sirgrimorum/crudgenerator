@@ -58,10 +58,7 @@ class SaveObjetoPhase2Test extends TestCase
         // relationshipssel expects data in a specific format in the request
         $request = Request::create('/', 'POST', [
             'name' => 'Alice',
-            'relatedCategories' => [
-                $cat1->id => [],
-                $cat2->id => [],
-            ],
+            'relatedCategories' => [$cat1->id, $cat2->id],
             // For pivot data
             'relatedCategories_priority_' . $cat1->id => 10,
             'relatedCategories_priority_' . $cat2->id => 20,
