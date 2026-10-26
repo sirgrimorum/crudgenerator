@@ -2,10 +2,13 @@
 
 namespace Sirgrimorum\CrudGenerator\Helpers;
 
+use Illuminate\Support\HtmlString;
+
 /**
  * Drop-in replacement for laravelcollective/html Form facade.
  * Provides the exact Form:: static methods used in CrudGenerator blade templates.
  * Registered as the 'Form' alias by CrudGeneratorServiceProvider.
+ * Returns HtmlString like laravelcollective did, so templates can print it with {{ }} unescaped.
  */
 class FormHelper
 {
@@ -13,7 +16,7 @@ class FormHelper
     // Public API
     // -------------------------------------------------------------------------
 
-    public static function open(array $attrs = []): string
+    public static function open(array $attrs = []): HtmlString
     {
         $method  = strtoupper($attrs['method'] ?? 'POST');
         $action  = $attrs['url'] ?? $attrs['action'] ?? '';
@@ -44,73 +47,73 @@ class FormHelper
             $html .= '<input type="hidden" name="_method" value="' . static::esc($method) . '">';
         }
 
-        return $html;
+        return new HtmlString($html);
     }
 
-    public static function close(): string
+    public static function close(): HtmlString
     {
-        return '</form>';
+        return new HtmlString('</form>');
     }
 
-    public static function hidden(string $name, $value = null, array $attrs = []): string
+    public static function hidden(string $name, $value = null, array $attrs = []): HtmlString
     {
         $attrs = array_merge(['type' => 'hidden', 'name' => $name, 'value' => (string) ($value ?? '')], $attrs);
-        return '<input' . static::buildAttributes($attrs) . '>';
+        return new HtmlString('<input' . static::buildAttributes($attrs) . '>');
     }
 
-    public static function submit(string $value, array $attrs = []): string
+    public static function submit(string $value, array $attrs = []): HtmlString
     {
         $attrs = array_merge(['type' => 'submit', 'value' => $value], $attrs);
-        return '<input' . static::buildAttributes($attrs) . '>';
+        return new HtmlString('<input' . static::buildAttributes($attrs) . '>');
     }
 
-    public static function label(string $name, string $text, array $attrs = []): string
+    public static function label(string $name, string $text, array $attrs = []): HtmlString
     {
         if (!array_key_exists('for', $attrs)) {
             $attrs = array_merge(['for' => $name], $attrs);
         }
-        return '<label' . static::buildAttributes($attrs) . '>' . static::esc($text) . '</label>';
+        return new HtmlString('<label' . static::buildAttributes($attrs) . '>' . static::esc($text) . '</label>');
     }
 
-    public static function text(string $name, $value = null, array $attrs = []): string
+    public static function text(string $name, $value = null, array $attrs = []): HtmlString
     {
-        return static::input('text', $name, $value, $attrs);
+        return new HtmlString(static::input('text', $name, $value, $attrs));
     }
 
-    public static function email(string $name, $value = null, array $attrs = []): string
+    public static function email(string $name, $value = null, array $attrs = []): HtmlString
     {
-        return static::input('email', $name, $value, $attrs);
+        return new HtmlString(static::input('email', $name, $value, $attrs));
     }
 
-    public static function password(string $name, array $attrs = []): string
+    public static function password(string $name, array $attrs = []): HtmlString
     {
         // password inputs never pre-fill value
-        return static::input('password', $name, null, $attrs);
+        return new HtmlString(static::input('password', $name, null, $attrs));
     }
 
-    public static function number(string $name, $value = null, array $attrs = []): string
+    public static function number(string $name, $value = null, array $attrs = []): HtmlString
     {
-        return static::input('number', $name, $value, $attrs);
+        return new HtmlString(static::input('number', $name, $value, $attrs));
     }
 
-    public static function file(string $name, array $attrs = []): string
+    public static function file(string $name, array $attrs = []): HtmlString
     {
         $attrs = array_merge(['type' => 'file', 'name' => $name], $attrs);
-        return '<input' . static::buildAttributes($attrs) . '>';
+        return new HtmlString('<input' . static::buildAttributes($attrs) . '>');
     }
 
-    public static function textarea(string $name, $value = null, array $attrs = []): string
+    public static function textarea(string $name, $value = null, array $attrs = []): HtmlString
     {
         $attrs  = array_merge(['name' => $name], $attrs);
         $content = static::esc((string) ($value ?? ''));
-        return '<textarea' . static::buildAttributes($attrs) . '>' . $content . '</textarea>';
+        return new HtmlString('<textarea' . static::buildAttributes($attrs) . '>' . $content . '</textarea>');
     }
 
     /**
      * @param array        $options   [value => label, ...]
      * @param string|array $selected  currently selected value(s)
      */
-    public static function select(string $name, array $options = [], $selected = null, array $attrs = []): string
+    public static function select(string $name, array $options = [], $selected = null, array $attrs = []): HtmlString
     {
         $attrs = array_merge(['name' => $name], $attrs);
         $html  = '<select' . static::buildAttributes($attrs) . '>';
@@ -120,25 +123,25 @@ class FormHelper
                    . static::esc((string) $label) . '</option>';
         }
         $html .= '</select>';
-        return $html;
+        return new HtmlString($html);
     }
 
-    public static function checkbox(string $name, $value = 1, $checked = false, array $attrs = []): string
+    public static function checkbox(string $name, $value = 1, $checked = false, array $attrs = []): HtmlString
     {
         $attrs = array_merge(['type' => 'checkbox', 'name' => $name, 'value' => $value], $attrs);
         if ($checked) {
             $attrs['checked'] = 'checked';
         }
-        return '<input' . static::buildAttributes($attrs) . '>';
+        return new HtmlString('<input' . static::buildAttributes($attrs) . '>');
     }
 
-    public static function radio(string $name, $value = null, $checked = false, array $attrs = []): string
+    public static function radio(string $name, $value = null, $checked = false, array $attrs = []): HtmlString
     {
         $attrs = array_merge(['type' => 'radio', 'name' => $name, 'value' => $value], $attrs);
         if ($checked) {
             $attrs['checked'] = 'checked';
         }
-        return '<input' . static::buildAttributes($attrs) . '>';
+        return new HtmlString('<input' . static::buildAttributes($attrs) . '>');
     }
 
     // -------------------------------------------------------------------------
