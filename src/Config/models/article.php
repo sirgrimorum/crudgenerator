@@ -63,9 +63,6 @@ return [
          */
     ],
     "permissions" => [ //the permissions to validate before doing an action, if not present, uses the "sirgrimorum_cms::permission" closure, false send back to the 'sirgrimorum_cms::login_path' 
-        "default" => function() {
-            return true;
-        }, // the default permission to validate if others not present, false send back to the 'sirgrimorum_cms::login_path' 
     /* "index" => [closure that return true or false], // permission for the index action of Crud, false send back to the 'sirgrimorum_cms::login_path' 
       "create" => [closure that return true or false], // permission for the create action of Crud, false send back to the 'sirgrimorum_cms::login_path'
       "show" => [closure($object) that return true or false], // permission for the show action of Crud, false send back to the 'sirgrimorum_cms::login_path'

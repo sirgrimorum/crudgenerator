@@ -5,7 +5,7 @@ return [
 	"botones" => [
 		'reportados' => [ // Aditional buttons to use in lists, The show, edit, remove or create ones must bue only strings
 			"title" => "__trans__crudgenerator::catchederror.labels.show_reported",
-			"text" => "<i class='fas fa-viruses fa-lg' aria-hidden='true'></i>",
+			"text" => "<i class='fa fa-bug fa-lg' aria-hidden='true'></i>",
 			"extendSelected" => false,
 			"class" => "btn btn-warning",
 			"callback" => "function(idsSelected, namesSelected, rowsSelected){

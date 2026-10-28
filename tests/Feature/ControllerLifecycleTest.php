@@ -75,6 +75,21 @@ class ControllerLifecycleTest extends TestCase
         $response->assertJsonFragment(['status' => 403]);
     }
 
+    public function test_update_unique_rule_ignores_the_record_in_the_route()
+    {
+        Config::set('stubmodel_config.rules', ['name' => 'required|unique:stub_models,name,:modelId']);
+        $model = StubModel::first();
+
+        $response = $this->put(route('sirgrimorum_modelo::update', [
+            'modelo' => 'stubmodel',
+            'registro' => $model->id,
+            '__parametros' => $this->encodedParametros,
+            '_return' => 'purejson'
+        ]), ['name' => 'To be deleted']);
+
+        $response->assertStatus(200);
+    }
+
     public function test_destroy_deletes_record_and_returns_json()
     {
         $model = StubModel::first();

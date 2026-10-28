@@ -9,7 +9,7 @@ return [
 	"botones" => [
 		'no_reportados' => [ // Aditional buttons to use in lists, The show, edit, remove or create ones must bue only strings
 			"title" => "__trans__crudgenerator::catchederror.labels.show_not_reported",
-			"text" => "<i class='fas fa-virus-slash fa-lg' aria-hidden='true'></i>",
+			"text" => "<i class='fa fa-ban fa-lg' aria-hidden='true'></i>",
 			"extendSelected" => false,
 			"class" => "btn btn-warning",
 			"callback" => "function(idsSelected, namesSelected, rowsSelected){
@@ -24,7 +24,7 @@ return [
 		],
 		'no_reportar' => [ // Aditional buttons to use in lists, The show, edit, remove or create ones must bue only strings
 			"title" => "__trans__crudgenerator::catchederror.labels.bt_no_report",
-			"text" => "<i class='fas fa-archive fa-lg' aria-hidden='true'></i>",
+			"text" => "<i class='fa fa-archive fa-lg' aria-hidden='true'></i>",
 			"extendSelected" => true,
 			"class" => "btn btn-danger",
 			"callback" => "function(idsSelected, namesSelected, rowsSelected){
@@ -194,7 +194,6 @@ return [
         "default" => function() {
             if (auth()->check()){
                 $user = App\User::find(auth()->user()->id);
-                return true;
 				return $user->isSuperAdmin();
             }
             return false;

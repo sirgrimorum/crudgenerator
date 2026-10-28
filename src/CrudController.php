@@ -77,6 +77,8 @@ class CrudController extends BaseController
         if (!$permiso = CrudGenerator::checkPermission($config, $registro)) {
             return $this->devolver($request, $config, $permiso, $registro);
         }
+        // The route decides which record the :modelId rules ignore, and as a string or the placeholder swallows the rule
+        $request->merge([$config['id'] => (string) $registro]);
         if (($validator = CrudGenerator::validateModel($config, $request)) !== false) {
             if ($validator->fails()) {
                 return $this->devolverValidation($validator, $modelo, $request, $registro);
